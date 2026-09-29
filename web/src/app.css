@@ -275,3 +275,11 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .task-start-lede{margin:0 0 4px;font-size:14.5px;color:var(--ink);max-width:62ch}
 .task-start a.btn{text-decoration:none}
 .task-side #prPanel>*{margin-top:0!important}
+/* module overview: green solved, yellow started, grey not started */
+.mod-list li{align-items:center}
+.mod-list .ms-dot{flex:none;width:14px;height:14px;border-radius:99px;border:2px solid var(--line);background:transparent;position:relative}
+.mod-list li.started .ms-dot{border-color:#D9A21B;background:#F5D77A}
+.mod-list li.done .ms-dot{border-color:var(--accent);background:var(--accent)}
+.mod-list li.done .ms-dot::after{content:"";position:absolute;left:3px;top:0;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.mod-list li.cur{font-weight:600}
+.lvl-tabs{display:inline-flex;margin:0 0 12px}

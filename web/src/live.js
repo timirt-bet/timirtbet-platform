@@ -17,6 +17,8 @@ if(LIVE){
     }catch(e){if(e.status!==401)console.error(e);L.me=null;}
     useAccount(L.me&&L.me.login);
     PUSH_ONLY=true;
+    try{const back=sessionStorage.getItem("timirtbet.return");sessionStorage.removeItem("timirtbet.return");
+      if(L.me&&back&&back!=="/"&&location.pathname==="/"&&ROUTED){history.replaceState(null,"",back);applyRoute(back);}}catch(e){}
     L.loaded=true;render();
     if(L.me)pollInbox(true);else setBell();
   }
@@ -41,6 +43,7 @@ if(LIVE){
     let n=null;try{n=JSON.parse(localStorage.getItem(ACCT(k))||"null");}catch(e){}
     const prefs={track:S.track,diff:S.diff,statusF:S.statusF};
     S=n||{...seed(),...prefs};S.me=null;
+    if(V.view==="exercise"&&EXM[V.ex])S.track=EXM[V.ex].lang;else if(V.view==="track")S.track=prefs.track;// the address decides the track
     fetchedCode.clear();V.rvDraft=null;V.confirm=null;L.latest={};
     try{if(localStorage.getItem(WHO)!==(k||""))localStorage.setItem(WHO,k||"");}catch(e){}
     return true;
@@ -233,7 +236,10 @@ git push</pre></div></details>`;
   peerPanel=function(ex){
     const m=MODOF[ex.id];if(!m)return "";
     const ms=moduleState(m);const done=id=>L.me?L.solved.has(id):passedEx(id);
-    const list=`<ul class="mod-list">${m.exercises.map(id=>`<li class="${done(id)?"ok":""}"><span aria-hidden="true">${done(id)?"✓":"○"}</span>${id===ex.id?`<b>${esc(EXM[id].title)}</b>`:`<button class="linkish" data-act="open" data-id="${id}">${esc(EXM[id].title)}</button>`}${L.jobs[id]?` <span class="muted pulse">grading…</span>`:""}</li>`).join("")}</ul>`;
+    // green = solved and saved, yellow = started (opened, or pushed without passing yet), grey = not started
+    const st=id=>done(id)?"done":((S.opened||{})[id]||L.solved.has(id)||(L.latest[id]&&L.latest[id].result))?"started":"todo";
+    const lbl={done:"Solved",started:"Started",todo:"Not started"};
+    const list=`<ul class="mod-list">${m.exercises.map(id=>{const s=st(id);return `<li class="${s}${id===ex.id?" cur":""}"><span class="ms-dot" role="img" aria-label="${lbl[s]}"></span>${id===ex.id?`<b>${esc(EXM[id].title)}</b>`:`<button class="linkish" data-act="open" data-id="${id}">${esc(EXM[id].title)}</button>`}</li>`;}).join("")}</ul>`;
     const sub=ms.sub;
     return `<section class="panel pr"><h2>Module review</h2><div class="pad"><p class="eyebrow" style="margin:0 0 4px">Module ${modNum(m)} · ${ms.passed}/${ms.total} passed</p><b>${esc(m.title)}</b>${list}<div class="mod-foot">${moduleFoot(m,ms,true)}</div>${sub&&sub.review?`<div class="stages">${reviewBlock(sub)}</div>`:""}</div></section>`;
   };
@@ -297,6 +303,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
   // The challenge page: the task is the main view; submitting from GitHub is a side card.
   viewExercise=function(){
     const ex=EXM[V.ex],d=diffOf(ex),m=MODOF[ex.id];
+    if(!(S.opened||{})[ex.id]){(S.opened=S.opened||{})[ex.id]=1;save();}// opening a challenge marks it started
     const tests=ex.lang==="js"
       ?`<section class="task-sec"><h2>Tests <span class="muted">what your code must do</span></h2><ol class="task-tests">${ex.tests.map(t=>`<li><b>${esc(t.n)}</b><code>${esc(t.t)}</code></li>`).join("")}</ol></section>`
       :`<section class="task-sec"><h2>Tests <span class="muted">run with <code>go test -race</code></span></h2><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></section>`;
@@ -385,6 +392,8 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       <form class="form" data-form="delete" style="margin-top:16px"><label class="lbl-sm" for="delConfirm">Delete my account: type <span class="mono">${esc(L.me.login)}</span> to confirm. This removes your data and your repository.</label><input id="delConfirm" class="mono" autocomplete="off"><div id="delErr" class="err" role="alert"></div><button class="btn" type="submit">Delete my account</button></form></div></section></div>`;
   };
 
+  // Signing in leaves the page for GitHub: remember where the learner was, to come back there.
+  document.addEventListener("click",e=>{const a=e.target.closest('a[href="/api/auth/github"]');if(a){try{sessionStorage.setItem("timirtbet.return",location.pathname);}catch(_){}}},true);
   const liveClick=async(e)=>{
     const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
     try{

@@ -127,6 +127,21 @@ Every peer-review event reaches the learner in two places:
 
 A failed notification is logged and never blocks the review itself.
 
+## Web addresses
+
+The web app is one page, but every screen has its own address and browser-tab title, so links can be shared and Back works. Firebase Hosting serves `index.html` for every path except `/api/**`.
+
+| Address | Screen |
+|---|---|
+| `/` | The two tracks |
+| `/challenges/js`, `/challenges/go` | A track, all modules |
+| `/challenges/js/basic`, `/challenges/js/advanced` | A track, one level |
+| `/challenges/js/basic/vars` | A challenge (its id without the `js-`/`go-` prefix) |
+| `/reviews`, `/reviews/{submission}` | Reviews to write, and one review |
+| `/circle`, `/profile`, `/signin` | Circle, profile, getting started |
+
+After signing in with GitHub, the learner returns to the page they were on.
+
 ## API
 
 | Route | Who |

@@ -245,11 +245,60 @@ function render(){
   const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin};
   if(CM){CM.destroy();CM=null;}
   app.innerHTML=(views[V.view]||viewChallenges)();
+  document.title=titleOf();
   upgradeEditor();
   document.getElementById("resetZone").innerHTML=V.confirm==="reset"?`<span class="confirm">Clear everything on this device? <button class="btn small" data-act="reset-yes">Yes, reset</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="linkish" data-act="reset">Reset demo</button>`;
 }
 const GH=`<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>`;
-function go(view,extra){stopTick();Object.assign(V,{view},extra||{});render();window.scrollTo(0,0);}
+function go(view,extra){stopTick();Object.assign(V,{view},extra||{});if(ROUTED&&location.pathname!==pathOf())history.pushState(null,"",pathOf());render();window.scrollTo(0,0);}
+/* ---------- routing (live site): every page has its own address and title ----------
+   /                                   the two tracks
+   /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
+   /challenges/js/basic/vars           a challenge (its id without the js-/go- prefix)
+   /reviews  /reviews/<id>  /circle  /profile  /signin                                        */
+const ROUTED=LIVE&&typeof history!=="undefined"&&/^https?:$/.test(location.protocol);
+const TRACK_LEVELS=["basic","advanced"],cap=s=>s[0].toUpperCase()+s.slice(1),slugOf=id=>id.replace(/^(js|go)-/,"");
+function pathOf(){
+  switch(V.view){
+    case "track":return `/challenges/${S.track==="go"?"go":"js"}`+(V.level?`/${V.level}`:"");
+    case "exercise":{const e=EXM[V.ex];return e?`/challenges/${e.lang}/${e.level}/${slugOf(e.id)}`:"/";}
+    case "reviews":return "/reviews";
+    case "review":return `/reviews/${encodeURIComponent(V.qid||"")}`;
+    case "circle":case "profile":case "signin":return "/"+V.view;
+    default:return "/";
+  }
+}
+function titleOf(){
+  const T="Timirtbet";
+  switch(V.view){
+    case "track":{const k=S.track==="go"?"go":"js";return `${LANGN[k]}${V.level?` ${V.level}`:""} challenges · ${T}`;}
+    case "exercise":{const e=EXM[V.ex];return e?`${e.title} · ${LANGN[e.lang]} ${e.level} · ${T}`:T;}
+    case "reviews":return `Reviews · ${T}`;
+    case "review":return `Write a review · ${T}`;
+    case "circle":return `Review circle · ${T}`;
+    case "profile":return `Profile · ${T}`;
+    case "signin":return `Get started · ${T}`;
+    default:return `${T} | ትምህርት ቤት`;
+  }
+}
+function routeFrom(path){
+  const p=path.split("/").filter(Boolean).map(decodeURIComponent);
+  if(p[0]==="challenges"&&(p[1]==="js"||p[1]==="go")){
+    const lang=p[1],level=TRACK_LEVELS.includes(p[2])?p[2]:null,slug=level?p[3]:p[2];
+    if(slug&&EXM[`${lang}-${slug}`])return {view:"exercise",ex:`${lang}-${slug}`,track:lang};
+    return {view:"track",track:lang,level};
+  }
+  if(p[0]==="reviews")return p[1]?{view:"review",qid:p[1]}:{view:"reviews"};
+  if(["circle","profile","signin"].includes(p[0]))return {view:p[0]};
+  return {view:"challenges"};
+}
+function applyRoute(path){
+  const r=routeFrom(path);
+  if(r.track){S.track=r.track;}
+  Object.assign(V,{view:r.view,level:r.level||null,confirm:null},r.ex?{ex:r.ex}:{},r.qid?{qid:r.qid,rvDraft:{rub:{c:0,r:0,s:0},text:""},rvAuto:null}:{});
+  if(ROUTED&&location.pathname!==pathOf())history.replaceState(null,"",pathOf());// tidy unknown or partial addresses
+}
+if(ROUTED)window.addEventListener("popstate",()=>{stopTick();applyRoute(location.pathname);render();});
 
 /* ---------- challenges ---------- */
 /* ---------- challenges: two language tracks, then each track's list ---------- */
@@ -286,7 +335,8 @@ function viewTrack(){
   const solved=BANK.filter(e=>passedEx(e.id)).length,done=all.filter(e=>passedEx(e.id)).length;
   const chip=(key,v,l)=>`<button data-act="filter" data-k="${key}" data-v="${v}" aria-pressed="${S[key]===v}">${l}</button>`;
   const row=e=>{const st=status(e.id),d=diffOf(e);return `<button class="ch-row" data-act="open" data-id="${e.id}"><span class="ch-main"><b>${esc(e.title)}</b><span class="muted">${esc(e.topic)} · ${e.level==="basic"?"Basic":"Advanced"}</span></span><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(e)} pts</span><span class="st ${st.k}">${esc(st.l)}</span></button>`;};
-  const filtered=S.diff!=="all"||S.statusF!=="all";const langMods=MODULES.filter(m=>m.lang===k);
+  const filtered=S.diff!=="all"||S.statusF!=="all";const langMods=MODULES.filter(m=>m.lang===k&&(!V.level||EXM[m.exercises[0]].level===V.level));
+  const lvTab=(v,l)=>`<button data-act="level" data-v="${v}" aria-pressed="${(V.level||"")===v}">${l}</button>`;
   const current=(langMods.find(m=>{const ms=moduleState(m);return !(ms.passed===ms.total&&ms.sub&&ms.sub.status==="rated");})||{}).id;
   S.modOpen=S.modOpen||{};
   const mods=langMods.map(m=>{const list=m.exercises.map(id=>EXM[id]).filter(keep);if(!list.length)return "";const ms=moduleState(m);
@@ -295,6 +345,7 @@ function viewTrack(){
   return `<button class="back" data-act="view" data-v="challenges">← All tracks</button>
   <header class="track-title track-${k}"><img class="track-logo track-logo-${k} track-logo-lg" src="${TRACK_IMG[k]}" alt=""><div><h1>${LANGN[k]}</h1><p class="muted">${TRACKS[k].blurb}</p></div><span class="mono muted track-count">${done}/${all.length} solved</span></header>
   <div class="grid2"><div>
+   <div class="seg-tabs lvl-tabs" role="group" aria-label="Level">${lvTab("","All modules")}${lvTab("basic","Basic")}${lvTab("advanced","Advanced")}</div>
    <div class="toolbar"><div class="chips" role="group" aria-label="Difficulty">${chip("diff","all","All")}${chip("diff","Easy","Easy")}${chip("diff","Medium","Medium")}${chip("diff","Hard","Hard")}</div>
     <div class="chips" role="group" aria-label="Status">${chip("statusF","all","Any")}${chip("statusF","unsolved","Unsolved")}${chip("statusF","solved","Solved")}</div></div>
    ${mods}</div>
@@ -536,7 +587,8 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
   if(a==="view"){V.confirm=null;go(el.dataset.v);}
   else if(a==="filter"){S[el.dataset.k]=el.dataset.v;save();render();}
-  else if(a==="track"){S.track=el.dataset.v;save();go("track");}
+  else if(a==="track"){S.track=el.dataset.v;save();go("track",{level:null});}
+  else if(a==="level"){go("track",{level:el.dataset.v||null});}
   else if(a==="open")openEx(el.dataset.id);
   else if(a==="run")run();
   else if(a==="submit"){el.disabled=true;el.textContent="Submitting…";submit();}
@@ -571,6 +623,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Tab"&&!e.shiftKey){e.preventDefault();const ta=e.target;ta.setRangeText(EXM[V.ex].lang==="go"?"\t":"  ",ta.selectionStart,ta.selectionEnd,"end");ta.dispatchEvent(new Event("input",{bubbles:true}));}
 });
 /*__I18N__*/
+if(ROUTED)applyRoute(location.pathname);
 /*__LIVE__*/
 render();
 I18N.start();
