@@ -21,7 +21,6 @@ const modules = loadModules(CHALLENGES);
 const APP = "https://timirtbet.example";
 const config = { org: "timirtbet", studentsTeam: "learners", templateRepo: "student-template", webhookSecret: "wh", sessionSecret: "sess", githubClientId: "Iv1.test", appUrl: APP, secureCookies: false };
 const oauth = { exchange: async (code) => { if (code !== "good") throw new Error("bad code"); return "gho_token"; }, user: async () => ({ id: 1001, login: "hana-t" }) };
-const SOLUTION = { get "js-arrays"() { return answer("js-arrays"); } };
 
 async function setup({ prFiles, verifyTask } = {}) {
   const gh = fakeGitHub({ prFiles });
@@ -95,7 +94,10 @@ test("sign in, circle, push, circle review, rating", { skip: NEEDS_ANSWERS }, as
     assert.equal((await t.store.submissionsOf("gh_1001")).length, 0, "a single pass is not reviewed on its own");
     assert.match((await t.store.passOf("gh_1001", "js-loops")).code, /\S/, "the pass keeps its code");
     assert.equal(await t.store.passOf("gh_1001", "js-func"), null, "failing code is not kept");
+    const pushNotes = (await t.store.inboxOf("gh_1001")).items.map((n) => `${n.kind}:${n.exerciseId}`);
+    assert.ok(pushNotes.includes("push_passed:js-loops") && pushNotes.includes("push_failed:js-func"), "the learner hears how the push went");
     const meNow = (await (await t.get("/api/me", hana)).json()).me;
+    assert.equal(meNow.submitVia, "github");
     assert.ok(meNow.savedIds.includes("js-loops") && !meNow.savedIds.includes("js-func"));
     const saved = await (await t.get("/api/passes/js-loops", hana)).json();
     assert.match(saved.code, /\S/, "your passing code comes back for the editor");
@@ -107,7 +109,12 @@ test("sign in, circle, push, circle review, rating", { skip: NEEDS_ANSWERS }, as
     let res = await t.post("/api/modules/js-m1/submit", {}, hana);
     assert.equal(res.status, 409);
     assert.match((await res.json()).error, /^Pass /);
-    for (const ex of ["js-vars", "js-cond", "js-func"]) await t.store.addResult({ learnerId: "gh_1001", exerciseId: ex, ref: "web", passed: true, passedCount: 3, total: 3, code: `// ${ex} by hana` });
+    for (const ex of ["js-vars", "js-cond", "js-func"]) await t.store.addResult({ learnerId: "gh_1001", exerciseId: ex, ref: "web", source: "web", passed: true, passedCount: 3, total: 3, code: `// ${ex} from the editor` });
+    res = await t.post("/api/modules/js-m1/submit", {}, hana);
+    assert.equal(res.status, 409, "passes from the web editor don't count");
+    assert.match((await res.json()).error, /^Push "What type is it\?" from your GitHub repository/);
+    assert.ok(!(await (await t.get("/api/me", hana)).json()).me.savedIds.includes("js-vars"));
+    for (const ex of ["js-vars", "js-cond", "js-func"]) await t.store.addResult({ learnerId: "gh_1001", exerciseId: ex, ref: "sha", source: "git", passed: true, passedCount: 3, total: 3, code: `// ${ex} by hana` });
     res = await t.post("/api/modules/js-m1/submit", {}, hana);
     assert.equal(res.status, 201);
     const { submission } = await res.json();
@@ -167,32 +174,12 @@ test("sign in, circle, push, circle review, rating", { skip: NEEDS_ANSWERS }, as
   } finally { t.close(); }
 });
 
-test("web editor submissions are graded by the same grader", { skip: NEEDS_ANSWERS }, async () => {
+test("solutions are submitted from GitHub only", async () => {
   const t = await setup();
   try {
     const { hana } = await t.signIn();
-    await t.circle(hana);
-    assert.equal((await t.post("/api/submissions", { exerciseId: "nope", code: "x" }, hana)).status, 422);
-    assert.equal((await t.post("/api/submissions", { exerciseId: "js-arrays", code: "" }, hana)).status, 422);
-
-    let res = await t.post("/api/submissions", { exerciseId: "js-arrays", code: "function average(){ return 0 }" }, hana);
-    assert.equal(res.status, 202);
-    let { jobId } = await res.json();
-    await t.app.idle();
-    let job = await (await t.get(`/api/jobs/${jobId}`, hana)).json();
-    assert.equal(job.status, "done");
-    assert.equal(job.passed, false);
-    assert.ok(job.result.tests.some((x) => !x.pass && x.message));
-    assert.equal((await t.get(`/api/jobs/${jobId}`, await t.as("gh_2"))).status, 404, "jobs are private");
-
-    res = await t.post("/api/submissions", { exerciseId: "js-arrays", code: SOLUTION["js-arrays"] }, hana);
-    ({ jobId } = await res.json());
-    await t.app.idle();
-    job = await (await t.get(`/api/jobs/${jobId}`, hana)).json();
-    assert.equal(job.passed, true);
-    assert.equal((await t.store.passOf("gh_1001", "js-arrays")).code, SOLUTION["js-arrays"], "the passing code is kept for the module review");
-    assert.equal((await t.store.submissionsOf("gh_1001")).length, 0, "nothing is reviewed until the module is submitted");
-    assert.equal((await (await t.get("/api/results/js-arrays", hana)).json()).result.passed, true);
+    const res = await t.post("/api/submissions", { exerciseId: "js-arrays", code: "function average(){ return 0 }" }, hana);
+    assert.equal(res.status, 404, "there is no web submission endpoint");
   } finally { t.close(); }
 });
 
@@ -263,12 +250,13 @@ test("task endpoints accept only Google-signed callers", { skip: NEEDS_ANSWERS }
   const t = await setup({ verifyTask: async (h) => h === "Bearer good" });
   try {
     const { hana } = await t.signIn();
-    const job = { kind: "web", key: "web_x", learnerId: "gh_1001", exerciseId: "js-arrays", code: SOLUTION["js-arrays"] };
-    await t.store.claimJob("web_x", { learnerId: "gh_1001", exerciseId: "js-arrays" });
+    const job = { kind: "push", key: "push_x", repo: "timirtbet/hana-t-code", sha: "abc999", exerciseIds: ["js-loops"], pr: null };
+    await t.store.claimJob("push_x", { kind: "push", repo: job.repo });
     const body = { message: { data: Buffer.from(JSON.stringify(job)).toString("base64"), messageId: "1" }, subscription: "s" };
     assert.equal((await t.post("/api/tasks/grade", body, { authorization: "Bearer bad" })).status, 401);
     assert.equal((await t.post("/api/tasks/grade", body, { authorization: "Bearer good" })).status, 204);
-    assert.equal((await t.store.getJob("web_x")).passed, true);
+    assert.equal((await t.store.getJob("push_x")).status, "done");
+    assert.equal((await t.store.passOf("gh_1001", "js-loops")).codeSource, "git");
     assert.equal((await t.post("/api/tasks/reassign", {}, { authorization: "Bearer good" })).status, 200);
     void hana;
   } finally { t.close(); }

@@ -31,7 +31,7 @@ export class MemoryStore {
     if (r.passed) {
       const k = `${r.exerciseId}_${r.learnerId}`, cur = this.t.passes.get(k);
       const next = cur || { exerciseId: r.exerciseId, learnerId: r.learnerId, at: rec.at };
-      this.t.passes.set(k, typeof code === "string" ? { ...next, code, codeAt: rec.at } : next);
+      this.t.passes.set(k, typeof code === "string" ? { ...next, code, codeAt: rec.at, codeSource: r.source || null } : next);
     }
     return clone(rec);
   }
@@ -41,7 +41,7 @@ export class MemoryStore {
   async hasPassed(learnerId, exerciseId) { return this.t.passes.has(`${exerciseId}_${learnerId}`); }
   async passersOf(exerciseId) { return [...this.t.passes.values()].filter((p) => p.exerciseId === exerciseId).map((p) => p.learnerId); }
   async solvedOf(learnerId) { return (await this.passesOf(learnerId)).map((p) => p.exerciseId); }
-  async passesOf(learnerId) { return [...this.t.passes.values()].filter((p) => p.learnerId === learnerId).map((p) => ({ exerciseId: p.exerciseId, hasCode: typeof p.code === "string" })); }
+  async passesOf(learnerId) { return [...this.t.passes.values()].filter((p) => p.learnerId === learnerId).map((p) => ({ exerciseId: p.exerciseId, hasCode: typeof p.code === "string", fromGit: typeof p.code === "string" && p.codeSource === "git" })); }
 
   // submissions
   async addSubmission(s) { const rec = { id: newId("sub"), at: new Date().toISOString(), status: "awaiting_review", review: null, rating: null, ...s }; this.t.submissions.set(rec.id, rec); return clone(rec); }

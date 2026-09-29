@@ -185,3 +185,27 @@ details.mod[open] .mod-chev{transform:rotate(45deg)}
 .save-note .spin{width:14px;height:14px;border-radius:99px;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.save-note .spin{animation-duration:2.4s}}
+.save-note.push{border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.save-note.push .sn-ic{background:var(--accent-soft);color:var(--accent)}
+.push-steps{margin:6px 0 8px;padding-left:20px}
+.push-steps li{margin:4px 0}
+.save-note .shell{margin:6px 0;font-size:12.5px;white-space:pre-wrap}
+.save-note .sn-sub{font-size:12.5px;color:var(--ink-3);margin-top:4px}
+.gh-how ol{margin:8px 0;padding-left:20px;font-size:14px}
+.gh-how ol li{margin:4px 0}
+.gh-how p{font-size:13.5px;margin:0 0 6px}
+.save-note a{color:var(--accent);font-weight:600}
+/* challenge page without an editor: submit from GitHub */
+#pushPanel .save-note{margin:0 0 6px}
+.push-tests{list-style:none;margin:10px 0 0;padding:0}
+.push-tests li{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:4px 0;font-size:14px}
+.push-tests li.ok>span{color:var(--accent);font-weight:700}
+.push-tests li.bad>span{color:var(--clay);font-weight:700}
+.push-tests .msg{font-size:12px;color:var(--clay);margin-top:2px;word-break:break-word}
+#pushPanel .push-steps{margin:14px 0 8px;font-size:14px}
+#pushPanel a{color:var(--accent);font-weight:600}
+details.starter{padding:0}
+details.starter>summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px}
+details.starter .codeview{border-top:1px solid var(--line)}
+#pushPanel details>summary{margin-top:12px;cursor:pointer;font-weight:600;font-size:14px}
+#pushPanel details .codeview{margin-top:8px;border:1px solid var(--line);border-radius:10px;overflow:auto}

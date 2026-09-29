@@ -145,6 +145,8 @@ let me=()=>S.me&&S.me.login;
 let inCircle=login=>!!(S.circle&&S.circle.members.includes(login));
 let myRatings=()=>S.given.filter(g=>g.stars&&Date.now()>=g.revealAt).map(g=>g.stars);
 const peerRatings=n=>PEERS[n].r.concat(S.peerExtra[n]||[]);
+// Live site: solutions count only when pushed to the learner's GitHub repository (set from /api/me).
+let PUSH_ONLY=false;
 let passedEx=id=>{const r=S.res[id];return !!(r&&r.p===r.t&&r.t>0);};
 let myPoints=()=>BANK.filter(e=>passedEx(e.id)).reduce((a,e)=>a+ptsOf(e),0);
 const peerPoints=n=>PEERS[n].solved.reduce((a,id)=>a+ptsOf(EXM[id]),0);
@@ -308,9 +310,10 @@ function moduleFoot(m,ms,inline){
   if(sub&&sub.status==="reviewed")return `<span class="st act">Review received</span>${inline?`<span class="muted">Rate it below.</span>`:`<button class="btn small primary" data-act="open" data-id="${m.exercises[0]}">Rate the review</button>`}`;
   if(sub)return `<span class="st wait">In review</span><span class="muted">${sub.status==="waiting_for_reviewer"?"Waiting for someone who finished this module to be free":"A reviewer is reading your solutions"}</span>`;
   const err=ms.err?`<span class="err" role="alert" style="flex-basis:100%;margin:0">${esc(ms.err)}</span>`:"";
+  if(ms.resave&&ms.resave.length&&!sub&&PUSH_ONLY)return `<span class="muted">Push ${ms.resave.map(id=>`<button class="linkish" data-act="open" data-id="${id}">${esc(EXM[id].title)}</button>`).join(", ")} from your GitHub repository to submit this module.</span>${err}`;
   if(ms.resave&&ms.resave.length&&!sub)return `<span class="muted">Run the tests once more on ${ms.resave.map(id=>`<button class="linkish" data-act="open" data-id="${id}">${esc(EXM[id].title)}</button>`).join(", ")} to save ${ms.resave.length>1?"those solutions":"that solution"} for review.</span>${err}`;
   if(ms.ready)return `<span class="okc">All ${ms.total} passed.</span><button class="btn small primary" data-act="submit-module" data-id="${m.id}">Submit module for review</button>${err}`;
-  return `<span class="muted">Pass all ${ms.total} challenges on the grader to submit this module for review.</span>`;
+  return `<span class="muted">${PUSH_ONLY?`Push all ${ms.total} challenges from your GitHub repository to submit this module for review.`:`Pass all ${ms.total} challenges on the grader to submit this module for review.`}</span>`;
 }
 function modChip(ms){const sub=ms.sub;
   if(sub&&sub.status==="rated")return `<span class="st done">Reviewed ★${sub.rating}</span>`;

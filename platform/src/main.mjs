@@ -78,8 +78,6 @@ if (mode === "grader") {
   const handler = dev ? (req, res) => {
     if (req.method === "GET" && !req.url.startsWith("/api/")) {
       if (!fs.existsSync(webIndex)) { res.writeHead(404); return res.end("Run: node web/build.mjs --live"); }
-      const asset = /^\/(codemirror-[a-f0-9]+\.js)$/.exec(req.url.split("?")[0]); // the editor bundle sits beside index.html
-      if (asset) { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8" }); return res.end(fs.readFileSync(new URL(asset[1], new URL("../../web/dist/", import.meta.url)))); }
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" }); return res.end(fs.readFileSync(webIndex));
     }
     return app.handler(req, res);

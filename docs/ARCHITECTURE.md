@@ -5,7 +5,6 @@ Timirtbet (ትምህርት ቤት) teaches JavaScript and Go through challenges,
 ```mermaid
 flowchart TD
     U["Learner (browser)"] -- "Sign in with GitHub" --> API
-    U -- "web editor: Submit" --> API
     U -- "git push / pull request" --> GH["GitHub: org, private repo per learner"]
     GH -- "webhook" --> API["API · Cloud Run"]
     API -- "job" --> Q["Pub/Sub grading-jobs"]
@@ -48,8 +47,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 - **Notice at first sign-in:** a one-line notice says what is stored, and that it is stored in the United States.
 - **Export:** `GET /api/me/export`.
 - **Delete:** `DELETE /api/me` removes the learner's records and their repository, and takes them out of the organization. Reviews they wrote stay, unsigned.
-- **Guests:** anyone can practise every challenge without signing in; their work stays in their own browser.
-- **Shared computers:** drafts in the browser are kept per account (and separately for guests). Signing out, or signing in as someone else in any tab, switches the editor to that person's work at once.
+- **Guests:** anyone can read every challenge and its tests without signing in.
 - **Age:** GitHub accounts require age 13+.
 
 ## Sign-in and sessions
@@ -74,7 +72,6 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 - **From Git:** GitHub sends `push` (to `main`) and `pull_request` events to `/api/hooks/github`.
   - The API checks the HMAC signature and maps changed files to challenges: `js/<id>/solution.js` and `go/<id_with_underscores>/solution.go`.
   - It claims the job `repo@sha` once, so a repeated webhook is graded only once, and publishes it to Pub/Sub.
-- **From the web editor:** `POST /api/submissions {exerciseId, code}` publishes the same kind of job, and the app polls `GET /api/jobs/{id}`. Limits: 64 KB per submission, and 30 an hour per learner.
 - **Processing:** Pub/Sub pushes the job to `/api/tasks/grade` with a Google-signed token. The API checks the token's signature, issuer, audience, expiry and service account, then processes the job.
   - For a push, it downloads the commit and reads only the changed solution files.
   - It sends `{exerciseId, code}` items to the grader with a Google ID token.
@@ -83,6 +80,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
   - Go: `go test -race`, 60 seconds per challenge, with no module downloads.
   - It returns results and holds nothing.
 - **Recording:** each result is saved. A pass also keeps the latest passing code for that challenge. A single pass is not reviewed on its own.
+- **Submitting is done from GitHub; there is no code editor on the site.** Each challenge page shows the task, the tests, how to push, and the result of the learner's latest push (`GET /api/results/{id}`, `GET /api/passes/{id}`). A solution counts (and can go into a module review) only when the learner pushes it to `main` in their own repository and the grader passes it; the pass remembers that its code came from a push (`codeSource: "git"`). Each push gives an in-app notification (passed and saved, or how many tests passed) and, when a module is complete, a "submit it for review" notification. In development, `POST /api/dev/push` acts like a push.
 - **Modules:** challenges are grouped into modules of 3–5 (`challenges/modules.json`, 4 per language). When every challenge in a module has passed, the learner submits the module (`POST /api/modules/{id}/submit`): one submission with the latest passing code of each challenge. Reviewers only ever get whole modules: single-challenge submissions left from before modules existed are withdrawn at API start-up and by the hourly task, freeing the reviewer's slot.
 - **Feedback on GitHub:** the commit gets a `timirtbet/tests` status, and pull requests get a comment listing failing tests.
 - **Retries:** if processing fails, Pub/Sub retries with a 10–600 second backoff, and moves the job to `grading-failed` after 5 attempts.
@@ -136,10 +134,9 @@ A failed notification is logged and never blocks the review itself.
 | `GET /api/auth/github`, `/callback`; `POST /api/auth/logout` | anyone / you |
 | `GET /api/me`, `POST /api/me/notice`, `GET /api/me/export`, `DELETE /api/me` | you |
 | `POST /api/circles`, `/join`, `/leave`, `/{id}/invite-code` | you (owner for the code) |
-| `POST /api/submissions` (grade one challenge), `GET /api/jobs/{id}`, `GET /api/results/{exerciseId}` | you |
+| `GET /api/results/{exerciseId}` (your latest push's test results), `GET /api/passes/{exerciseId}` (your saved solution) | you |
 | `POST /api/modules/{id}/submit` (send a finished module for review) | you |
 | `GET /api/notifications`, `POST /api/notifications/read` | you |
-| `GET /api/passes/{exerciseId}` (your latest passing code, so the editor has it on any device) | you |
 | `GET /api/submissions/mine`, `GET /api/reviews/queue`, `GET /api/reviews/given` | you |
 | `POST /api/submissions/{id}/review` | assigned reviewer |
 | `POST /api/submissions/{id}/rating` | author |

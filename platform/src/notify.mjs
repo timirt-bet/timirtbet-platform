@@ -13,6 +13,9 @@ export const KINDS = {
   review_rated: { github: true },      // your review got stars
   level_up: { github: false },         // you reached a new reviewer level
   second_opinion: { github: true },    // a Mentor added a second opinion on your review
+  push_passed: { github: false },      // a push passed the grader and is saved (GitHub already shows a ✓ on the commit)
+  push_failed: { github: false },      // a push did not pass
+  module_ready: { github: false },     // every challenge in a module passed from GitHub: submit it
 };
 
 const ISSUE_TITLE = "Timirtbet notifications";
@@ -34,6 +37,9 @@ export function message(n, ctx) {
     case "review_rated": return `Your review of **${unit}** was rated ${"★".repeat(n.stars)}${"☆".repeat(5 - n.stars)} (${n.points > 0 ? "+" : ""}${n.points} points).`;
     case "level_up": return `You reached **${n.level}** as a reviewer.`;
     case "second_opinion": return `A Mentor added a second opinion to the review of your **${unit}**.`;
+    case "push_passed": return `Your push of **${unit}** passed and is saved.`;
+    case "push_failed": return `Your push of **${unit}** passed ${n.passed} of ${n.total} tests.`;
+    case "module_ready": return `You finished **${unit}**. Submit it for review on Timirtbet.`;
     default: return `Something changed on Timirtbet.`;
   }
 }

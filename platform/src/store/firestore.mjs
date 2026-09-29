@@ -38,7 +38,7 @@ export class FirestoreStore {
     if (r.passed) {
       const pass = this.c.passes.doc(`${r.exerciseId}_${r.learnerId}`);
       await pass.create({ exerciseId: r.exerciseId, learnerId: r.learnerId, at: rec.at }).catch((e) => { if (e.code !== 6) throw e; }); // 6 = ALREADY_EXISTS
-      if (typeof code === "string") await pass.set({ code, codeAt: rec.at }, { merge: true });
+      if (typeof code === "string") await pass.set({ code, codeAt: rec.at, codeSource: r.source || null }, { merge: true });
     }
     return { id: ref.id, ...rec };
   }
@@ -52,7 +52,7 @@ export class FirestoreStore {
   async passersOf(exerciseId) { return (await all(this.c.passes.where("exerciseId", "==", exerciseId).limit(500))).map((p) => p.learnerId); }
   async solvedOf(learnerId) { return (await this.passesOf(learnerId)).map((p) => p.exerciseId); }
   // One read per pass (the same as solvedOf); says which passes still have their code for a module review.
-  async passesOf(learnerId) { return (await all(this.c.passes.where("learnerId", "==", learnerId))).map((p) => ({ exerciseId: p.exerciseId, hasCode: typeof p.code === "string" })); }
+  async passesOf(learnerId) { return (await all(this.c.passes.where("learnerId", "==", learnerId))).map((p) => ({ exerciseId: p.exerciseId, hasCode: typeof p.code === "string", fromGit: typeof p.code === "string" && p.codeSource === "git" })); }
 
   async addSubmission(s) { const rec = { id: newId("sub"), at: new Date().toISOString(), status: "awaiting_review", review: null, rating: null, ...s }; await this.c.submissions.doc(rec.id).set(rec); return rec; }
   async getSubmission(id) { return data(await this.c.submissions.doc(id).get()); }

@@ -42,11 +42,12 @@ export function storeContract(test, makeStore) {
     const s = await makeStore();
     await s.addResult({ learnerId: "gh_1", exerciseId: "js-loops", ref: "a", passed: true, code: "v1" });
     await s.addResult({ learnerId: "gh_1", exerciseId: "js-loops", ref: "b", passed: false, code: "broken" });
-    await s.addResult({ learnerId: "gh_1", exerciseId: "js-loops", ref: "c", passed: true, code: "v2" });
+    await s.addResult({ learnerId: "gh_1", exerciseId: "js-loops", ref: "c", source: "git", passed: true, code: "v2" });
     assert.equal((await s.passOf("gh_1", "js-loops")).code, "v2");
+    assert.equal((await s.passOf("gh_1", "js-loops")).codeSource, "git", "remembers where the passing code came from");
     assert.equal(await s.passOf("gh_1", "go-sync"), null);
     await s.addResult({ learnerId: "gh_1", exerciseId: "js-vars", ref: "old", passed: true });
-    assert.deepEqual((await s.passesOf("gh_1")).sort((a, b) => a.exerciseId.localeCompare(b.exerciseId)), [{ exerciseId: "js-loops", hasCode: true }, { exerciseId: "js-vars", hasCode: false }]);
+    assert.deepEqual((await s.passesOf("gh_1")).sort((a, b) => a.exerciseId.localeCompare(b.exerciseId)), [{ exerciseId: "js-loops", hasCode: true, fromGit: true }, { exerciseId: "js-vars", hasCode: false, fromGit: false }]);
     assert.ok(!("code" in (await s.latestResult("gh_1", "js-loops"))), "results don't copy the code");
   });
 

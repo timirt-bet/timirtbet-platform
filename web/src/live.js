@@ -8,6 +8,7 @@ if(LIVE){
     return data;
   }
   async function loadAll(){
+    for(const k in (L.latest||{}))L.latest[k].stale=true;// refetch the latest push when the page is drawn again
     try{
       const r=await api("GET","/api/me");L.me=r.me;L.circle=r.circle;L.solved=new Set(r.me.solvedIds||[]);L.saved=new Set(r.me.savedIds||r.me.solvedIds||[]);
       const [subs,queue,given]=await Promise.all([api("GET","/api/submissions/mine"),api("GET","/api/reviews/queue"),api("GET","/api/reviews/given")]);
@@ -15,6 +16,7 @@ if(LIVE){
       if(r.me.reviewer.levelIndex>=3)L.flagged=(await api("GET","/api/reviews/flagged")).flagged;
     }catch(e){if(e.status!==401)console.error(e);L.me=null;}
     useAccount(L.me&&L.me.login);
+    PUSH_ONLY=true;
     L.loaded=true;render();
     if(L.me)pollInbox(true);else setBell();
   }
@@ -39,7 +41,7 @@ if(LIVE){
     let n=null;try{n=JSON.parse(localStorage.getItem(ACCT(k))||"null");}catch(e){}
     const prefs={track:S.track,diff:S.diff,statusF:S.statusF};
     S=n||{...seed(),...prefs};S.me=null;
-    fetchedCode.clear();V.rvDraft=null;V.confirm=null;L.graded={};L.graderFail={};L.saveErr={};
+    fetchedCode.clear();V.rvDraft=null;V.confirm=null;L.latest={};
     try{if(localStorage.getItem(WHO)!==(k||""))localStorage.setItem(WHO,k||"");}catch(e){}
     return true;
   }
@@ -58,20 +60,6 @@ if(LIVE){
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkSession();});
   window.addEventListener("storage",e=>{if(e.key===WHO&&(e.newValue||null)!==((L.me&&L.me.login)||null))checkSession();});
   window.addEventListener("pagehide",()=>{flushEditor();save();});
-  // On a new device the editor starts from your last passing solution instead of the starter code.
-  async function loadSavedCode(id){
-    if(!L.me||S.drafts[id]!=null||!L.saved.has(id)||fetchedCode.has(id))return;
-    fetchedCode.add(id);const who=owner;
-    try{
-      const r=await api("GET","/api/passes/"+encodeURIComponent(id));
-      if(!r||!r.code||owner!==who||S.drafts[id]!=null)return;
-      const ed=document.getElementById("editor");
-      if(V.view==="exercise"&&V.ex===id&&ed&&ed.value!==EXM[id].starter)return;// already typing
-      S.drafts[id]=r.code;save();
-      if(V.view==="exercise"&&V.ex===id)render();
-    }catch(e){}
-  }
-
   /* ---------- notifications: the bell, its list, live updates and a short pop-up ---------- */
   L.inbox={items:[],unread:0};
   const BELL=`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`;
@@ -92,6 +80,9 @@ if(LIVE){
       case "review_rated":return `<span>Your review was rated</span> <span class="starsv">${starsTxt(n.stars)}</span> <span class="mono">${n.points>0?"+":""}${n.points} pts</span><span class="nt-sub">${esc(unitTitle(n.unitId))}</span>`;
       case "level_up":return `<span>You reached a new reviewer level:</span> <b>${esc(n.level)}</b>`;
       case "second_opinion":return `<span>A Mentor added a second opinion:</span> ${u}`;
+      case "push_passed":return `<span>Your push passed and is saved:</span> ${u}`;
+      case "push_failed":return `<span>Your push did not pass yet:</span> ${u}<span class="nt-sub">${n.passed} / ${n.total} tests passed</span>`;
+      case "module_ready":return `<span>Module finished. Submit it for review:</span> ${u}`;
       default:return `<span>Something changed.</span>`;
     }
   }
@@ -119,6 +110,8 @@ if(LIVE){
     openBell(false);
     if((n.kind==="review_assigned"||n.kind==="review_due")&&L.queue.some(q=>q.id===n.subId))return openReview(n.subId);
     if((n.kind==="review_received"||n.kind==="second_opinion")&&n.exerciseId&&EXM[n.exerciseId])return openEx(n.exerciseId);
+    if((n.kind==="push_passed"||n.kind==="push_failed")&&EXM[n.exerciseId])return openEx(n.exerciseId);
+    if(n.kind==="module_ready"&&MODM[n.unitId]){const m=MODM[n.unitId];L.pendingTrack=m.lang;return openEx(m.exercises[m.exercises.length-1]);}
     go("reviews");
   }
   let toastT=null;
@@ -139,7 +132,8 @@ if(LIVE){
       L.inbox=box;lastTop=top;setBell();
       if(fresh){toast(box.items[0]);await loadAll();}
     }catch(e){if(e.status===401){checkSession();return;}}
-    pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:45000);
+    const waiting=V.view==="exercise"&&V.ex&&!L.saved.has(V.ex);// waiting for a push: check more often
+    pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:waiting?15000:45000);
   }
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L.me)pollInbox(false);});
   document.addEventListener("click",e=>{
@@ -155,13 +149,13 @@ if(LIVE){
 
   me=()=>L.me&&L.me.login;
   inCircle=login=>!!(L.circle&&L.circle.members.some(m=>m.login===login));
-  passedEx=id=>L.solved.has(id)||(()=>{const r=S.res[id];return !!(r&&r.p===r.t&&r.t>0);})();
   myPoints=()=>L.me?L.me.points:BANK.filter(e=>passedEx(e.id)).reduce((a,e)=>a+ptsOf(e),0);
   const latestSub=id=>L.subs.filter(s=>s.exerciseId===id).sort((a,b)=>b.at.localeCompare(a.at))[0];
   const modSub=mid=>L.subs.filter(s=>s.moduleId===mid).sort((a,b)=>b.at.localeCompare(a.at))[0];
   moduleState=function(m){
     if(!L.me)return {passed:m.exercises.filter(id=>passedEx(id)).length,total:m.exercises.length,sub:null,ready:false,guest:true};
-    const passed=m.exercises.filter(id=>L.solved.has(id)).length,sub=modSub(m.id),open=!!(sub&&sub.status!=="rated");
+    const have=PUSH_ONLY?L.saved:L.solved;// with GitHub-only submission, a pass counts once it was pushed
+    const passed=m.exercises.filter(id=>have.has(id)).length,sub=modSub(m.id),open=!!(sub&&sub.status!=="rated");
     // Passes from before solutions were kept have no code to send: those need one more run.
     const resave=m.exercises.filter(id=>L.solved.has(id)&&!L.saved.has(id));
     return {passed,total:m.exercises.length,sub,resave,err:L.modErr[m.id],ready:passed===m.exercises.length&&!resave.length&&!open};
@@ -177,8 +171,8 @@ if(LIVE){
   render=function(){
     if(!L.loaded){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
     baseRender();
-    if(V.view==="exercise"&&V.ex)loadSavedCode(V.ex);
-    showSaveNote();
+    if(V.view==="exercise"&&V.ex)loadLatest(V.ex);
+    const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. You can export or delete it from your profile at any time. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
     }
@@ -186,7 +180,7 @@ if(LIVE){
     const b=document.querySelector('nav.main [data-v="reviews"]');if(b)b.innerHTML="Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"");
   };
   progressCard=function(solved){
-    if(!L.me)return `<section class="panel"><h2>Practising as a guest</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">Every challenge and its tests work without an account; your code stays in this browser. Sign in with GitHub to submit for review and join a circle.</p><a class="btn gh-btn" href="/api/auth/github">${GH}Sign in with GitHub</a></div></section>`;
+    if(!L.me)return `<section class="panel"><h2>Practising as a guest</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">Browse every challenge and its tests. To solve them, sign in with GitHub: you get your own repository, write your code there and push it, and the grader checks every push.</p><a class="btn gh-btn" href="/api/auth/github">${GH}Sign in with GitHub</a></div></section>`;
     const max=BANK.reduce((a,e)=>a+ptsOf(e),0);const p=prof();
     return `<section class="panel"><h2>Your progress</h2><div class="pad"><div class="kpis"><div><div class="k">${L.me.points}</div><div class="muted">points</div></div><div><div class="k">${L.me.solved}<small>/${BANK.length}</small></div><div class="muted">solved</div></div><div><div class="k">${p.score.toFixed(1)}</div><div class="muted">review score</div></div></div><div class="bar" style="margin-top:12px"><i style="width:${L.me.points/max*100}%"></i></div><div class="muted mono" style="font-size:12px;margin-top:4px">${L.me.points} of ${max} points</div></div></section>`;
   };
@@ -195,11 +189,14 @@ if(LIVE){
     if(!L.circle)return `<section class="panel"><h2>Review circle</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You're not in a circle, so reviews come from the wider pool. Join friends with an invite code, or start your own.</p><button class="btn" data-act="view" data-v="circle">Find a circle</button></div></section>`;
     return `<section class="panel"><h2>${esc(L.circle.name)}</h2><div class="pad"><div class="avs">${L.circle.members.map(m=>avatar(m.login)).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${L.circle.members.length} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${L.queue.length?`<button class="btn primary" data-act="view" data-v="reviews">${L.queue.length} to review</button>`:""}</div></div></section>`;
   };
-  status=function(id){const sub=latestSub(id);if(L.jobs[id])return {k:"wait",l:"Grading"};if(sub){if(sub.status==="rated")return {k:"done",l:"Reviewed ★"+sub.rating};if(sub.status==="reviewed")return {k:"act",l:"Rate the review"};return {k:"wait",l:"In review"};}
-    if(passedEx(id))return {k:"pass",l:L.solved.has(id)?"Solved":"Passing locally"};const r=S.res[id];if(r)return {k:"try",l:r.p+"/"+r.t+" passing"};return {k:"new",l:"Not tried"};};
+  // Solved means a push passed the grader. Passes from the old in-browser editor need one push.
+  passedEx=id=>L.saved.has(id);
+  status=function(id){const sub=latestSub(id);if(sub){if(sub.status==="rated")return {k:"done",l:"Reviewed ★"+sub.rating};if(sub.status==="reviewed")return {k:"act",l:"Rate the review"};return {k:"wait",l:"In review"};}
+    if(L.saved.has(id))return {k:"pass",l:"Solved"};if(L.solved.has(id))return {k:"try",l:"Passed · push to submit"};return {k:"new",l:"Not solved"};};
   canSubmit=function(ex,code){const r=S.res[ex.id],sub=latestSub(ex.id);return !!(L.me&&r&&r.code===code&&r.p===r.t&&!(sub&&sub.status!=="rated")&&!L.jobs[ex.id]);};
   hint=function(ex,code){
     if(!L.me)return "Your code stays in this browser. Sign in to save progress. Ctrl+Enter runs.";
+    if(PUSH_ONLY)return L.saved.has(ex.id)?"Solved and saved from your repository ✓":"Tests run here for practice. Push to your repository to submit. Ctrl+Enter runs.";
     if(L.jobs[ex.id])return "Checking your solution on the grader…";
     if(L.graderFail[ex.id]===code)return "The grader found a problem. Fix it and run again.";
     if(L.saveErr[ex.id]===code)return "Not saved. Run the tests again to retry.";
@@ -207,8 +204,19 @@ if(LIVE){
     if(L.solved.has(ex.id))return "Solved. Run the tests to save this version instead.";
     return "When every test passes, your solution is saved automatically. Ctrl+Enter runs.";};
   ghPanel=function(ex){
-    const file=solutionFile(ex);
-    return `<details class="panel gh"><summary>Or push from your GitHub repository</summary><div class="pad"><p class="muted" style="font-size:13.5px;margin:0 0 8px">Edit <code>${file}</code> in <span class="mono">${esc(L.me.repo||"your repository")}</span> and push to <code>main</code>. The same grader runs, and a pass counts just like Submit.</p><pre class="shell mono">git clone https://github.com/${esc(L.me.repo||"")}.git
+    const file=solutionFile(ex),repo=L.me.repo||"";
+    if(PUSH_ONLY)return `<details class="panel gh"${L.saved.size?"":" open"}><summary>How to submit from GitHub</summary><div class="pad gh-how">
+      <p class="muted">Solutions are submitted from your own GitHub repository, <a class="mono" href="https://github.com/${esc(repo)}" target="_blank" rel="noopener">${esc(repo||"your repository")}</a>. The editor here is for practice.</p>
+      <ol><li>Accept the invitation to the organization that GitHub emailed you (once).</li>
+      <li>Edit <code>${file}</code>: on GitHub in the browser, or on your computer after cloning.</li>
+      <li>Commit and push to <code>main</code>. Each push is graded; a pass counts toward your module.</li></ol>
+      <pre class="shell mono">git clone https://github.com/${esc(repo)}.git
+cd ${esc(repo.split("/")[1]||"your-repo")}
+# edit ${file}, then:
+git add ${file}
+git commit -m "${esc(ex.title)}"
+git push</pre></div></details>`;
+    return `<details class="panel gh"><summary>Or push from your GitHub repository</summary><div class="pad"><p class="muted" style="font-size:13.5px;margin:0 0 8px">Edit <code>${file}</code> in <span class="mono">${esc(repo||"your repository")}</span> and push to <code>main</code>. The same grader runs, and a pass counts just like Submit.</p><pre class="shell mono">git clone https://github.com/${esc(repo)}.git
 git add ${file}
 git commit -m "${esc(ex.title)}"
 git push</pre></div></details>`;
@@ -229,66 +237,59 @@ git push</pre></div></details>`;
     const sub=ms.sub;
     return `<section class="panel pr"><h2>Module review</h2><div class="pad"><p class="eyebrow" style="margin:0 0 4px">Module ${modNum(m)} · ${ms.passed}/${ms.total} passed</p><b>${esc(m.title)}</b>${list}<div class="mod-foot">${moduleFoot(m,ms,true)}</div>${sub&&sub.review?`<div class="stages">${reviewBlock(sub)}</div>`:""}</div></section>`;
   };
-  /* What happens after a run, shown above the test results. Congratulations only once the grader passed
-     the code and it is saved; before that it says what is happening. */
-  function saveBanner(ex,r,code){
-    if(!r||r.code!==code||!(r.t>0&&r.p===r.t))return "";
-    const n=`${r.t} ${ex.lang==="js"?"tests":"checks"}`;
-    const box=(k,ic,h,body="")=>`<div class="save-note ${k}" role="status"><span class="sn-ic" aria-hidden="true">${ic}</span><div><b>${h}</b>${body?`<div class="sn-b">${body}</div>`:""}</div></div>`;
-    if(!L.me)return box("info","i",`All ${n} pass in your browser.`,`Your code is not saved yet. <a href="/api/auth/github">Sign in with GitHub</a> to save it and count it toward your module.`);
-    if(L.jobs[ex.id])return box("busy","<span class=\"spin\"></span>",`All ${n} pass here. Saving…`,"The grader is checking your solution. This takes a few seconds.");
-    if(L.saveErr[ex.id]===code)return box("warn","!","Your solution passed here but was not saved.",`${esc(L.saveErr[ex.id+":msg"]||"")} Run the tests again to retry.`);
-    if(L.graded[ex.id]===code&&L.solved.has(ex.id)){
-      const m=MODOF[ex.id];let next="";
-      if(m){const ms=moduleState(m),todo=m.exercises.find(id=>!L.solved.has(id));
-        if(todo)next=`Module ${modNum(m)}: ${ms.passed} of ${ms.total} done. <button class="linkish" data-act="open" data-id="${todo}">Next: ${esc(EXM[todo].title)} →</button>`;
-        else if(ms.ready)next=`That completes Module ${modNum(m)}. <button class="btn small primary" data-act="submit-module" data-id="${m.id}">Submit module for review</button>`;
-        else next=`Module ${modNum(m)}: all ${ms.total} done.`;}
-      return box("ok","✓","Well done! Solved and saved.",next);
-    }
-    return "";// the grader failed it: its results are shown below
+  /* ---------- the challenge page: no editor. Learners write code in their own repository and push it;
+     this page shows the task, the tests, how to submit, and the result of their latest push. ---------- */
+  function nextStep(ex){
+    const m=MODOF[ex.id];if(!m)return "";
+    const ms=moduleState(m),todo=m.exercises.find(id=>!L.saved.has(id));
+    if(todo)return `Module ${modNum(m)}: ${ms.passed} of ${ms.total} done. <button class="linkish" data-act="open" data-id="${todo}">Next: ${esc(EXM[todo].title)} →</button>`;
+    if(ms.ready)return `That completes Module ${modNum(m)}. <button class="btn small primary" data-act="submit-module" data-id="${m.id}">Submit module for review</button>`;
+    return `Module ${modNum(m)}: all ${ms.total} done.`;
   }
-  const baseResults=resultsHTML;
-  resultsHTML=function(ex,r,code){return saveBanner(ex,r,code)+baseResults(ex,r,code);};
-  // Run tests: when every browser test passes, the code goes to the grader and a pass is saved.
-  async function gradeOnServer(ex,code){
+  L.latest={};// exerciseId -> {result, code} of the latest push, fetched when the page opens
+  async function loadLatest(id){
+    if(!L.me||(L.latest[id]&&!L.latest[id].stale))return;
+    if(!L.latest[id])L.latest[id]={loading:true};else L.latest[id].stale=false;
     try{
-      delete L.saveErr[ex.id];
-      const {jobId}=await api("POST","/api/submissions",{exerciseId:ex.id,code});
-      L.jobs[ex.id]=jobId;delete L.graderFail[ex.id];refreshEx(ex);
-      for(let i=0;i<120;i++){
-        await new Promise(r=>setTimeout(r,1500));
-        const j=await api("GET","/api/jobs/"+jobId);
-        if(j.status==="done"){
-          delete L.jobs[ex.id];
-          if(j.passed)L.graded[ex.id]=code;else{L.graderFail[ex.id]=code;if(j.result)S.res[ex.id]={p:j.result.passedCount,t:j.result.total,code,out:(j.result.tests||[]).map(t=>({n:t.name,pass:t.pass,msg:t.message})).concat(j.result.error?[{n:"Grader",pass:false,msg:j.result.error}]:[]),at:Date.now()};save();}
-          await loadAll();return;
-        }
-      }
-      delete L.jobs[ex.id];L.saveErr[ex.id]=code;L.saveErr[ex.id+":msg"]="The grader took too long.";refreshEx(ex);
-    }catch(e){delete L.jobs[ex.id];L.saveErr[ex.id]=code;L.saveErr[ex.id+":msg"]=e.status?e.message+".":"No connection to Timirtbet.";refreshEx(ex);}
+      const [r,pass]=await Promise.all([api("GET","/api/results/"+encodeURIComponent(id)),api("GET","/api/passes/"+encodeURIComponent(id))]);
+      L.latest[id]={result:r.result,code:pass.code,at:pass.at};
+    }catch(e){L.latest[id]={error:true};}
+    if(V.view==="exercise"&&V.ex===id){const el=document.getElementById("pushPanel");if(el)el.innerHTML=pushPanel(EXM[id]);}
   }
-  function refreshEx(ex){
-    if(V.view!=="exercise"||V.ex!==ex.id)return;
-    const code=document.getElementById("editor").value;
-    const h=document.getElementById("edHint");if(h)h.textContent=hint(ex,code);
-    const res=document.getElementById("results");if(res)res.innerHTML=resultsHTML(ex,S.res[ex.id],code);
-    const p=document.getElementById("prPanel");if(p)p.innerHTML=peerPanel(ex);
-    showSaveNote();
+  function pushPanel(ex){
+    const file=solutionFile(ex),repo=L.me.repo||"",lt=L.latest[ex.id]||{},r=lt.result,saved=L.saved.has(ex.id);
+    const box=(k,ic,h,body="")=>`<div class="save-note ${k}" role="status"><span class="sn-ic" aria-hidden="true">${ic}</span><div><b>${h}</b>${body?`<div class="sn-b">${body}</div>`:""}</div></div>`;
+    let status;
+    if(saved)status=box("ok","✓","Well done! Solved and saved from your repository.",nextStep(ex)+`<div class="sn-sub">Push again any time to save a new version.</div>`);
+    else if(lt.loading)status=`<p class="muted pad-note">Checking your latest push…</p>`;
+    else if(r&&!r.passed)status=box("warn","!",`Your latest push passed ${r.passedCount} of ${r.total} tests.`,`Fix the failing tests below and push again.`);
+    else status=box("push","↑","Not submitted yet.","Write your solution in your repository and push it. The grader checks every push, and the result appears here.");
+    const tests=r&&!saved?`<ul class="push-tests">${(r.tests||[]).map(t=>`<li class="${t.pass?"ok":"bad"}"><span>${t.pass?"✓":"✗"}</span><div>${esc(t.name||t.n||"")}${t.message?`<div class="msg mono">${esc(t.message)}</div>`:""}</div></li>`).join("")}${r.error?`<li class="bad"><span>✗</span><div class="msg mono">${esc(r.error)}</div></li>`:""}</ul><p class="muted" style="font-size:12px;margin:4px 0 0">Pushed ${ago(Date.parse(r.at))}</p>`:"";
+    const how=`<ol class="push-steps">
+      <li>Open <code>${file}</code> in your repository: <a href="https://github.com/${esc(repo)}/edit/main/${file}" target="_blank" rel="noopener">edit it on GitHub</a>, or on your computer after cloning.</li>
+      <li>Write your solution, then commit and push to <code>main</code>.</li></ol>
+      <pre class="shell mono" id="pushCmd">git clone https://github.com/${esc(repo)}.git
+cd ${esc(repo.split("/")[1]||"your-repo")}
+# edit ${file}, then:
+git add ${file}
+git commit -m "${esc(ex.title)}"
+git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button>
+      <p class="muted" style="font-size:12.5px;margin:10px 0 0">First time? Accept the invitation to the organization that GitHub emailed you.</p>`;
+    const mine=saved&&lt.code?`<details class="mine"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
+    return `<section class="panel"><h2>Submit from GitHub</h2><div class="pad">${status}${tests}${saved?`<details class="gh-how"><summary>How to push a new version</summary>${how}</details>`:how}${mine}</div></section>`;
   }
-  // The result of saving sits under the editor: bring it into view once when it changes.
-  let lastNote="";
-  function showSaveNote(){
-    const n=document.querySelector("#results .save-note");if(!n||V.view!=="exercise")return;
-    const k=V.ex+"|"+n.className+"|"+n.textContent;if(k===lastNote)return;lastNote=k;
-    n.scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
-  }
-  const baseRun=run;
-  run=async function(){
-    await baseRun();
-    const ex=EXM[V.ex];if(!ex||!L.me||L.jobs[ex.id])return;
-    const r=S.res[ex.id];
-    if(r&&r.t>0&&r.p===r.t&&L.graded[ex.id]!==r.code)await gradeOnServer(ex,r.code);
+  viewExercise=function(){
+    const ex=EXM[V.ex],d=diffOf(ex);
+    const tests=ex.lang==="js"
+      ?`<div class="panel"><h2>Tests <span class="muted" style="font-weight:500;font-size:13px">the grader runs these</span></h2><ul class="tests">${ex.tests.map(t=>`<li><span class="dot"></span><div><div>${esc(t.n)}</div><code>${esc(t.t)}</code></div></li>`).join("")}</ul></div>`
+      :`<div class="panel"><h2>Tests</h2><div class="pad" style="padding-bottom:6px"><p class="note-go">The grader runs this test file with <code>go test -race</code> on every push.</p></div><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></div>`;
+    const submit=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`
+      :`<section class="panel"><h2>Submit from GitHub</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You solve challenges in your own GitHub repository and push your code; the grader checks every push. Sign in with GitHub to get your repository.</p><a class="btn gh-btn" href="/api/auth/github">${GH}Sign in with GitHub</a></div></section>`;
+    return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
+    <div class="ex-head"><div><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)}</p><h1 class="pg-h">${esc(ex.title)}</h1></div><div class="ex-meta"><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(ex)} pts</span></div></div>
+    <div class="ex-grid"><div class="side"><div class="panel"><h2>Task</h2><div class="pad prompt">${mdLite(ex.prompt)}</div></div>${tests}
+      <details class="panel starter"><summary>Starter code (<span class="mono">${ex.lang==="js"?"solution.js":"solution.go"}</span>)</summary>${codeBlock(ex.starter)}</details></div>
+     <div>${submit}<div id="prPanel">${peerPanel(ex)}</div></div></div>`;
   };
   rate=async function(n,subId){
     try{const r=await api("POST",`/api/submissions/${subId}/rating`,{stars:n});(L.delta=L.delta||{})[subId]=r;await loadAll();}
@@ -351,6 +352,8 @@ git push</pre></div></details>`;
     const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
     try{
       if(a==="notice-ok"){await api("POST","/api/me/notice");L.me.noticeSeen=true;render();}
+      else if(a==="copy-code"){const ed=document.getElementById("editor");const ok=()=>{el.textContent="Copied";setTimeout(()=>{el.textContent="Copy your code";},1500);};
+        try{await navigator.clipboard.writeText(ed.value);ok();}catch(_){el.textContent="Select the code in the editor and copy it";}}
       else if(a==="submit-module"){const id=el.dataset.id;el.disabled=true;el.textContent="Submitting…";delete L.modErr[id];
         try{await api("POST",`/api/modules/${id}/submit`);}catch(err){L.modErr[id]=err.message;}
         await loadAll();}

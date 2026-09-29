@@ -42,12 +42,11 @@ const js = src("app.js")
   .replace("/*__LIVE__*/", src("live.js"));
 for (const marker of ["__BANK__", "__MODULES__", "__HARNESS__", "__GOCHECK__", "__TRACKIMG__", "__DEMO_ANSWERS__", "__I18N__", "__LIVE__"]) if (js.includes(marker)) throw new Error(`${marker} not replaced`);
 
-// Code editor (CodeMirror 6, built from web/editor). Live: its own cached file, loaded without blocking the page.
-// Demo/artifact: inlined so the page stays a single file.
+// Code editor (CodeMirror 6, built from web/editor): only the demo has an editor, inlined so it stays one file.
+// On the live site learners write and submit code in their own GitHub repository, so there is no editor.
 const editorJs = src("vendor/codemirror.js");
-const editorFile = `codemirror-${(await import("node:crypto")).createHash("sha256").update(editorJs).digest("hex").slice(0, 10)}.js`;
-let page = src("shell.html").replace("<script>\n/*__JS__*/", live ? `<script src="/${editorFile}" async></script>\n<script>\n/*__JS__*/` : () => `<script>${editorJs}</script>\n<script>\n/*__JS__*/`);
-if (!page.includes("codemirror") && !page.includes("TBEditor")) throw new Error("editor script not added");
+let page = src("shell.html").replace("<script>\n/*__JS__*/", live ? "<script>\n/*__JS__*/" : () => `<script>${editorJs}</script>\n<script>\n/*__JS__*/`);
+if (!live && !page.includes("TBEditor")) throw new Error("editor script not added");
 page = page.replace("/*__CSS__*/", css).replace("/*__JS__*/", () => js);
 if (live) page = page.replace("<script>", '<script>window.TIMIRTBET_MODE="live";</script>\n<script>');
 if (!artifact) {
@@ -57,5 +56,5 @@ if (!artifact) {
 const out = path.join(here, "dist", live ? "index.html" : artifact ? "artifact.html" : "demo.html");
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, page);
-if (live) { for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$/.test(f)) fs.rmSync(path.join(path.dirname(out), f)); fs.writeFileSync(path.join(path.dirname(out), editorFile), editorJs); }
+if (live) for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$/.test(f)) fs.rmSync(path.join(path.dirname(out), f));
 console.log(`${path.relative(root, out)}  ${(page.length / 1024).toFixed(0)} KB`);

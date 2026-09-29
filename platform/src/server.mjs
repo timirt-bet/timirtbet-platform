@@ -4,7 +4,7 @@
 import crypto from "node:crypto";
 import { verifySignature } from "./signature.mjs";
 import { onboardStudent, offboardLearner } from "./onboarding.mjs";
-import { jobFromEvent, webJob, processJob, assignWaiting, reassignStale, retireSingles, submitModule, ModuleError } from "./pipeline.mjs";
+import { jobFromEvent, processJob, assignWaiting, reassignStale, retireSingles, submitModule, recordPush, ModuleError } from "./pipeline.mjs";
 import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS } from "./reviews.mjs";
 import { createNotifier } from "./notify.mjs";
 import { authorizeUrl, signSession, verifySession, parseCookies, cookie } from "./auth.mjs";
@@ -16,8 +16,6 @@ const SESSION_DAYS = 30;
 // Firebase Hosting forwards only one cookie to Cloud Run, and it must be called __session.
 // It holds either a pending sign-in ({ st }) or a signed-in session ({ sid, v }).
 const COOKIE = "__session";
-const MAX_CODE = 64 * 1024;
-const WEB_SUBMISSIONS_PER_HOUR = 30;
 
 const json = (res, status, body, headers = {}) => { res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...headers }); res.end(body === undefined ? "" : JSON.stringify(body)); };
 const redirect = (res, location, cookies = []) => { res.writeHead(302, { location, "set-cookie": cookies }); res.end(); };
@@ -33,7 +31,6 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
   const notify = createNotifier({ store, gh, config, bank, modules, log });
   const deps = { gh, store, bank, modules, grader, fetchRepo, config, notify, log };
   queue.onJob((job) => processJob({ job, ...deps }));
-  const rate = new Map(); // web submissions per learner per hour (per instance; enough to stop runaway loops)
 
   const session = async (req) => {
     const p = verifySession(config.sessionSecret, parseCookies(req.headers.cookie)[COOKIE]);
@@ -132,7 +129,7 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         const circle = me.circleId ? await store.getCircle(me.circleId) : null;
         const [people, passes] = await Promise.all([publicLearners([me.id, ...(circle?.members || [])]), store.passesOf(me.id)]);
         return json(res, 200, {
-          me: { ...people[me.id], repo: me.repo || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.hasCode).map((x) => x.exerciseId) },
+          me: { ...people[me.id], repo: me.repo || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.fromGit).map((x) => x.exerciseId), submitVia: "github" },
           circle: circle && { id: circle.id, name: circle.name, track: circle.track, inviteCode: circle.inviteCode, ownerId: circle.ownerId, members: circle.members.map((id) => people[id]).filter(Boolean) },
         });
       }
@@ -162,23 +159,13 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
       } catch (e) { if (e instanceof CircleError) return json(res, e.status, { error: e.message }); throw e; }
 
       // ---- web editor submissions ----
-      if (req.method === "POST" && p === "/api/submissions") {
+      // Development only: act as if the signed-in learner pushed this code to their repository.
+      if (config.devLogin && req.method === "POST" && p === "/api/dev/push") {
         const { exerciseId, code } = body();
-        if (!bank[exerciseId]) return json(res, 422, { error: "unknown challenge" });
-        if (typeof code !== "string" || !code.trim() || code.length > MAX_CODE) return json(res, 422, { error: `code must be 1 to ${MAX_CODE} characters` });
-        const hour = Math.floor(Date.now() / 3600e3), k = `${me.id}:${hour}`;
-        if ((rate.get(k) || 0) >= WEB_SUBMISSIONS_PER_HOUR) return json(res, 429, { error: `At most ${WEB_SUBMISSIONS_PER_HOUR} submissions an hour. Run the tests in the browser first.` });
-        rate.set(k, (rate.get(k) || 0) + 1);
-        const job = webJob({ learnerId: me.id, exerciseId, code });
-        await store.claimJob(job.key, { kind: "web", learnerId: me.id, exerciseId });
-        await queue.publish(job);
-        return json(res, 202, { jobId: job.key });
-      }
-      if (req.method === "GET" && (m = p.match(/^\/api\/jobs\/(web_[\w-]+)$/))) {
-        const job = await store.getJob(m[1]);
-        if (!job || job.learnerId !== me.id) return json(res, 404, { error: "no such job" });
-        const result = job.status === "done" ? await store.latestResult(me.id, job.exerciseId) : null;
-        return json(res, 200, { status: job.status, passed: job.passed ?? null, result });
+        if (!bank[exerciseId] || typeof code !== "string") return json(res, 422, { error: "exerciseId and code" });
+        const results = (await grader.grade([{ exerciseId, code }])).map((r) => ({ ...r, code }));
+        await recordPush({ store, bank, modules, learner: me, results, ref: "dev-push", notify });
+        return json(res, 200, { passed: results.every((r) => r.passed) });
       }
       if (req.method === "GET" && (m = p.match(/^\/api\/results\/([\w-]+)$/))) return json(res, 200, { result: await store.latestResult(me.id, m[1]) });
 

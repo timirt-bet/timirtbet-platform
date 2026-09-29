@@ -1,9 +1,8 @@
-// push / pull request / web editor -> grader -> result (a pass keeps its code) | failed: feedback.
+// push / pull request -> grader -> result (a pass keeps its code) | failed: feedback.
 // A finished module -> one submission of all its solutions -> a reviewer who finished that module.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { changedExercises } from "./exercises.mjs";
@@ -48,10 +47,6 @@ export async function jobFromEvent({ event, payload, gh, bank, defaultBranch = "
   return null;
 }
 
-export function webJob({ learnerId, exerciseId, code }) {
-  const digest = crypto.createHash("sha256").update(code).digest("hex").slice(0, 12);
-  return { kind: "web", key: `web_${learnerId}_${exerciseId}_${digest}_${Date.now().toString(36)}`, learnerId, exerciseId, code };
-}
 
 export function feedbackComment(results, bank) {
   const lines = ["### Timirtbet test results", "", "| Challenge | Result |", "|---|---|"];
@@ -101,6 +96,7 @@ export async function assignReviewer({ store, bank, modules = {}, sub, exclude =
 export class ModuleError extends Error { constructor(message, status = 409) { super(message); this.status = status; } }
 
 // Sends a finished module for review: the latest passing code of each of its challenges, together.
+// Passes count only when their code came from a push to the learner's repository.
 export async function submitModule({ store, bank, modules, learnerId, moduleId, notify = noop, log = () => {} }) {
   const m = modules[moduleId];
   if (!m) throw new ModuleError("unknown module", 404);
@@ -109,6 +105,7 @@ export async function submitModule({ store, bank, modules, learnerId, moduleId, 
   for (const exerciseId of m.exercises) {
     const pass = await store.passOf(learnerId, exerciseId);
     if (!pass?.code) throw new ModuleError(`Pass "${bank[exerciseId]?.title || exerciseId}" first: every challenge in the module must pass on the grader.`);
+    if (pass.codeSource !== "git") throw new ModuleError(`Push "${bank[exerciseId]?.title || exerciseId}" from your GitHub repository first: only pushed solutions are submitted.`);
     const r = await store.latestResult(learnerId, exerciseId);
     items.push({ exerciseId, code: pass.code, passed: r?.passedCount ?? 0, total: r?.total ?? 0 });
   }
@@ -129,16 +126,6 @@ async function record({ store, bank, modules, learner, results, ref, source, not
 }
 
 export async function processJob({ job, gh, store, bank, modules = {}, grader, fetchRepo, config, notify = noop, log = () => {} }) {
-  if (job.kind === "web") {
-    const learner = await store.getLearner(job.learnerId);
-    if (!learner) return null;
-    await store.updateJob(job.key, { status: "running" });
-    const results = (await grader.grade([{ exerciseId: job.exerciseId, code: job.code }])).map((r) => ({ ...r, code: job.code }));
-    await record({ store, bank, modules, learner, results, ref: "web", source: "web", notify });
-    await store.updateJob(job.key, { status: "done", passed: results.every((r) => r.passed), doneAt: new Date().toISOString() });
-    return { results };
-  }
-
   const learner = await store.learnerByRepo(job.repo);
   if (!learner) { log(`ignoring ${job.repo}: not a Timirtbet learner repository`); return null; }
   const [owner, repo] = job.repo.split("/");
@@ -155,7 +142,7 @@ export async function processJob({ job, gh, store, bank, modules = {}, grader, f
     }
     const graded = items.length ? await grader.grade(items) : [];
     const results = [...graded.map((r) => ({ ...r, code: items.find((i) => i.exerciseId === r.exerciseId)?.code })), ...missing];
-    await record({ store, bank, modules, learner, results, ref: job.sha, source: "git", notify });
+    await recordPush({ store, bank, modules, learner, results, ref: job.sha, notify });
     const ok = results.filter((r) => r.passed).length;
     await gh.setStatus(owner, repo, job.sha, { state: ok === results.length ? "success" : "failure", description: `${ok}/${results.length} challenge(s) passed`, context: STATUS_CONTEXT, target_url: target });
     if (job.pr) await gh.commentOnPR(owner, repo, job.pr, feedbackComment(results, bank));
@@ -166,6 +153,31 @@ export async function processJob({ job, gh, store, bank, modules = {}, grader, f
     throw e; // Pub/Sub retries the push
   } finally {
     if (dir) fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// Records graded code from the learner's repository, and tells them how it went.
+export async function recordPush({ store, bank, modules = {}, learner, results, ref, notify = noop }) {
+  const before = await Promise.all(results.map((r) => store.passOf(learner.id, r.exerciseId)));
+  await record({ store, bank, modules, learner, results, ref, source: "git", notify });
+  await notifyPush({ store, modules, learner, results, before, notify });
+}
+
+// Tells the learner, in the app, how a push went: each challenge's result, and when a module is complete.
+async function notifyPush({ store, modules, learner, results, before, notify }) {
+  const done = new Set();
+  for (const [i, r] of results.entries()) {
+    const was = before[i];
+    if (r.passed && was?.codeSource === "git" && was.code === r.code) continue; // the same code again: nothing new
+    await notify(learner.id, { kind: r.passed ? "push_passed" : "push_failed", exerciseId: r.exerciseId, unitId: r.exerciseId, passed: r.passedCount ?? 0, total: r.total ?? 0 });
+    if (r.passed) done.add(r.exerciseId);
+  }
+  if (!done.size) return;
+  const saved = new Set((await store.passesOf(learner.id)).filter((p) => p.fromGit).map((p) => p.exerciseId));
+  for (const m of Object.values(modules)) {
+    if (!m.exercises.some((id) => done.has(id)) || !m.exercises.every((id) => saved.has(id))) continue;
+    if (await store.openSubmissionFor(learner.id, m.id)) continue;
+    await notify(learner.id, { kind: "module_ready", unitId: m.id });
   }
 }
 
