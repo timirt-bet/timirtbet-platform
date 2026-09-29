@@ -68,7 +68,7 @@ node authoring/build.mjs     # every starter fails its tests (and every answer p
 | `challenges/` | Tests, graders, `exercises.json` and `modules.json`. Published as its own public repository, which learners' repositories use |
 | `student-template/` | The private repository every learner gets on first sign-in |
 | `authoring/` | Challenge sources and the build that checks them |
-| `deploy/` | Dockerfiles, `setup.sh` (one-time Google Cloud setup), `deploy-now.sh` (deploy from Cloud Shell) |
+| `deploy/` | Dockerfiles, `setup.sh` (one-time Google Cloud setup), `deploy-now.sh` (deploy from Cloud Shell), `sync-repos.sh` (publish `challenges/` and `student-template/`) |
 | `.github/workflows/deploy.yml` | Tests every push, and deploys `main` to Cloud Run and Firebase Hosting |
 
 ## Contributing

@@ -145,6 +145,6 @@ The reference answers are not public. Your deployment does not need them: learne
 
 ## Updating
 
-Pull new versions from `timirt-bet/timirtbet-platform` into your copy, push to `main`, and it deploys. If a challenge changed, also copy `challenges/` to your `<org>/challenges` repository.
+Pull new versions from `timirt-bet/timirtbet-platform` into your copy, push to `main`, and it deploys. If a challenge changed, also publish it to your challenges repository: `bash deploy/sync-repos.sh <org>`.
 
 If a step fails, open an issue with the error text.
