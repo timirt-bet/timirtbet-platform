@@ -4,6 +4,14 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Get started": "ይጀምሩ", "Get started with GitHub": "በGitHub ይጀምሩ", "You need a GitHub account to solve challenges and join a review circle. Anyone can read the challenges without one.": "ተግዳሮቶችን ለመፍታትና የግምገማ ክበብ ለመቀላቀል የGitHub መለያ ያስፈልግዎታል። ያለ መለያ ማንም ሰው ተግዳሮቶቹን ማንበብ ይችላል።",
+    "Create a free GitHub account": "ነፃ የGitHub መለያ ይፍጠሩ", "Timirtbet uses GitHub for your code.": "ትምህርት ቤት ለኮድዎ GitHubን ይጠቀማል።", "Sign up on GitHub ↗": "በGitHub ይመዝገቡ ↗",
+    "(about 2 minutes). Already have one? Skip this.": "(2 ደቂቃ ገደማ)። አስቀድሞ አለዎት? ይህን ይዝለሉ።", "Sign in here with GitHub": "እዚህ በGitHub ይግቡ",
+    "No new password. You get your own private repository for your solutions.": "አዲስ የይለፍ ቃል የለም። ለመፍትሔዎችዎ የራስዎ የግል ማከማቻ ያገኛሉ።", "Accept the invitation": "ግብዣውን ይቀበሉ",
+    "GitHub emails you an invitation to the Timirtbet organization. Accept it, then pick a challenge and start.": "GitHub ወደ ትምህርት ቤት ድርጅት ግብዣ በኢሜይል ይልክልዎታል። ይቀበሉትና ተግዳሮት መርጠው ይጀምሩ።",
+    "Timirtbet uses your GitHub account instead of its own sign-up form. You write your solutions in a GitHub repository, and the grader checks them there.": "ትምህርት ቤት የራሱ የምዝገባ ቅጽ ከመጠቀም ይልቅ የGitHub መለያዎን ይጠቀማል። መፍትሔዎችዎን በGitHub ማከማቻ ይጽፋሉ፤ አራሚውም እዚያ ይፈትሻቸዋል።",
+    "Timirtbet asks GitHub for no permissions, so all it learns is your public username. Without an account you can still read every challenge and its tests.": "ትምህርት ቤት ከGitHub ምንም ፈቃድ አይጠይቅም፤ የሚያውቀው ይፋዊ የተጠቃሚ ስምዎን ብቻ ነው። ያለ መለያም ሁሉንም ተግዳሮቶችና ሙከራዎቻቸውን ማንበብ ይችላሉ።",
+    "You need a GitHub account to submit": "ለማስገባት የGitHub መለያ ያስፈልግዎታል", "Your solutions live in your own GitHub repository, and the grader checks every change.": "መፍትሔዎችዎ በራስዎ የGitHub ማከማቻ ውስጥ ይኖራሉ፤ አራሚው እያንዳንዱን ለውጥ ይፈትሻል።",
     "Your repository isn't ready yet": "ማከማቻዎ ገና ዝግጁ አይደለም", "You need your own repository in the organization to submit solutions. Setting it up didn't finish when you signed in.": "መፍትሔዎችን ለማስገባት በድርጅቱ ውስጥ የራስዎ ማከማቻ ያስፈልጋል። ሲገቡ ማዘጋጀቱ አልተጠናቀቀም።",
     "Check your email for an invitation from GitHub to join the organization, and accept it.": "ድርጅቱን ለመቀላቀል ከGitHub የመጣ ግብዣ በኢሜይልዎ ይፈልጉና ይቀበሉ።", "Then press the button.": "ከዚያ ቁልፉን ይጫኑ።",
     "Set up my repository": "ማከማቻዬን አዘጋጅ", "Setting up…": "በማዘጋጀት ላይ…", "Still stuck? Send the message above to your teacher.": "አሁንም አልሰራም? ከላይ ያለውን መልእክት ለመምህርዎ ይላኩ።",

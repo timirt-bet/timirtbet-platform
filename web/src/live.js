@@ -180,7 +180,7 @@ if(LIVE){
     const b=document.querySelector('nav.main [data-v="reviews"]');if(b)b.innerHTML="Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"");
   };
   progressCard=function(solved){
-    if(!L.me)return `<section class="panel"><h2>Practising as a guest</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">Browse every challenge and its tests. To solve them, sign in with GitHub: you get your own repository, write your code there and push it, and the grader checks every push.</p><a class="btn gh-btn" href="/api/auth/github">${GH}Sign in with GitHub</a></div></section>`;
+    if(!L.me)return `<section class="panel start-card"><h2>Get started</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You need a GitHub account to solve challenges and join a review circle. Anyone can read the challenges without one.</p>${startSteps(true)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:12px">${GH}Sign in with GitHub</a></div></section>`;
     const max=BANK.reduce((a,e)=>a+ptsOf(e),0);const p=prof();
     return `<section class="panel"><h2>Your progress</h2><div class="pad"><div class="kpis"><div><div class="k">${L.me.points}</div><div class="muted">points</div></div><div><div class="k">${L.me.solved}<small>/${BANK.length}</small></div><div class="muted">solved</div></div><div><div class="k">${p.score.toFixed(1)}</div><div class="muted">review score</div></div></div><div class="bar" style="margin-top:12px"><i style="width:${L.me.points/max*100}%"></i></div><div class="muted mono" style="font-size:12px;margin-top:4px">${L.me.points} of ${max} points</div></div></section>`;
   };
@@ -301,7 +301,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       ?`<section class="task-sec"><h2>Tests <span class="muted">what your code must do</span></h2><ol class="task-tests">${ex.tests.map(t=>`<li><b>${esc(t.n)}</b><code>${esc(t.t)}</code></li>`).join("")}</ol></section>`
       :`<section class="task-sec"><h2>Tests <span class="muted">run with <code>go test -race</code></span></h2><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></section>`;
     const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`
-      :`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Solve it in your own repository</b><p>Sign in with GitHub to get your repository. You write your code there, and the grader checks every change.</p><a class="btn gh-btn small" href="/api/auth/github" style="margin-top:8px">${GH}Sign in with GitHub</a></div></div>`;
+      :`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>You need a GitHub account to submit</b><p>Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(true)}<a class="btn gh-btn small" href="/api/auth/github" style="margin-top:10px">${GH}Sign in with GitHub</a></div></div>`;
     return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
     <div class="task-page">
       <aside class="task-side">${side}<div id="prPanel">${peerPanel(ex)}</div></aside>
@@ -357,10 +357,22 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     <div class="panel" style="margin-top:20px"><h2>Leaderboard</h2><div class="tbl"><table><thead><tr><th>#</th><th>Learner</th><th>Points</th><th>Solved</th><th>Review score</th><th>Level</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.id===L.me.id?"me":""}"><td class="mono">${i+1}</td><td><span class="lrn">${avatar(x.login,"sm")}<span class="mono">@${esc(x.login)}</span>${x.id===L.me.id?` <span class="muted">(you)</span>`:""}</span></td><td class="mono">${x.points}</td><td class="mono">${x.solved}</td><td class="mono">${x.reviewer.score.toFixed(2)}</td><td>${x.reviewer.probation?`<span class="st act">Probation</span>`:`<span class="lvl lvl${x.reviewer.levelIndex} sm">${x.reviewer.level}</span>`}</td></tr>`).join("")}</tbody></table></div></div>
     <section class="panel" style="margin-top:16px"><div class="pad">${V.confirm==="leave"?`<p style="margin:0 0 10px;font-size:14px">Leave ${esc(c.name)}? Your reviews will come from the wider pool.</p><div style="display:flex;gap:8px"><button class="btn" data-act="live-leave">Leave circle</button><button class="btn" data-act="confirm-no">Stay</button></div>`:`<button class="linkish" data-act="leave">Leave this circle</button>`}</div></section>`;
   };
+  // What a newcomer needs before they can solve anything: a GitHub account, then one sign-in.
+  function startSteps(compact){
+    return `<ol class="start-steps${compact?" compact":""}">
+      <li><b>Create a free GitHub account</b><span>Timirtbet uses GitHub for your code. <a href="https://github.com/signup" target="_blank" rel="noopener">Sign up on GitHub ↗</a> (about 2 minutes). Already have one? Skip this.</span></li>
+      <li><b>Sign in here with GitHub</b><span>No new password. You get your own private repository for your solutions.</span></li>
+      <li><b>Accept the invitation</b><span>GitHub emails you an invitation to the Timirtbet organization. Accept it, then pick a challenge and start.</span></li></ol>`;
+  }
   viewSignin=function(){
     if(L.me)return viewProfile();
-    return `<section class="panel narrow"><div class="pad"><h1 class="pg-h" style="font-size:26px">Sign in with GitHub</h1><p class="lede">No sign-up form. Timirtbet asks GitHub for no permissions, so all it learns is your public username. On your first sign-in you join the Timirtbet organization and get your own private repository for pushing solutions.</p><a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Continue with GitHub</a><p class="muted" style="font-size:13px;margin:14px 0 0">Or keep practising as a guest: every challenge and its tests work without an account.</p></div></section>`;
+    return `<section class="panel narrow"><div class="pad"><h1 class="pg-h" style="font-size:26px">Get started with GitHub</h1>
+      <p class="lede">Timirtbet uses your GitHub account instead of its own sign-up form. You write your solutions in a GitHub repository, and the grader checks them there.</p>
+      ${startSteps(false)}
+      <a class="btn gh-btn" href="/api/auth/github" style="margin-top:16px">${GH}Continue with GitHub</a>
+      <p class="muted" style="font-size:13px;margin:14px 0 0">Timirtbet asks GitHub for no permissions, so all it learns is your public username. Without an account you can still read every challenge and its tests.</p></div></section>`;
   };
+
   viewProfile=function(){
     if(!L.me)return viewSignin();const p=prof();
     return `<div class="ex-head"><div class="lrn big">${avatar(L.me.login,"lg")}<div><p class="eyebrow" style="margin:0">Signed in with GitHub</p><h1 class="pg-h mono">@${esc(L.me.login)}</h1></div></div></div>

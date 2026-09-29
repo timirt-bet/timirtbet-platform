@@ -261,3 +261,13 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .fix-list{margin:8px 0;padding-left:18px;font-size:13px;color:var(--ink-2)}
 .fix-list li{margin:3px 0}
 .err-detail{font-size:11.5px;color:var(--clay);word-break:break-word;margin-top:8px}
+/* getting started: GitHub account first */
+.start-steps{list-style:none;counter-reset:g;margin:12px 0 0;padding:0;display:grid;gap:12px}
+.start-steps li{counter-increment:g;display:grid;grid-template-columns:26px 1fr;column-gap:10px;font-size:14.5px}
+.start-steps li::before{content:counter(g);grid-row:1 / span 2;width:24px;height:24px;border-radius:99px;display:grid;place-items:center;font:700 12.5px/1 var(--body);background:var(--accent);color:#fff}
+.start-steps li>span{grid-column:2;color:var(--ink-2);font-size:13px;margin-top:2px;line-height:1.45}
+.start-steps a{color:var(--accent);font-weight:600}
+.start-steps.compact{gap:9px}
+.start-steps.compact li{font-size:13.5px}
+.start-steps.compact li>span{font-size:12.5px}
+.st-card a.btn,.start-card a.btn{text-decoration:none}
