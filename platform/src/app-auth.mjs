@@ -6,7 +6,7 @@ const b64url = (buf) => Buffer.from(buf).toString("base64url");
 
 export function appJWT(appId, privateKeyPem, now = Math.floor(Date.now() / 1000)) {
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const payload = b64url(JSON.stringify({ iat: now - 60, exp: now + 9 * 60, iss: String(appId) }));
+  const payload = b64url(JSON.stringify({ iat: now - 60, exp: now + 9 * 60, iss: String(appId).trim() }));
   const sig = crypto.createSign("RSA-SHA256").update(`${header}.${payload}`).sign(privateKeyPem);
   return `${header}.${payload}.${b64url(sig)}`;
 }
@@ -19,7 +19,12 @@ export function installationTokenProvider({ appId, privateKey, installationId, b
       method: "POST",
       headers: { accept: "application/vnd.github+json", authorization: `Bearer ${appJWT(appId, privateKey)}`, "user-agent": "timirtbet-platform" },
     });
-    if (!res.ok) throw new Error(`Could not get installation token: ${res.status}`);
+    if (!res.ok) {
+      // Say why: 401 = the private key doesn't belong to this App ID (or the key was deleted); 404 = wrong installation ID.
+      const why = await res.json().then((d) => d.message, () => "");
+      const hint = res.status === 401 ? " (the GitHub App ID or private key is wrong)" : res.status === 404 ? " (the installation ID is wrong, or the app is not installed)" : "";
+      throw new Error(`Could not get installation token: ${res.status}${why ? ` ${why}` : ""}${hint}`);
+    }
     const data = await res.json();
     cached = { token: data.token, expires: Date.parse(data.expires_at) };
     return cached.token;
