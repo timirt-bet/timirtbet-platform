@@ -256,41 +256,54 @@ git push</pre></div></details>`;
     }catch(e){L.latest[id]={error:true};}
     if(V.view==="exercise"&&V.ex===id){const el=document.getElementById("pushPanel");if(el)el.innerHTML=pushPanel(EXM[id]);}
   }
+  // The side card: where this challenge stands, and the few steps to submit it from GitHub.
   function pushPanel(ex){
     const file=solutionFile(ex),repo=L.me.repo||"",lt=L.latest[ex.id]||{},r=lt.result,saved=L.saved.has(ex.id);
-    const box=(k,ic,h,body="")=>`<div class="save-note ${k}" role="status"><span class="sn-ic" aria-hidden="true">${ic}</span><div><b>${h}</b>${body?`<div class="sn-b">${body}</div>`:""}</div></div>`;
-    let status;
-    if(saved)status=box("ok","✓","Well done! Solved and saved from your repository.",nextStep(ex)+`<div class="sn-sub">Push again any time to save a new version.</div>`);
-    else if(lt.loading)status=`<p class="muted pad-note">Checking your latest push…</p>`;
-    else if(r&&!r.passed)status=box("warn","!",`Your latest push passed ${r.passedCount} of ${r.total} tests.`,`Fix the failing tests below and push again.`);
-    else status=box("push","↑","Not submitted yet.","Write your solution in your repository and push it. The grader checks every push, and the result appears here.");
-    const tests=r&&!saved?`<ul class="push-tests">${(r.tests||[]).map(t=>`<li class="${t.pass?"ok":"bad"}"><span>${t.pass?"✓":"✗"}</span><div>${esc(t.name||t.n||"")}${t.message?`<div class="msg mono">${esc(t.message)}</div>`:""}</div></li>`).join("")}${r.error?`<li class="bad"><span>✗</span><div class="msg mono">${esc(r.error)}</div></li>`:""}</ul><p class="muted" style="font-size:12px;margin:4px 0 0">Pushed ${ago(Date.parse(r.at))}</p>`:"";
-    const how=`<ol class="push-steps">
-      <li>Open <code>${file}</code> in your repository: <a href="https://github.com/${esc(repo)}/edit/main/${file}" target="_blank" rel="noopener">edit it on GitHub</a>, or on your computer after cloning.</li>
-      <li>Write your solution, then commit and push to <code>main</code>.</li></ol>
-      <pre class="shell mono" id="pushCmd">git clone https://github.com/${esc(repo)}.git
+    const editUrl=`https://github.com/${esc(repo)}/edit/main/${file}`;
+    let state;
+    if(saved)state=`<div class="st-card ok"><span class="st-ic" aria-hidden="true">✓</span><div><b>Solved</b><p>Your solution passed the grader and is saved.</p><div class="st-next">${nextStep(ex)}</div></div></div>`;
+    else if(lt.loading)state=`<div class="st-card"><span class="st-ic" aria-hidden="true">…</span><div><b>Checking…</b></div></div>`;
+    else if(r&&!r.passed){
+      const bad=(r.tests||[]).filter(t=>!t.pass);
+      state=`<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>${r.passedCount} of ${r.total} tests passed</b><p>Your last push, ${ago(Date.parse(r.at))}. Fix these and push again:</p>
+        <ul class="st-fails">${bad.map(t=>`<li><b>${esc(t.name||t.n||"")}</b>${t.message?`<span class="mono">${esc(t.message)}</span>`:""}</li>`).join("")}${r.error?`<li><span class="mono">${esc(r.error)}</span></li>`:""}</ul></div></div>`;
+    }
+    else state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not submitted yet</b><p>Follow the steps below. Your result shows here about a minute after you commit.</p></div></div>`;
+    const steps=`<ol class="gh-steps">
+        <li><a class="btn small primary" href="${editUrl}" target="_blank" rel="noopener">Open ${ex.lang==="js"?"solution.js":"solution.go"} on GitHub ↗</a><span>It opens the file in your repository, ready to edit.</span></li>
+        <li><b>Write your solution</b><span>Replace the starter code with your answer.</span></li>
+        <li><b>Click “Commit changes”</b><span>Keep “Commit directly to the main branch” selected, then confirm.</span></li>
+        <li><b>Come back here</b><span>The grader checks it and shows the result above.</span></li></ol>
+      <details class="gh-local"><summary>Prefer your own computer?</summary><pre class="shell mono" id="pushCmd">git clone https://github.com/${esc(repo)}.git
 cd ${esc(repo.split("/")[1]||"your-repo")}
-# edit ${file}, then:
+# edit ${file}
 git add ${file}
 git commit -m "${esc(ex.title)}"
-git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button>
-      <p class="muted" style="font-size:12.5px;margin:10px 0 0">First time? Accept the invitation to the organization that GitHub emailed you.</p>`;
-    const mine=saved&&lt.code?`<details class="mine"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
-    return `<section class="panel"><h2>Submit from GitHub</h2><div class="pad">${status}${tests}${saved?`<details class="gh-how"><summary>How to push a new version</summary>${how}</details>`:how}${mine}</div></section>`;
+git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button></details>
+      <p class="gh-first">First time? Accept the invitation GitHub emailed you to join the organization, or the link won't open.</p>`;
+    const mine=saved&&lt.code?`<details class="gh-local"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
+    return `${state}<section class="panel gh-card"><h2>${saved?"Submit a new version":"How to submit"}</h2><div class="pad">${saved?`<details class="gh-local"><summary>Show the steps</summary>${steps}</details>`:steps}${mine}</div></section>`;
   }
+  // The challenge page: the task is the main view; submitting from GitHub is a side card.
   viewExercise=function(){
-    const ex=EXM[V.ex],d=diffOf(ex);
+    const ex=EXM[V.ex],d=diffOf(ex),m=MODOF[ex.id];
     const tests=ex.lang==="js"
-      ?`<div class="panel"><h2>Tests <span class="muted" style="font-weight:500;font-size:13px">the grader runs these</span></h2><ul class="tests">${ex.tests.map(t=>`<li><span class="dot"></span><div><div>${esc(t.n)}</div><code>${esc(t.t)}</code></div></li>`).join("")}</ul></div>`
-      :`<div class="panel"><h2>Tests</h2><div class="pad" style="padding-bottom:6px"><p class="note-go">The grader runs this test file with <code>go test -race</code> on every push.</p></div><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></div>`;
-    const submit=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`
-      :`<section class="panel"><h2>Submit from GitHub</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You solve challenges in your own GitHub repository and push your code; the grader checks every push. Sign in with GitHub to get your repository.</p><a class="btn gh-btn" href="/api/auth/github">${GH}Sign in with GitHub</a></div></section>`;
+      ?`<section class="task-sec"><h2>Tests <span class="muted">what your code must do</span></h2><ol class="task-tests">${ex.tests.map(t=>`<li><b>${esc(t.n)}</b><code>${esc(t.t)}</code></li>`).join("")}</ol></section>`
+      :`<section class="task-sec"><h2>Tests <span class="muted">run with <code>go test -race</code></span></h2><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></section>`;
+    const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`
+      :`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Solve it in your own repository</b><p>Sign in with GitHub to get your repository. You write your code there, and the grader checks every change.</p><a class="btn gh-btn small" href="/api/auth/github" style="margin-top:8px">${GH}Sign in with GitHub</a></div></div>`;
     return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
-    <div class="ex-head"><div><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)}</p><h1 class="pg-h">${esc(ex.title)}</h1></div><div class="ex-meta"><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(ex)} pts</span></div></div>
-    <div class="ex-grid"><div class="side"><div class="panel"><h2>Task</h2><div class="pad prompt">${mdLite(ex.prompt)}</div></div>${tests}
-      <details class="panel starter"><summary>Starter code (<span class="mono">${ex.lang==="js"?"solution.js":"solution.go"}</span>)</summary>${codeBlock(ex.starter)}</details></div>
-     <div>${submit}<div id="prPanel">${peerPanel(ex)}</div></div></div>`;
+    <div class="task-page">
+      <aside class="task-side">${side}<div id="prPanel">${peerPanel(ex)}</div></aside>
+      <article class="panel task-main">
+        <header class="task-h"><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)}${m?` · Module ${modNum(m)}`:""}</p><h1 class="pg-h">${esc(ex.title)}</h1><div class="ex-meta"><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(ex)} pts</span></div></header>
+        <section class="task-sec"><h2>Task</h2><div class="prompt task-prompt">${mdLite(ex.prompt)}</div></section>
+        <section class="task-sec"><h2>Starting point <span class="muted mono">${solutionFile(ex)}</span></h2>${codeBlock(ex.starter)}</section>
+        ${tests}
+      </article>
+    </div>`;
   };
+
   rate=async function(n,subId){
     try{const r=await api("POST",`/api/submissions/${subId}/rating`,{stars:n});(L.delta=L.delta||{})[subId]=r;await loadAll();}
     catch(e){alertIn("prPanel",e.message);}

@@ -4,6 +4,17 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Starting point": "መነሻ", "what your code must do": "ኮድዎ ማድረግ ያለበት", "Solved": "የተፈቱ", "Your solution passed the grader and is saved.": "መፍትሔዎ አራሚውን አልፏል፣ ተቀምጧል።",
+    "Not submitted yet": "ገና አልገባም", "Follow the steps below. Your result shows here about a minute after you commit.": "ከታች ያሉትን ደረጃዎች ይከተሉ። commit ካደረጉ ከአንድ ደቂቃ ገደማ በኋላ ውጤቱ እዚህ ይታያል።",
+    "How to submit": "እንዴት እንደሚያስገቡ", "Submit a new version": "አዲስ ስሪት ያስገቡ", "Show the steps": "ደረጃዎቹን አሳይ",
+    "It opens the file in your repository, ready to edit.": "ፋይሉን በማከማቻዎ ውስጥ ለማርትዕ ዝግጁ አድርጎ ይከፍተዋል።",
+    "Write your solution": "መፍትሔዎን ይጻፉ", "Replace the starter code with your answer.": "የመነሻ ኮዱን በመልስዎ ይተኩ።",
+    "Click “Commit changes”": "“Commit changes”ን ይጫኑ", "Keep “Commit directly to the main branch” selected, then confirm.": "“Commit directly to the main branch” እንደተመረጠ ይተዉትና ያረጋግጡ።",
+    "Come back here": "ወደዚህ ይመለሱ", "The grader checks it and shows the result above.": "አራሚው ይፈትሸዋል፤ ውጤቱንም ከላይ ያሳያል።",
+    "Prefer your own computer?": "የራስዎን ኮምፒውተር ይመርጣሉ?", "Checking…": "በመፈተሽ ላይ…",
+    "First time? Accept the invitation GitHub emailed you to join the organization, or the link won't open.": "የመጀመሪያ ጊዜ? ድርጅቱን ለመቀላቀል GitHub በኢሜይል የላከልዎትን ግብዣ ይቀበሉ፤ አለበለዚያ ሊንኩ አይከፈትም።",
+    "Solve it in your own repository": "በራስዎ ማከማቻ ይፍቱት",
+    "Sign in with GitHub to get your repository. You write your code there, and the grader checks every change.": "ማከማቻዎን ለማግኘት በGitHub ይግቡ። ኮድዎን እዚያ ይጽፋሉ፤ አራሚው እያንዳንዱን ለውጥ ይፈትሻል።",
     "Browse every challenge and its tests. To solve them, sign in with GitHub: you get your own repository, write your code there and push it, and the grader checks every push.": "ሁሉንም ተግዳሮቶችና ሙከራዎቻቸውን ይመልከቱ። ለመፍታት በGitHub ይግቡ፦ የራስዎን ማከማቻ ያገኛሉ፣ ኮድዎን እዚያ ጽፈው ይግፉታል፣ አራሚውም እያንዳንዱን ግፊት ይፈትሻል።",
     "Submit from GitHub": "ከGitHub ያስገቡ", "the grader runs these": "አራሚው እነዚህን ያሄዳል", "Not submitted yet.": "ገና አልገባም።",
     "Write your solution in your repository and push it. The grader checks every push, and the result appears here.": "መፍትሔዎን በማከማቻዎ ጽፈው ይግፉት። አራሚው እያንዳንዱን ግፊት ይፈትሻል፤ ውጤቱም እዚህ ይታያል።",
@@ -240,6 +251,10 @@ const I18N = (() => {
     [/^(\d+) d ago$/, (m, n) => `ከ${n} ቀን በፊት`],
     [/^(\d+) min ago$/, (m, n) => `ከ${n} ደቂቃ በፊት`],
     [/^just now$/, () => "አሁን"],
+    [/^Open (solution\.(?:js|go)) on GitHub ↗$/, (m, f) => `${f}ን በGitHub ይክፈቱ ↗`],
+    [/^(\d+) of (\d+) tests passed$/, (m, a, b) => `ከ${b} ሙከራዎች ${a} አልፈዋል`],
+    [/^Your last push, (.+)\. Fix these and push again:$/, (m, t) => `የመጨረሻው ግፊትዎ፣ ${tr(t) || t}። እነዚህን አስተካክለው እንደገና ይግፉ፦`],
+    [/^run with$/, () => "የሚሄደው በ"],
     [/^Your latest push passed (\d+) of (\d+) tests\.$/, (m, a, b) => `የመጨረሻው ግፊትዎ ከ${b} ሙከራዎች ${a}ቱን አልፏል።`],
     [/^Pushed (.+)$/, (m, t) => `የተገፋው ${S(t)}`],
     [/^in your repository:$/, () => "በማከማቻዎ ውስጥ፦"],
