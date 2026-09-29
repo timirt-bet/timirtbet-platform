@@ -172,3 +172,16 @@ details.mod[open] .mod-chev{transform:rotate(45deg)}
 @keyframes toastIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
 @media (max-width:560px){.bell-pop{position:fixed;left:16px;right:16px;top:64px;width:auto;max-width:none}.toast{left:16px;right:16px;max-width:none}}
 @media (prefers-reduced-motion:reduce){.toast-in{animation:none}}
+/* after a run: saving, saved, or not saved */
+.save-note{display:flex;gap:10px;align-items:flex-start;margin:12px 14px 0;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);font-size:14px;line-height:1.45}
+.save-note .sn-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:99px;font-weight:800;font-size:13px;background:var(--surface);color:var(--ink-2)}
+.save-note .sn-b{color:var(--ink-2);font-size:13.5px;margin-top:2px}
+.save-note .sn-b .btn{margin-left:4px;margin-top:6px}
+.save-note.ok{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:var(--accent-soft)}
+.save-note.ok .sn-ic{background:var(--accent);color:#fff}
+.save-note.ok b{color:var(--ink)}
+.save-note.warn{border-color:color-mix(in srgb,var(--clay) 45%,transparent);background:var(--clay-soft)}
+.save-note.warn .sn-ic{background:var(--clay);color:#fff}
+.save-note .spin{width:14px;height:14px;border-radius:99px;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.save-note .spin{animation-duration:2.4s}}

@@ -1,6 +1,6 @@
 /* ---------- live mode: the same screens, backed by the Timirtbet API ---------- */
 if(LIVE){
-  const L={me:null,circle:null,subs:[],queue:[],given:[],flagged:[],solved:new Set(),saved:new Set(),loaded:false,jobs:{},graded:{},graderFail:{},modErr:{}};
+  const L={me:null,circle:null,subs:[],queue:[],given:[],flagged:[],solved:new Set(),saved:new Set(),loaded:false,jobs:{},graded:{},graderFail:{},saveErr:{},modErr:{}};
   async function api(method,path,body){
     const res=await fetch(path,{method,credentials:"same-origin",headers:body?{"content-type":"application/json"}:{},body:body?JSON.stringify(body):undefined});
     const data=res.status===204?null:await res.json().catch(()=>null);
@@ -39,7 +39,7 @@ if(LIVE){
     let n=null;try{n=JSON.parse(localStorage.getItem(ACCT(k))||"null");}catch(e){}
     const prefs={track:S.track,diff:S.diff,statusF:S.statusF};
     S=n||{...seed(),...prefs};S.me=null;
-    fetchedCode.clear();V.rvDraft=null;V.confirm=null;
+    fetchedCode.clear();V.rvDraft=null;V.confirm=null;L.graded={};L.graderFail={};L.saveErr={};
     try{if(localStorage.getItem(WHO)!==(k||""))localStorage.setItem(WHO,k||"");}catch(e){}
     return true;
   }
@@ -178,6 +178,7 @@ if(LIVE){
     if(!L.loaded){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
     baseRender();
     if(V.view==="exercise"&&V.ex)loadSavedCode(V.ex);
+    showSaveNote();
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. You can export or delete it from your profile at any time. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
     }
@@ -201,6 +202,7 @@ if(LIVE){
     if(!L.me)return "Your code stays in this browser. Sign in to save progress. Ctrl+Enter runs.";
     if(L.jobs[ex.id])return "Checking your solution on the grader…";
     if(L.graderFail[ex.id]===code)return "The grader found a problem. Fix it and run again.";
+    if(L.saveErr[ex.id]===code)return "Not saved. Run the tests again to retry.";
     if(L.graded[ex.id]===code&&L.solved.has(ex.id))return "Saved to your progress ✓";
     if(L.solved.has(ex.id))return "Solved. Run the tests to save this version instead.";
     return "When every test passes, your solution is saved automatically. Ctrl+Enter runs.";};
@@ -227,9 +229,31 @@ git push</pre></div></details>`;
     const sub=ms.sub;
     return `<section class="panel pr"><h2>Module review</h2><div class="pad"><p class="eyebrow" style="margin:0 0 4px">Module ${modNum(m)} · ${ms.passed}/${ms.total} passed</p><b>${esc(m.title)}</b>${list}<div class="mod-foot">${moduleFoot(m,ms,true)}</div>${sub&&sub.review?`<div class="stages">${reviewBlock(sub)}</div>`:""}</div></section>`;
   };
+  /* What happens after a run, shown above the test results. Congratulations only once the grader passed
+     the code and it is saved; before that it says what is happening. */
+  function saveBanner(ex,r,code){
+    if(!r||r.code!==code||!(r.t>0&&r.p===r.t))return "";
+    const n=`${r.t} ${ex.lang==="js"?"tests":"checks"}`;
+    const box=(k,ic,h,body="")=>`<div class="save-note ${k}" role="status"><span class="sn-ic" aria-hidden="true">${ic}</span><div><b>${h}</b>${body?`<div class="sn-b">${body}</div>`:""}</div></div>`;
+    if(!L.me)return box("info","i",`All ${n} pass in your browser.`,`Your code is not saved yet. <a href="/api/auth/github">Sign in with GitHub</a> to save it and count it toward your module.`);
+    if(L.jobs[ex.id])return box("busy","<span class=\"spin\"></span>",`All ${n} pass here. Saving…`,"The grader is checking your solution. This takes a few seconds.");
+    if(L.saveErr[ex.id]===code)return box("warn","!","Your solution passed here but was not saved.",`${esc(L.saveErr[ex.id+":msg"]||"")} Run the tests again to retry.`);
+    if(L.graded[ex.id]===code&&L.solved.has(ex.id)){
+      const m=MODOF[ex.id];let next="";
+      if(m){const ms=moduleState(m),todo=m.exercises.find(id=>!L.solved.has(id));
+        if(todo)next=`Module ${modNum(m)}: ${ms.passed} of ${ms.total} done. <button class="linkish" data-act="open" data-id="${todo}">Next: ${esc(EXM[todo].title)} →</button>`;
+        else if(ms.ready)next=`That completes Module ${modNum(m)}. <button class="btn small primary" data-act="submit-module" data-id="${m.id}">Submit module for review</button>`;
+        else next=`Module ${modNum(m)}: all ${ms.total} done.`;}
+      return box("ok","✓","Well done! Solved and saved.",next);
+    }
+    return "";// the grader failed it: its results are shown below
+  }
+  const baseResults=resultsHTML;
+  resultsHTML=function(ex,r,code){return saveBanner(ex,r,code)+baseResults(ex,r,code);};
   // Run tests: when every browser test passes, the code goes to the grader and a pass is saved.
   async function gradeOnServer(ex,code){
     try{
+      delete L.saveErr[ex.id];
       const {jobId}=await api("POST","/api/submissions",{exerciseId:ex.id,code});
       L.jobs[ex.id]=jobId;delete L.graderFail[ex.id];refreshEx(ex);
       for(let i=0;i<120;i++){
@@ -241,10 +265,24 @@ git push</pre></div></details>`;
           await loadAll();return;
         }
       }
-      delete L.jobs[ex.id];refreshEx(ex);
-    }catch(e){delete L.jobs[ex.id];refreshEx(ex);const h=document.getElementById("edHint");if(h)h.textContent=e.message;}
+      delete L.jobs[ex.id];L.saveErr[ex.id]=code;L.saveErr[ex.id+":msg"]="The grader took too long.";refreshEx(ex);
+    }catch(e){delete L.jobs[ex.id];L.saveErr[ex.id]=code;L.saveErr[ex.id+":msg"]=e.status?e.message+".":"No connection to Timirtbet.";refreshEx(ex);}
   }
-  function refreshEx(ex){if(V.view!=="exercise"||V.ex!==ex.id)return;const h=document.getElementById("edHint");if(h)h.textContent=hint(ex,document.getElementById("editor").value);const p=document.getElementById("prPanel");if(p)p.innerHTML=peerPanel(ex);}
+  function refreshEx(ex){
+    if(V.view!=="exercise"||V.ex!==ex.id)return;
+    const code=document.getElementById("editor").value;
+    const h=document.getElementById("edHint");if(h)h.textContent=hint(ex,code);
+    const res=document.getElementById("results");if(res)res.innerHTML=resultsHTML(ex,S.res[ex.id],code);
+    const p=document.getElementById("prPanel");if(p)p.innerHTML=peerPanel(ex);
+    showSaveNote();
+  }
+  // The result of saving sits under the editor: bring it into view once when it changes.
+  let lastNote="";
+  function showSaveNote(){
+    const n=document.querySelector("#results .save-note");if(!n||V.view!=="exercise")return;
+    const k=V.ex+"|"+n.className+"|"+n.textContent;if(k===lastNote)return;lastNote=k;
+    n.scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  }
   const baseRun=run;
   run=async function(){
     await baseRun();

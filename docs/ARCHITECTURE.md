@@ -83,7 +83,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
   - Go: `go test -race`, 60 seconds per challenge, with no module downloads.
   - It returns results and holds nothing.
 - **Recording:** each result is saved. A pass also keeps the latest passing code for that challenge. A single pass is not reviewed on its own.
-- **Modules:** challenges are grouped into modules of 3–5 (`challenges/modules.json`, 4 per language). When every challenge in a module has passed, the learner submits the module (`POST /api/modules/{id}/submit`): one submission with the latest passing code of each challenge.
+- **Modules:** challenges are grouped into modules of 3–5 (`challenges/modules.json`, 4 per language). When every challenge in a module has passed, the learner submits the module (`POST /api/modules/{id}/submit`): one submission with the latest passing code of each challenge. Reviewers only ever get whole modules: single-challenge submissions left from before modules existed are withdrawn at API start-up and by the hourly task, freeing the reviewer's slot.
 - **Feedback on GitHub:** the commit gets a `timirtbet/tests` status, and pull requests get a comment listing failing tests.
 - **Retries:** if processing fails, Pub/Sub retries with a 10–600 second backoff, and moves the job to `grading-failed` after 5 attempts.
 

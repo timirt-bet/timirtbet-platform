@@ -11,7 +11,7 @@ import { localGrader } from "../src/grader-client.mjs";
 import { loadBank, loadModules } from "../src/exercises.mjs";
 import { sign } from "../src/signature.mjs";
 import { signSession } from "../src/auth.mjs";
-import { reassignStale, passersOfUnit } from "../src/pipeline.mjs";
+import { reassignStale, retireSingles, passersOfUnit } from "../src/pipeline.mjs";
 import { statsFromStars } from "../src/reviews.mjs";
 import { CHALLENGES, fixtureRepo, fakeGitHub, answer, NEEDS_ANSWERS } from "./helpers.mjs";
 
@@ -221,7 +221,7 @@ test("reviews not written within 72 hours move to someone else", async () => {
     await t.signIn();
     const h = (n) => new Date(Date.now() - n * 3600e3).toISOString();
     const sub = await t.store.addSubmission({ studentId: "gh_1001", moduleId: "js-m1", exerciseId: "js-m1", code: "x", reviewerId: "gh_2", assignedAt: h(73) });
-    const soon = await t.store.addSubmission({ studentId: "gh_1001", exerciseId: "js-loops", code: "x", reviewerId: "gh_3", assignedAt: h(49) });
+    const soon = await t.store.addSubmission({ studentId: "gh_1001", moduleId: "js-m2", exerciseId: "js-m2", code: "x", reviewerId: "gh_3", assignedAt: h(49) });
     await t.store.bumpOpenReviews("gh_2", 1); await t.store.bumpOpenReviews("gh_3", 1);
     const notify = async (id, n) => t.store.notify(id, n);
     assert.equal(await reassignStale({ store: t.store, bank, modules, notify }), 1);
@@ -234,6 +234,28 @@ test("reviews not written within 72 hours move to someone else", async () => {
     assert.notEqual(after.reviewerId, "gh_2");
     assert.deepEqual(after.previousReviewers, ["gh_2"]);
     assert.equal((await t.store.reviewerStats("gh_2")).openReviews, 0);
+  } finally { t.close(); }
+});
+
+test("reviewers get whole modules: older single-challenge reviews are withdrawn", async () => {
+  const t = await setup();
+  try {
+    const { hana } = await t.signIn();
+    const single = await t.store.addSubmission({ studentId: "gh_1001", exerciseId: "js-loops", code: "x", reviewerId: "gh_2", assignedAt: new Date().toISOString() });
+    const waiting = await t.store.addSubmission({ studentId: "gh_1001", exerciseId: "js-func", code: "x", reviewerId: null, status: "waiting_for_reviewer" });
+    const done = await t.store.addSubmission({ studentId: "gh_1001", exerciseId: "js-vars", code: "x", reviewerId: "gh_3", status: "reviewed", review: { text: "kept" } });
+    const mod = await t.store.addSubmission({ studentId: "gh_1001", moduleId: "js-m1", exerciseId: "js-m1", items: [], reviewerId: "gh_2", assignedAt: new Date().toISOString() });
+    await t.store.bumpOpenReviews("gh_2", 2);
+    const queue = async () => (await (await t.get("/api/reviews/queue", await t.as("gh_2"))).json()).toReview.map((s) => s.id);
+    assert.deepEqual(await queue(), [mod.id], "the queue shows modules only");
+    assert.equal(await retireSingles({ store: t.store }), 2);
+    assert.equal((await t.store.getSubmission(single.id)).status, "withdrawn");
+    assert.equal((await t.store.getSubmission(waiting.id)).status, "withdrawn");
+    assert.equal((await t.store.getSubmission(done.id)).status, "reviewed", "reviewed history stays");
+    assert.equal((await t.store.getSubmission(mod.id)).status, "awaiting_review");
+    assert.equal((await t.store.reviewerStats("gh_2")).openReviews, 1, "the reviewer's slot is freed");
+    const mine = (await (await t.get("/api/submissions/mine", hana)).json()).submissions.map((s) => s.id);
+    assert.ok(!mine.includes(single.id) && mine.includes(mod.id), "the author no longer sees withdrawn items");
   } finally { t.close(); }
 });
 

@@ -4,6 +4,11 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Your code is not saved yet.": "ኮድዎ ገና አልተቀመጠም።", "to save it and count it toward your module.": "ለማስቀመጥና ለሞጁልዎ እንዲቆጠር።",
+    "The grader is checking your solution. This takes a few seconds.": "አራሚው መፍትሔዎን እየፈተሸ ነው። ጥቂት ሰከንዶች ይወስዳል።",
+    "Your solution passed here but was not saved.": "መፍትሔዎ እዚህ አልፏል ግን አልተቀመጠም።",
+    "Well done! Solved and saved.": "በጣም ጥሩ! ተፈትቷል፣ ተቀምጧል።",
+    "Not saved. Run the tests again to retry.": "አልተቀመጠም። እንደገና ለመሞከር ሙከራዎቹን ያሂዱ።",
     "Notifications": "ማሳወቂያዎች", "New review to write:": "የሚጻፍ አዲስ ግምገማ፦", "Due within 72 hours": "በ72 ሰዓት ውስጥ",
     "Reminder: review due within 24 hours:": "ማስታወሻ፦ ግምገማው በ24 ሰዓት ውስጥ ይጠበቃል፦",
     "72 hours passed, so this review moved to someone else:": "72 ሰዓት ስላለፈ ይህ ግምገማ ወደ ሌላ ሰው ተዛውሯል፦",
@@ -209,6 +214,13 @@ const I18N = (() => {
     [/^(\d+) d ago$/, (m, n) => `ከ${n} ቀን በፊት`],
     [/^(\d+) min ago$/, (m, n) => `ከ${n} ደቂቃ በፊት`],
     [/^just now$/, () => "አሁን"],
+    [/^All (\d+) (tests|checks) pass in your browser\.$/, (m, n, k) => `ሁሉም ${n} ${k === "tests" ? "ሙከራዎች" : "ፍተሻዎች"} በአሳሽዎ አልፈዋል።`],
+    [/^All (\d+) (tests|checks) pass here\. Saving…$/, (m, n, k) => `ሁሉም ${n} ${k === "tests" ? "ሙከራዎች" : "ፍተሻዎች"} እዚህ አልፈዋል። በማስቀመጥ ላይ…`],
+    [/^(.*?) ?Run the tests again to retry\.$/, (m, e) => `${e === "No connection to Timirtbet." ? "ከትምህርት ቤት ጋር ግንኙነት የለም።" : e === "The grader took too long." ? "አራሚው በጣም ዘገየ።" : e} እንደገና ለመሞከር ሙከራዎቹን ያሂዱ።`],
+    [/^Module (\d+): (\d+) of (\d+) done\.$/, (m, n, a, b) => `ሞጁል ${n}፦ ${a} ከ${b} ተጠናቀዋል።`],
+    [/^Module (\d+): all (\d+) done\.$/, (m, n, b) => `ሞጁል ${n}፦ ሁሉም ${b} ተጠናቀዋል።`],
+    [/^That completes Module (\d+)\.$/, (m, n) => `ይህ ሞጁል ${n}ን ያጠናቅቃል።`],
+    [/^Next: (.+) →$/, (m, t) => `ቀጣይ፦ ${S(t)} →`],
     [/^([+−-]\d+) pts$/, (m, n) => `${n} ነጥብ`],
     [/^Notifications, (\d+) unread$/, (m, n) => `ማሳወቂያዎች፣ ${n} ያልተነበቡ`],
     [/^Review: Module (\d+) · (.+)$/, (m, n, t) => `ግምገማ፦ ሞጁል ${n} · ${S(t)}`],

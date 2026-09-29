@@ -174,8 +174,25 @@ export async function assignWaiting({ store, bank, modules = {}, notify = noop }
   for (const sub of await store.byStatus("waiting_for_reviewer")) await assignReviewer({ store, bank, modules, sub, exclude: sub.previousReviewers || [], notify });
 }
 
+// Reviews are per module. Single-challenge submissions from before modules that nobody has reviewed yet
+// are withdrawn, and their reviewers' slots freed; the author submits the whole module instead.
+export async function retireSingles({ store, log = () => {} }) {
+  let n = 0;
+  for (const status of ["awaiting_review", "waiting_for_reviewer"]) {
+    for (const sub of await store.byStatus(status)) {
+      if (sub.moduleId || sub.review) continue;
+      if (status === "awaiting_review" && sub.reviewerId) await store.bumpOpenReviews(sub.reviewerId, -1);
+      await store.updateSubmission(sub.id, { status: "withdrawn", reviewerId: null, withdrawnAt: new Date().toISOString() });
+      n++;
+    }
+  }
+  if (n) log(`withdrew ${n} single-challenge submission(s); modules are reviewed instead`);
+  return n;
+}
+
 // The hourly task: a reminder 48 hours after assignment; after 72 hours the review moves to someone else.
 export async function reassignStale({ store, bank, modules = {}, notify = noop, now = Date.now() }) {
+  await retireSingles({ store });
   let moved = 0;
   for (const sub of await store.byStatus("awaiting_review")) {
     if (!sub.assignedAt) continue;

@@ -84,5 +84,7 @@ if (mode === "grader") {
     }
     return app.handler(req, res);
   } : app.handler;
+  // Reviews are per module: withdraw any single-challenge reviews left from before (also done hourly).
+  import("./pipeline.mjs").then(({ retireSingles }) => retireSingles({ store, log: console.log })).catch((e) => console.error("retireSingles:", e.message));
   http.createServer(handler).listen(port, () => console.log(`Timirtbet API (${mode}) on :${port}${offline ? `  ->  open http://localhost:${port}/api/auth/dev?login=your-name` : ""}`));
 }

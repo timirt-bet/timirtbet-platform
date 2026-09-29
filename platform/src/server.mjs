@@ -4,7 +4,7 @@
 import crypto from "node:crypto";
 import { verifySignature } from "./signature.mjs";
 import { onboardStudent, offboardLearner } from "./onboarding.mjs";
-import { jobFromEvent, webJob, processJob, assignWaiting, reassignStale, submitModule, ModuleError } from "./pipeline.mjs";
+import { jobFromEvent, webJob, processJob, assignWaiting, reassignStale, retireSingles, submitModule, ModuleError } from "./pipeline.mjs";
 import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS } from "./reviews.mjs";
 import { createNotifier } from "./notify.mjs";
 import { authorizeUrl, signSession, verifySession, parseCookies, cookie } from "./auth.mjs";
@@ -200,10 +200,11 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
 
       // ---- peer review ----
       if (req.method === "GET" && p === "/api/submissions/mine") {
-        return json(res, 200, { submissions: (await store.submissionsOf(me.id)).map(({ reviewerId, previousReviewers, ...s }) => s) });
+        return json(res, 200, { submissions: (await store.submissionsOf(me.id)).filter((s) => s.status !== "withdrawn").map(({ reviewerId, previousReviewers, ...s }) => s) });
       }
       if (req.method === "GET" && p === "/api/reviews/queue") {
-        const mine = (await store.assignedTo(me.id)).filter((s) => s.status === "awaiting_review");
+        // Only whole modules are reviewed; older single-challenge items are withdrawn by the hourly task.
+        const mine = (await store.assignedTo(me.id)).filter((s) => s.status === "awaiting_review" && s.moduleId);
         return json(res, 200, { toReview: mine.map(({ studentId, previousReviewers, ...s }) => s) });
       }
       if (req.method === "GET" && p === "/api/reviews/given") {
