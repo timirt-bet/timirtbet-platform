@@ -1,0 +1,12 @@
+Timirtbet (ትምህርት ቤት)
+Copyright 2026 The Timirtbet contributors
+
+This product includes software developed as part of the Timirtbet project
+(https://github.com/timirt-bet/timirtbet-platform), licensed under the
+Apache License, Version 2.0.
+
+The web app's code editor bundles CodeMirror 6 and Lezer (MIT License,
+Copyright (C) 2018-2021 by Marijn Haverbeke and others).
+
+The Go logo is a trademark of Google LLC. The JavaScript logo is a community
+logo. Both are used only to label the two tracks.

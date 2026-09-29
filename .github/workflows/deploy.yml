@@ -1,0 +1,113 @@
+# Test on every push and pull request; on main, build and deploy everything to Google Cloud.
+# Signs in with Workload Identity Federation (set up by deploy/setup.sh), so no keys are stored.
+name: test-and-deploy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGION: ${{ vars.GCP_REGION }}
+  PROJECT: ${{ vars.GCP_PROJECT_ID }}
+  IMAGES: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/timirtbet
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Maintainers add a SOLUTIONS_TOKEN secret (read access to <org>/solutions) so every answer is checked too.
+      HAS_ANSWERS: ${{ secrets.SOLUTIONS_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reference answers (private)
+        if: env.HAS_ANSWERS == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/solutions
+          token: ${{ secrets.SOLUTIONS_TOKEN }}
+          path: solutions
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.22" }
+      - name: Exercise bank builds (every starter fails; every answer passes when present)
+        run: node authoring/build.mjs
+      - name: Platform tests
+        working-directory: platform
+        run: npm ci && npm test
+      - name: Web app builds
+        run: node web/build.mjs --live
+
+  deploy:
+    needs: test
+    # Forks and copies without the Google Cloud variables (deploy/setup.sh sets them) only run the tests.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+          create_credentials_file: true
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Build and push images
+        run: |
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build -f deploy/api.Dockerfile -t "$IMAGES/api:$GITHUB_SHA" .
+          docker build -f deploy/grader.Dockerfile -t "$IMAGES/grader:$GITHUB_SHA" .
+          docker push "$IMAGES/api:$GITHUB_SHA"
+          docker push "$IMAGES/grader:$GITHUB_SHA"
+      - name: Deploy the grader (private, one request per instance, no credentials)
+        run: |
+          gcloud run deploy timirtbet-grader --image "$IMAGES/grader:$GITHUB_SHA" --region "$REGION" \
+            --service-account "timirtbet-grader@$PROJECT.iam.gserviceaccount.com" \
+            --no-allow-unauthenticated --concurrency 1 --cpu 1 --memory 1Gi --min-instances 0 --max-instances 3 --timeout 120 --quiet
+          gcloud run services add-iam-policy-binding timirtbet-grader --region "$REGION" \
+            --member "serviceAccount:timirtbet-api@$PROJECT.iam.gserviceaccount.com" --role roles/run.invoker --quiet
+      - name: Deploy the API
+        run: |
+          API_URL="https://timirtbet-api-${{ vars.GCP_PROJECT_NUMBER }}.$REGION.run.app"
+          GRADER_URL=$(gcloud run services describe timirtbet-grader --region "$REGION" --format='value(status.url)')
+          gcloud run deploy timirtbet-api --image "$IMAGES/api:$GITHUB_SHA" --region "$REGION" \
+            --service-account "timirtbet-api@$PROJECT.iam.gserviceaccount.com" \
+            --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GRADER_URL=$GRADER_URL,TASKS_AUDIENCE=$API_URL/api/tasks,TASKS_INVOKER_EMAIL=tasks-invoker@$PROJECT.iam.gserviceaccount.com,GITHUB_ORG=${{ vars.TIMIRTBET_GITHUB_ORG }},GITHUB_APP_ID=${{ vars.TIMIRTBET_APP_ID }},GITHUB_APP_INSTALLATION_ID=${{ vars.TIMIRTBET_APP_INSTALLATION_ID }},GITHUB_CLIENT_ID=${{ vars.TIMIRTBET_CLIENT_ID }},APP_URL=${{ vars.APP_URL }}" \
+            --set-secrets "GITHUB_APP_PRIVATE_KEY=github-app-key:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest,SESSION_SECRET=session-secret:latest" \
+            --quiet
+          gcloud run services add-iam-policy-binding timirtbet-api --region "$REGION" \
+            --member "serviceAccount:tasks-invoker@$PROJECT.iam.gserviceaccount.com" --role roles/run.invoker --quiet
+          echo "API_URL=$API_URL" >> "$GITHUB_ENV"
+      - name: Grading subscription and the hourly reassign job (create once, then update)
+        run: |
+          INVOKER="tasks-invoker@$PROJECT.iam.gserviceaccount.com"
+          ARGS=(--push-endpoint="$API_URL/api/tasks/grade" --push-auth-service-account="$INVOKER" --push-auth-token-audience="$API_URL/api/tasks"
+                --ack-deadline=600 --min-retry-delay=10s --max-retry-delay=600s --dead-letter-topic=grading-failed --max-delivery-attempts=5)
+          if gcloud pubsub subscriptions describe grading-push >/dev/null 2>&1; then
+            gcloud pubsub subscriptions update grading-push "${ARGS[@]}"
+          else
+            gcloud pubsub subscriptions create grading-push --topic=grading-jobs "${ARGS[@]}"
+          fi
+          gcloud pubsub subscriptions add-iam-policy-binding grading-push \
+            --member="serviceAccount:service-${{ vars.GCP_PROJECT_NUMBER }}@gcp-sa-pubsub.iam.gserviceaccount.com" --role=roles/pubsub.subscriber >/dev/null
+          SARGS=(--location="$REGION" --schedule="17 * * * *" --uri="$API_URL/api/tasks/reassign" --http-method=POST
+                 --oidc-service-account-email="$INVOKER" --oidc-token-audience="$API_URL/api/tasks")
+          if gcloud scheduler jobs describe reassign-stale-reviews --location="$REGION" >/dev/null 2>&1; then
+            gcloud scheduler jobs update http reassign-stale-reviews "${SARGS[@]}"
+          else
+            gcloud scheduler jobs create http reassign-stale-reviews "${SARGS[@]}"
+          fi
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Build and deploy the web app
+        run: |
+          node web/build.mjs --live
+          npx -y firebase-tools@15 deploy --only hosting --project "$PROJECT" --non-interactive

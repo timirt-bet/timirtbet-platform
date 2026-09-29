@@ -1,0 +1,17 @@
+{
+  "name": "timirtbet-editor",
+  "private": true,
+  "description": "CodeMirror 6 bundle for the Timirtbet web app. Rebuild with: npm install && npm run build",
+  "scripts": { "build": "esbuild entry.js --bundle --minify --format=iife --target=es2020 --outfile=../src/vendor/codemirror.js --legal-comments=none" },
+  "devDependencies": {
+    "codemirror": "^6.0.1",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-go": "^6.0.1",
+    "@codemirror/language": "^6.10.0",
+    "@codemirror/view": "^6.34.0",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/commands": "^6.7.0",
+    "@lezer/highlight": "^1.2.1",
+    "esbuild": "^0.24.0"
+  }
+}

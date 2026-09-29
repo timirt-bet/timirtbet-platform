@@ -1,0 +1,37 @@
+name: challenges
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  graders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Maintainers add a SOLUTIONS_TOKEN secret (read access to <org>/solutions) to check every answer.
+      HAS_ANSWERS: ${{ secrets.SOLUTIONS_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Every exercise has tests and a grader
+        run: |
+          node -e 'const b=require("./exercises.json"),m=require("./modules.json");const fs=require("fs");
+            for(const e of b){if(e.lang==="js"&&!e.tests.length)throw e.id;if(e.lang==="go"&&!fs.existsSync("go/"+e.id.replace(/-/g,"_")))throw e.id;}
+            const ids=new Set(b.map(e=>e.id));for(const x of m)for(const id of x.exercises)if(!ids.has(id))throw "module "+x.id+": "+id;
+            console.log(b.length+" exercises, "+m.length+" modules")'
+      - name: Reference answers (private)
+        if: env.HAS_ANSWERS == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/solutions
+          token: ${{ secrets.SOLUTIONS_TOKEN }}
+          path: solutions
+      - name: Every answer passes its tests
+        if: env.HAS_ANSWERS == 'true'
+        run: SOLUTIONS_DIR=$PWD/solutions node test_all.mjs

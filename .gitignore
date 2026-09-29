@@ -1,0 +1,8 @@
+node_modules/
+web/dist/
+deploy/config.env
+*.pem
+authoring/bank.json
+
+# Reference answers (private repository, cloned here by maintainers)
+solutions/

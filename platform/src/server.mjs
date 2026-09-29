@@ -1,0 +1,266 @@
+// The Timirtbet API (Cloud Run service `timirtbet-api`, behind Firebase Hosting's /api route):
+// GitHub sign-in, review circles, web submissions, peer review, the GitHub webhook and the
+// Pub/Sub and Cloud Scheduler task endpoints.
+import crypto from "node:crypto";
+import { verifySignature } from "./signature.mjs";
+import { onboardStudent, offboardLearner } from "./onboarding.mjs";
+import { jobFromEvent, webJob, processJob, assignWaiting, reassignStale, submitModule, ModuleError } from "./pipeline.mjs";
+import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS } from "./reviews.mjs";
+import { createNotifier } from "./notify.mjs";
+import { authorizeUrl, signSession, verifySession, parseCookies, cookie } from "./auth.mjs";
+import { createCircle, joinCircle, leaveCircle, newInviteCode, CircleError } from "./circles.mjs";
+import { pointsFor } from "./exercises.mjs";
+import { jobFromPush } from "./queue.mjs";
+
+const SESSION_DAYS = 30;
+// Firebase Hosting forwards only one cookie to Cloud Run, and it must be called __session.
+// It holds either a pending sign-in ({ st }) or a signed-in session ({ sid, v }).
+const COOKIE = "__session";
+const MAX_CODE = 64 * 1024;
+const WEB_SUBMISSIONS_PER_HOUR = 30;
+
+const json = (res, status, body, headers = {}) => { res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...headers }); res.end(body === undefined ? "" : JSON.stringify(body)); };
+const redirect = (res, location, cookies = []) => { res.writeHead(302, { location, "set-cookie": cookies }); res.end(); };
+async function readBody(req, limit = 1024 * 1024) {
+  const chunks = []; let size = 0;
+  for await (const c of req) { size += c.length; if (size > limit) throw Object.assign(new Error("too large"), { status: 413 }); chunks.push(c); }
+  return Buffer.concat(chunks);
+}
+
+export function createApp({ store, gh, bank, modules = {}, config, queue, grader, fetchRepo, oauth, verifyTask = async () => false, log = console.log }) {
+  const secure = config.secureCookies !== false;
+  const redirectUri = `${config.appUrl}/api/auth/github/callback`;
+  const notify = createNotifier({ store, gh, config, bank, modules, log });
+  const deps = { gh, store, bank, modules, grader, fetchRepo, config, notify, log };
+  queue.onJob((job) => processJob({ job, ...deps }));
+  const rate = new Map(); // web submissions per learner per hour (per instance; enough to stop runaway loops)
+
+  const session = async (req) => {
+    const p = verifySession(config.sessionSecret, parseCookies(req.headers.cookie)[COOKIE]);
+    if (!p || !p.sid) return null;
+    const l = await store.getLearner(p.sid);
+    return l && (l.sessionVersion || 0) === p.v ? l : null;
+  };
+  const sameOrigin = (req) => !req.headers.origin || req.headers.origin === new URL(config.appUrl).origin;
+  async function publicLearners(ids) {
+    const [learners, stats] = await Promise.all([store.getLearners(ids), store.reviewerStatsMany(ids)]);
+    const out = {};
+    for (const id of ids) {
+      const l = learners[id]; if (!l) continue;
+      const solved = await store.solvedOf(id);
+      out[id] = { id, login: l.githubUsername, solved: solved.length, points: solved.reduce((a, ex) => a + (bank[ex] ? pointsFor(bank[ex]) : 0), 0), reviewer: reviewerProfile(stats[id]) };
+    }
+    return out;
+  }
+
+  const handler = async (req, res) => {
+    try {
+      const url = new URL(req.url, "http://x");
+      const p = url.pathname;
+      const raw = req.method === "POST" || req.method === "DELETE" ? await readBody(req) : Buffer.alloc(0);
+      const body = () => { try { return JSON.parse(raw.toString("utf8") || "{}"); } catch { throw Object.assign(new Error("bad json"), { status: 400 }); } };
+      let m;
+
+      if (req.method === "GET" && p === "/api/health") return json(res, 200, { ok: true });
+
+      // ---- sign in with GitHub ----
+      if (req.method === "GET" && p === "/api/auth/github") {
+        const state = crypto.randomBytes(16).toString("hex");
+        const pending = signSession(config.sessionSecret, { st: state, exp: Date.now() + 600_000 });
+        return redirect(res, authorizeUrl({ clientId: config.githubClientId, redirectUri, state }), [cookie(COOKIE, pending, { maxAge: 600, secure })]);
+      }
+      if (req.method === "GET" && p === "/api/auth/github/callback") {
+        const expected = verifySession(config.sessionSecret, parseCookies(req.headers.cookie)[COOKIE])?.st;
+        if (!expected || url.searchParams.get("state") !== expected) return json(res, 400, { error: "Sign-in expired or was started elsewhere. Please try again." });
+        const user = await oauth.user(await oauth.exchange(url.searchParams.get("code"), redirectUri)); // the token is not kept
+        const id = `gh_${user.id}`;
+        let learner = await store.getLearner(id);
+        if (!learner?.repo) {
+          try { learner = await onboardStudent({ gh, store, config, student: { id, githubUsername: user.login, githubId: user.id }, log }); }
+          catch (e) { log(`onboarding ${user.login} failed, retrying next sign-in: ${e.message}`); learner = await store.upsertLearner(id, { githubUsername: user.login, githubId: user.id }); }
+        } else if (learner.githubUsername !== user.login) learner = await store.upsertLearner(id, { githubUsername: user.login });
+        const value = signSession(config.sessionSecret, { sid: id, v: learner.sessionVersion || 0, exp: Date.now() + SESSION_DAYS * 864e5 });
+        return redirect(res, `${config.appUrl}/`, [cookie(COOKIE, value, { maxAge: SESSION_DAYS * 86400, secure })]);
+      }
+
+      // ---- development only: sign in as any username without GitHub ----
+      if (config.devLogin && req.method === "GET" && p === "/api/auth/dev") {
+        const login = url.searchParams.get("login") || "dev-learner";
+        const gid = Math.abs([...login].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7));
+        const id = `gh_${gid}`;
+        let learner = await store.getLearner(id);
+        if (!learner?.repo) learner = await onboardStudent({ gh, store, config, student: { id, githubUsername: login, githubId: gid }, log });
+        const value = signSession(config.sessionSecret, { sid: id, v: learner.sessionVersion || 0, exp: Date.now() + SESSION_DAYS * 864e5 });
+        return redirect(res, `${config.appUrl}/`, [cookie(COOKIE, value, { maxAge: SESSION_DAYS * 86400, secure })]);
+      }
+
+      // ---- GitHub webhook ----
+      if (req.method === "POST" && p === "/api/hooks/github") {
+        if (!verifySignature(config.webhookSecret, raw, req.headers["x-hub-signature-256"])) return json(res, 401, { error: "bad signature" });
+        const event = req.headers["x-github-event"];
+        if (event === "ping") return json(res, 200, { pong: true });
+        const job = await jobFromEvent({ event, payload: body(), gh, bank });
+        if (!job) return json(res, 200, { skipped: true });
+        if (!(await store.claimJob(job.key, { kind: job.kind, repo: job.repo }))) return json(res, 200, { duplicate: true });
+        await queue.publish(job);
+        return json(res, 202, { queued: job.key });
+      }
+
+      // ---- tasks from Pub/Sub and Cloud Scheduler (Google-signed tokens only) ----
+      if (req.method === "POST" && p.startsWith("/api/tasks/")) {
+        if (!(await verifyTask(req.headers.authorization))) return json(res, 401, { error: "unauthorized" });
+        if (p === "/api/tasks/grade") {
+          const job = jobFromPush(body());
+          if (!job) return json(res, 204); // malformed: acknowledge so it is not retried forever
+          await processJob({ job, ...deps });
+          return json(res, 204);
+        }
+        if (p === "/api/tasks/reassign") return json(res, 200, { moved: await reassignStale({ store, bank, modules, notify }) });
+        return json(res, 404, { error: "not found" });
+      }
+
+      // ---- everything below needs a signed-in learner ----
+      if (req.method !== "GET" && !sameOrigin(req)) return json(res, 403, { error: "cross-site request refused" });
+      const me = await session(req);
+      if (!me) return json(res, 401, { error: "Sign in with GitHub first" });
+
+      if (req.method === "POST" && p === "/api/auth/logout") {
+        await store.upsertLearner(me.id, { sessionVersion: (me.sessionVersion || 0) + 1 }); // ends every session
+        return json(res, 200, { ok: true }, { "set-cookie": cookie(COOKIE, "", { maxAge: 0, secure }) });
+      }
+      if (req.method === "GET" && p === "/api/me") {
+        const circle = me.circleId ? await store.getCircle(me.circleId) : null;
+        const [people, passes] = await Promise.all([publicLearners([me.id, ...(circle?.members || [])]), store.passesOf(me.id)]);
+        return json(res, 200, {
+          me: { ...people[me.id], repo: me.repo || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.hasCode).map((x) => x.exerciseId) },
+          circle: circle && { id: circle.id, name: circle.name, track: circle.track, inviteCode: circle.inviteCode, ownerId: circle.ownerId, members: circle.members.map((id) => people[id]).filter(Boolean) },
+        });
+      }
+      if (req.method === "POST" && p === "/api/me/notice") { await store.upsertLearner(me.id, { noticeSeenAt: new Date().toISOString() }); return json(res, 200, { ok: true }); }
+      if (req.method === "GET" && p === "/api/me/export") {
+        const [results, submissions, reviews, stats] = await Promise.all([store.resultsOf(me.id), store.submissionsOf(me.id), store.assignedTo(me.id), store.reviewerStats(me.id)]);
+        return json(res, 200, { learner: me, results, submissions: submissions.map(({ reviewerId, ...s }) => s), reviewsWritten: reviews.map(({ studentId, ...s }) => s), reviewer: stats }, { "content-disposition": "attachment; filename=timirtbet-export.json" });
+      }
+      if (req.method === "DELETE" && p === "/api/me") {
+        if (body().confirm !== me.githubUsername) return json(res, 422, { error: "Type your GitHub username to confirm" });
+        await leaveCircle(store, me.id);
+        await offboardLearner({ gh, config, learner: me }).catch((e) => log(`offboarding ${me.githubUsername}: ${e.message}`));
+        await store.deleteLearnerData(me.id);
+        return json(res, 200, { deleted: true }, { "set-cookie": cookie(COOKIE, "", { maxAge: 0, secure }) });
+      }
+      if (req.method === "GET" && (m = p.match(/^\/api\/learners\/([\w-]+)$/))) {
+        const one = (await publicLearners([m[1]]))[m[1]];
+        return one ? json(res, 200, { learner: one }) : json(res, 404, { error: "no such learner" });
+      }
+
+      // ---- circles ----
+      try {
+        if (req.method === "POST" && p === "/api/circles") return json(res, 201, { circle: await createCircle(store, { ...body(), ownerId: me.id }) });
+        if (req.method === "POST" && p === "/api/circles/join") return json(res, 200, { circle: await joinCircle(store, { code: body().code, learnerId: me.id }) });
+        if (req.method === "POST" && p === "/api/circles/leave") { await leaveCircle(store, me.id); return json(res, 200, { ok: true }); }
+        if (req.method === "POST" && (m = p.match(/^\/api\/circles\/([\w-]+)\/invite-code$/))) return json(res, 200, { circle: await newInviteCode(store, { circleId: m[1], learnerId: me.id }) });
+      } catch (e) { if (e instanceof CircleError) return json(res, e.status, { error: e.message }); throw e; }
+
+      // ---- web editor submissions ----
+      if (req.method === "POST" && p === "/api/submissions") {
+        const { exerciseId, code } = body();
+        if (!bank[exerciseId]) return json(res, 422, { error: "unknown challenge" });
+        if (typeof code !== "string" || !code.trim() || code.length > MAX_CODE) return json(res, 422, { error: `code must be 1 to ${MAX_CODE} characters` });
+        const hour = Math.floor(Date.now() / 3600e3), k = `${me.id}:${hour}`;
+        if ((rate.get(k) || 0) >= WEB_SUBMISSIONS_PER_HOUR) return json(res, 429, { error: `At most ${WEB_SUBMISSIONS_PER_HOUR} submissions an hour. Run the tests in the browser first.` });
+        rate.set(k, (rate.get(k) || 0) + 1);
+        const job = webJob({ learnerId: me.id, exerciseId, code });
+        await store.claimJob(job.key, { kind: "web", learnerId: me.id, exerciseId });
+        await queue.publish(job);
+        return json(res, 202, { jobId: job.key });
+      }
+      if (req.method === "GET" && (m = p.match(/^\/api\/jobs\/(web_[\w-]+)$/))) {
+        const job = await store.getJob(m[1]);
+        if (!job || job.learnerId !== me.id) return json(res, 404, { error: "no such job" });
+        const result = job.status === "done" ? await store.latestResult(me.id, job.exerciseId) : null;
+        return json(res, 200, { status: job.status, passed: job.passed ?? null, result });
+      }
+      if (req.method === "GET" && (m = p.match(/^\/api\/results\/([\w-]+)$/))) return json(res, 200, { result: await store.latestResult(me.id, m[1]) });
+
+      // ---- notifications (the bell) ----
+      // Your latest passing code for one challenge, so the editor shows it on any device.
+      if (req.method === "GET" && p.startsWith("/api/passes/")) {
+        const exId = decodeURIComponent(p.slice("/api/passes/".length));
+        const pass = await store.passOf(me.id, exId);
+        return json(res, 200, { exerciseId: exId, code: pass?.code ?? null, at: pass?.codeAt ?? null });
+      }
+      if (req.method === "GET" && p === "/api/notifications") return json(res, 200, await store.inboxOf(me.id));
+      if (req.method === "POST" && p === "/api/notifications/read") { await store.markInboxRead(me.id); return json(res, 200, { ok: true }); }
+
+      // ---- a finished module goes to review as one submission ----
+      if (req.method === "POST" && (m = p.match(/^\/api\/modules\/([\w-]+)\/submit$/))) {
+        try { return json(res, 201, { submission: (({ reviewerId, previousReviewers, ...x }) => x)(await submitModule({ store, bank, modules, learnerId: me.id, moduleId: m[1], notify, log })) }); }
+        catch (e) { if (e instanceof ModuleError) return json(res, e.status, { error: e.message }); throw e; }
+      }
+
+      // ---- peer review ----
+      if (req.method === "GET" && p === "/api/submissions/mine") {
+        return json(res, 200, { submissions: (await store.submissionsOf(me.id)).map(({ reviewerId, previousReviewers, ...s }) => s) });
+      }
+      if (req.method === "GET" && p === "/api/reviews/queue") {
+        const mine = (await store.assignedTo(me.id)).filter((s) => s.status === "awaiting_review");
+        return json(res, 200, { toReview: mine.map(({ studentId, previousReviewers, ...s }) => s) });
+      }
+      if (req.method === "GET" && p === "/api/reviews/given") {
+        const done = (await store.assignedTo(me.id)).filter((s) => s.review);
+        return json(res, 200, { reviews: done.map((s) => ({ id: s.id, exerciseId: s.exerciseId, review: s.review, rating: s.rating || null })) });
+      }
+      if (req.method === "POST" && (m = p.match(/^\/api\/submissions\/([\w-]+)\/review$/))) {
+        const sub = await store.getSubmission(m[1]);
+        if (!sub) return json(res, 404, { error: "no such submission" });
+        if (sub.reviewerId !== me.id) return json(res, 403, { error: "only the assigned reviewer can review this submission" });
+        if (sub.status !== "awaiting_review") return json(res, 409, { error: "already reviewed" });
+        const b = body(); const errors = validateReview(b);
+        if (errors.length) return json(res, 422, { errors });
+        const updated = await store.updateSubmission(sub.id, { status: "reviewed", review: { rubric: b.rubric, text: b.text.trim(), at: new Date().toISOString() } });
+        await store.bumpOpenReviews(me.id, -1);
+        await notify(sub.studentId, { kind: "review_received", unitId: sub.moduleId || sub.exerciseId, subId: sub.id, exerciseId: sub.items?.[0]?.exerciseId || sub.exerciseId });
+        return json(res, 200, { submission: updated });
+      }
+      if (req.method === "POST" && (m = p.match(/^\/api\/submissions\/([\w-]+)\/rating$/))) {
+        const sub = await store.getSubmission(m[1]);
+        if (!sub) return json(res, 404, { error: "no such submission" });
+        if (sub.studentId !== me.id) return json(res, 403, { error: "only the author can rate the review" });
+        if (sub.status !== "reviewed") return json(res, 409, { error: sub.status === "rated" ? "already rated" : "there is no review to rate yet" });
+        const stars = body().stars;
+        if (![1, 2, 3, 4, 5].includes(stars)) return json(res, 422, { errors: ["stars must be a whole number from 1 to 5"] });
+        const { before, after, points } = await store.rate(sub.id, stars);
+        const unitId = sub.moduleId || sub.exerciseId, bp = reviewerProfile(before), ap = reviewerProfile(after);
+        await notify(sub.reviewerId, { kind: "review_rated", unitId, subId: sub.id, stars, points });
+        if (ap.levelIndex > bp.levelIndex) await notify(sub.reviewerId, { kind: "level_up", level: LEVELS[ap.levelIndex].name, levelIndex: ap.levelIndex });
+        await assignWaiting({ store, bank, modules, notify });
+        return json(res, 200, { before: reviewerProfile(before), after: reviewerProfile(after) });
+      }
+
+      // ---- Mentors: a second opinion on reviews rated one star ----
+      const isMentor = async () => level(reputation(await store.reviewerStats(me.id))) >= MENTOR;
+      if (req.method === "GET" && p === "/api/reviews/flagged") {
+        if (!(await isMentor())) return json(res, 403, { error: "Mentors only" });
+        const list = (await store.flagged()).filter((s) => s.studentId !== me.id && s.reviewerId !== me.id);
+        return json(res, 200, { flagged: list.map(({ studentId, reviewerId, previousReviewers, ...s }) => s) });
+      }
+      if (req.method === "POST" && (m = p.match(/^\/api\/submissions\/([\w-]+)\/second-opinion$/))) {
+        if (!(await isMentor())) return json(res, 403, { error: "Mentors only" });
+        const sub = await store.getSubmission(m[1]);
+        if (!sub?.flagged || sub.secondOpinion) return json(res, 409, { error: "nothing to give a second opinion on" });
+        if (sub.studentId === me.id || sub.reviewerId === me.id) return json(res, 403, { error: "not on your own work or review" });
+        const text = String(body().text || "").trim();
+        if (text.length < 40) return json(res, 422, { errors: ["text must be at least 40 characters"] });
+        const updated = await store.updateSubmission(sub.id, { secondOpinion: { text, at: new Date().toISOString() } });
+        await notify(sub.studentId, { kind: "second_opinion", unitId: sub.moduleId || sub.exerciseId, subId: sub.id, exerciseId: sub.items?.[0]?.exerciseId || sub.exerciseId });
+        return json(res, 200, { submission: updated });
+      }
+      return json(res, 404, { error: "not found" });
+    } catch (e) {
+      if (e.status && e.status < 500) return json(res, e.status, { error: e.message });
+      log(`error: ${e.stack || e.message}`);
+      return json(res, 500, { error: "internal error" });
+    }
+  };
+  return { handler, idle: () => queue.idle() };
+}

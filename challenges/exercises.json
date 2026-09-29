@@ -1,0 +1,844 @@
+[
+  {
+    "id": "js-vars",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Variables & Types",
+    "title": "What type is it?",
+    "prompt": "Write `describe(value)` that returns the type of `value` as a string: \"number\", \"string\", \"boolean\", \"undefined\", \"null\", \"array\" or \"object\". Watch out: `typeof null` and `typeof []` both give \"object\".",
+    "starter": "function describe(value) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "numbers",
+        "t": "eq(describe(42), \"number\"); eq(describe(3.5), \"number\");"
+      },
+      {
+        "n": "strings and booleans",
+        "t": "eq(describe(\"selam\"), \"string\"); eq(describe(false), \"boolean\");"
+      },
+      {
+        "n": "undefined",
+        "t": "eq(describe(undefined), \"undefined\");"
+      },
+      {
+        "n": "null is not an object here",
+        "t": "eq(describe(null), \"null\");"
+      },
+      {
+        "n": "arrays are reported as array",
+        "t": "eq(describe([1, 2]), \"array\"); eq(describe([]), \"array\");"
+      },
+      {
+        "n": "plain objects",
+        "t": "eq(describe({ city: \"Adama\" }), \"object\");"
+      }
+    ]
+  },
+  {
+    "id": "js-cond",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Conditions",
+    "title": "Letter grades",
+    "prompt": "Write `grade(score)` for a score from 0 to 100. Return \"A\" for 90 and above, \"B\" for 80–89, \"C\" for 70–79, \"D\" for 60–69 and \"F\" below 60. Scores below 0 or above 100 return \"invalid\".",
+    "starter": "function grade(score) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "A at 90 and above",
+        "t": "eq(grade(95), \"A\"); eq(grade(90), \"A\"); eq(grade(100), \"A\");"
+      },
+      {
+        "n": "B and C bands",
+        "t": "eq(grade(85), \"B\"); eq(grade(80), \"B\"); eq(grade(72), \"C\");"
+      },
+      {
+        "n": "D and F boundary",
+        "t": "eq(grade(60), \"D\"); eq(grade(59), \"F\"); eq(grade(0), \"F\");"
+      },
+      {
+        "n": "out of range is invalid",
+        "t": "eq(grade(-5), \"invalid\"); eq(grade(101), \"invalid\");"
+      }
+    ]
+  },
+  {
+    "id": "js-loops",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Loops",
+    "title": "Sum with a loop",
+    "prompt": "Write `sumTo(n)` that adds every whole number from 1 to `n` using a loop. `sumTo(0)` is 0.",
+    "starter": "function sumTo(n) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "small numbers",
+        "t": "eq(sumTo(1), 1); eq(sumTo(5), 15);"
+      },
+      {
+        "n": "zero",
+        "t": "eq(sumTo(0), 0);"
+      },
+      {
+        "n": "one hundred",
+        "t": "eq(sumTo(100), 5050);"
+      }
+    ]
+  },
+  {
+    "id": "js-func",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Functions",
+    "title": "Greet in three languages",
+    "prompt": "Write `greet(name, lang)` where `lang` defaults to \"en\". Return \"Hello, NAME!\" for \"en\", \"ሰላም, NAME!\" for \"am\" and \"Akkam, NAME!\" for \"om\" (Afaan Oromo). Any other language falls back to English.",
+    "starter": "function greet(name, lang) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "English by default",
+        "t": "eq(greet(\"Hana\"), \"Hello, Hana!\");"
+      },
+      {
+        "n": "Amharic",
+        "t": "eq(greet(\"Hana\", \"am\"), \"ሰላም, Hana!\");"
+      },
+      {
+        "n": "Afaan Oromo",
+        "t": "eq(greet(\"Gemechu\", \"om\"), \"Akkam, Gemechu!\");"
+      },
+      {
+        "n": "unknown language falls back",
+        "t": "eq(greet(\"Sara\", \"fr\"), \"Hello, Sara!\");"
+      }
+    ]
+  },
+  {
+    "id": "js-arrays",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Arrays",
+    "title": "Class average",
+    "prompt": "Write `average(nums)` that returns the mean of an array of numbers. An empty array returns 0.",
+    "starter": "function average(nums) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "whole-number mean",
+        "t": "eq(average([2, 4, 6]), 4);"
+      },
+      {
+        "n": "fractional mean",
+        "t": "near(average([1, 2]), 1.5);"
+      },
+      {
+        "n": "single value",
+        "t": "eq(average([7]), 7);"
+      },
+      {
+        "n": "empty array",
+        "t": "eq(average([]), 0);"
+      }
+    ]
+  },
+  {
+    "id": "js-objects",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Objects",
+    "title": "Count the words",
+    "prompt": "Write `countWords(sentence)` that returns an object mapping each lowercase word to how many times it appears. Words are separated by any amount of whitespace.",
+    "starter": "function countWords(sentence) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "repeated words",
+        "t": "eq(countWords(\"the cat the dog\"), { the: 2, cat: 1, dog: 1 });"
+      },
+      {
+        "n": "case and extra spaces",
+        "t": "eq(countWords(\"  Addis   addis \"), { addis: 2 });"
+      },
+      {
+        "n": "empty sentence",
+        "t": "eq(countWords(\"\"), {});"
+      }
+    ]
+  },
+  {
+    "id": "js-basic-ps",
+    "lang": "js",
+    "level": "basic",
+    "topic": "Basic problem solving",
+    "title": "Palindrome check",
+    "prompt": "Write `isPalindrome(text)` that returns true when `text` reads the same forwards and backwards, ignoring case, spaces and punctuation (compare letters a–z and digits only).",
+    "starter": "function isPalindrome(text) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "simple word",
+        "t": "eq(isPalindrome(\"Racecar\"), true);"
+      },
+      {
+        "n": "sentence with punctuation",
+        "t": "eq(isPalindrome(\"A man, a plan, a canal: Panama\"), true);"
+      },
+      {
+        "n": "not a palindrome",
+        "t": "eq(isPalindrome(\"Addis\"), false);"
+      },
+      {
+        "n": "empty string",
+        "t": "eq(isPalindrome(\"\"), true);"
+      }
+    ]
+  },
+  {
+    "id": "js-closures",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Closures",
+    "title": "Private counter",
+    "prompt": "Write `makeCounter(start)` (default 0) that returns an object with `inc()`, `dec()` and `value()`. `inc` and `dec` return the new value. The count must stay private: the returned object has only those three methods.",
+    "starter": "function makeCounter(start) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "counts up",
+        "t": "const c = makeCounter(); c.inc(); eq(c.inc(), 2); eq(c.value(), 2);"
+      },
+      {
+        "n": "custom start and dec",
+        "t": "eq(makeCounter(10).dec(), 9);"
+      },
+      {
+        "n": "counters are independent",
+        "t": "const a = makeCounter(), b = makeCounter(); a.inc(); a.inc(); b.inc(); eq([a.value(), b.value()], [2, 1]);"
+      },
+      {
+        "n": "state is private",
+        "t": "eq(Object.keys(makeCounter()).sort(), [\"dec\", \"inc\", \"value\"]);"
+      }
+    ]
+  },
+  {
+    "id": "js-this",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "this",
+    "title": "A chainable account",
+    "prompt": "Write `createAccount(owner)` returning an object with `owner`, `balance` (starts at 0), `deposit(n)` and `withdraw(n)`. Both methods must use `this`, change `this.balance` and return `this` so calls can be chained. Withdrawing more than the balance throws an Error with the message \"Insufficient funds\".",
+    "starter": "function createAccount(owner) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "chained calls",
+        "t": "const a = createAccount(\"Hana\"); a.deposit(100).withdraw(30); eq(a.balance, 70);"
+      },
+      {
+        "n": "bind keeps this",
+        "t": "const a = createAccount(\"Hana\"); const d = a.deposit.bind(a); d(5); eq(a.balance, 5);"
+      },
+      {
+        "n": "methods really use this",
+        "t": "const a = createAccount(\"A\"), b = createAccount(\"B\"); b.deposit.call(a, 20); eq([a.balance, b.balance], [20, 0]);"
+      },
+      {
+        "n": "overdraw throws",
+        "t": "const e = throws(() => createAccount(\"X\").withdraw(1), Error); eq(e.message, \"Insufficient funds\");"
+      }
+    ]
+  },
+  {
+    "id": "js-proto",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Prototypes",
+    "title": "Shapes with prototypes",
+    "prompt": "`Shape` is given. Write a `Circle(r)` constructor that inherits from `Shape` through the prototype chain (call `Shape` with the name \"circle\"). Put an `area()` method on `Circle.prototype` that returns π·r². Do not copy `describe` onto Circle.",
+    "starter": "function Shape(name) {\n  this.name = name;\n}\nShape.prototype.describe = function () {\n  return this.name + \" with area \" + this.area().toFixed(2);\n};\n\nfunction Circle(r) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "area",
+        "t": "near(new Circle(2).area(), 12.566370614359172);"
+      },
+      {
+        "n": "inherits describe",
+        "t": "eq(new Circle(1).describe(), \"circle with area 3.14\");"
+      },
+      {
+        "n": "instanceof Shape",
+        "t": "ok(new Circle(1) instanceof Shape, \"Circle should inherit from Shape\");"
+      },
+      {
+        "n": "describe lives on Shape only",
+        "t": "ok(!Object.prototype.hasOwnProperty.call(Circle.prototype, \"describe\"), \"describe was copied onto Circle.prototype\");"
+      }
+    ]
+  },
+  {
+    "id": "js-arraymethods",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Array methods",
+    "title": "Top students",
+    "prompt": "Write `topStudents(students, min)` where each student is `{ name, score }`. Return the names of students scoring at least `min`, highest score first; equal scores are ordered by name A–Z. Use `filter`, `sort` and `map`, and do not change the input array.",
+    "starter": "function topStudents(students, min) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "filters and sorts",
+        "t": "eq(topStudents([{name:\"Abel\",score:70},{name:\"Sara\",score:92},{name:\"Liya\",score:85}], 80), [\"Sara\", \"Liya\"]);"
+      },
+      {
+        "n": "ties sorted by name",
+        "t": "eq(topStudents([{name:\"Yonas\",score:90},{name:\"Bethel\",score:90}], 50), [\"Bethel\", \"Yonas\"]);"
+      },
+      {
+        "n": "nobody qualifies",
+        "t": "eq(topStudents([{name:\"Abel\",score:40}], 50), []);"
+      },
+      {
+        "n": "input is unchanged",
+        "t": "const list = [{name:\"B\",score:1},{name:\"A\",score:2}]; topStudents(list, 0); eq(list[0].name, \"B\");"
+      }
+    ]
+  },
+  {
+    "id": "js-async",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Async / Promises",
+    "title": "Fetch in parallel",
+    "prompt": "Write `fetchAll(ids, fetcher)` where `fetcher(id)` returns a Promise. Return a Promise of all results in the same order as `ids`. Requests must run at the same time, not one after another. If any request fails, the returned Promise rejects with that error.",
+    "starter": "async function fetchAll(ids, fetcher) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "keeps order",
+        "t": "const r = await fetchAll([3, 1, 2], (id) => sleep(id * 10).then(() => id * 100)); eq(r, [300, 100, 200]);"
+      },
+      {
+        "n": "runs in parallel",
+        "t": "const t0 = Date.now(); await fetchAll([1, 2, 3], () => sleep(60)); ok(Date.now() - t0 < 150, \"Requests ran one after another\");"
+      },
+      {
+        "n": "rejects on failure",
+        "t": "let err; try { await fetchAll([1, 2], (id) => id === 2 ? Promise.reject(new Error(\"offline\")) : Promise.resolve(id)); } catch (e) { err = e; } eq(err && err.message, \"offline\");"
+      }
+    ]
+  },
+  {
+    "id": "js-eventloop",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Event loop",
+    "title": "Soon and later",
+    "prompt": "Write two schedulers. `soon(fn)` runs `fn` as a microtask: after the current code finishes but before any timers. `later(fn)` runs `fn` as a macrotask, on a later turn of the event loop.",
+    "starter": "function soon(fn) {\n  // your code here\n}\n\nfunction later(fn) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "neither runs synchronously",
+        "t": "const log = []; soon(() => log.push(\"soon\")); later(() => log.push(\"later\")); log.push(\"sync\"); eq(log, [\"sync\"]); await sleep(20);"
+      },
+      {
+        "n": "microtask before macrotask",
+        "t": "const log = []; later(() => log.push(\"later\")); soon(() => log.push(\"soon\")); await sleep(20); eq(log, [\"soon\", \"later\"]);"
+      },
+      {
+        "n": "soon beats an earlier timer",
+        "t": "const log = []; setTimeout(() => log.push(\"timeout\"), 0); soon(() => log.push(\"soon\")); await sleep(20); eq(log, [\"soon\", \"timeout\"]);"
+      },
+      {
+        "n": "later runs after promise callbacks",
+        "t": "const log = []; later(() => log.push(\"later\")); Promise.resolve().then(() => log.push(\"then\")); await sleep(20); eq(log, [\"then\", \"later\"]);"
+      }
+    ]
+  },
+  {
+    "id": "js-errors",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Error handling",
+    "title": "Validate an age",
+    "prompt": "Create a `ValidationError` class that extends `Error` and sets `name` to \"ValidationError\". Write `parseAge(input)` that converts `input` to a whole number from 0 to 150, or throws `ValidationError(\"Invalid age: INPUT\")`. Then write `safeParseAge(input)` that never throws: it returns `{ ok: true, value }` or `{ ok: false, error }` with the error message.",
+    "starter": "class ValidationError extends Error {\n  // your code here\n}\n\nfunction parseAge(input) {\n  // your code here\n}\n\nfunction safeParseAge(input) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "valid ages",
+        "t": "eq(parseAge(\"17\"), 17); eq(parseAge(0), 0);"
+      },
+      {
+        "n": "throws ValidationError",
+        "t": "const e = throws(() => parseAge(\"abc\"), ValidationError); eq(e.name, \"ValidationError\"); eq(e.message, \"Invalid age: abc\");"
+      },
+      {
+        "n": "range and decimals",
+        "t": "throws(() => parseAge(200), ValidationError); throws(() => parseAge(\"12.5\"), ValidationError); throws(() => parseAge(\"\"), ValidationError);"
+      },
+      {
+        "n": "safe version never throws",
+        "t": "eq(safeParseAge(\"20\"), { ok: true, value: 20 }); eq(safeParseAge(\"-1\"), { ok: false, error: \"Invalid age: -1\" });"
+      }
+    ]
+  },
+  {
+    "id": "js-adv-ps",
+    "lang": "js",
+    "level": "advanced",
+    "topic": "Advanced problem solving",
+    "title": "LRU cache",
+    "prompt": "Write `createLRU(capacity)` returning a cache with `get(key)`, `put(key, value)` and `size()`. `get` returns the value or `undefined` and marks the key as recently used. When `put` goes over capacity, remove the least recently used key. Both operations should be O(1); a `Map` keeps insertion order.",
+    "starter": "function createLRU(capacity) {\n  // your code here\n}\n",
+    "tests": [
+      {
+        "n": "stores and reads",
+        "t": "const c = createLRU(2); c.put(\"a\", 1); eq(c.get(\"a\"), 1); eq(c.get(\"zz\"), undefined);"
+      },
+      {
+        "n": "evicts least recently used",
+        "t": "const c = createLRU(2); c.put(\"a\", 1); c.put(\"b\", 2); c.put(\"c\", 3); eq([c.get(\"a\"), c.get(\"b\"), c.get(\"c\")], [undefined, 2, 3]);"
+      },
+      {
+        "n": "get refreshes a key",
+        "t": "const c = createLRU(2); c.put(\"a\", 1); c.put(\"b\", 2); c.get(\"a\"); c.put(\"c\", 3); eq([c.get(\"a\"), c.get(\"b\")], [1, undefined]);"
+      },
+      {
+        "n": "updating keeps size",
+        "t": "const c = createLRU(2); c.put(\"a\", 1); c.put(\"a\", 5); eq([c.size(), c.get(\"a\")], [1, 5]);"
+      }
+    ]
+  },
+  {
+    "id": "go-vars",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Variables & Types",
+    "title": "Temperatures and cents",
+    "pkg": "exercise",
+    "prompt": "Write `Fahrenheit(c float64) float64` that converts Celsius to Fahrenheit (F = C × 9/5 + 32), and `Cents(birr float64) int` that converts an amount in birr to a whole number of santim (cents), rounding to the nearest one.",
+    "starter": "package exercise\n\nfunc Fahrenheit(c float64) float64 {\n\t// your code here\n\treturn 0\n}\n\nfunc Cents(birr float64) int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestFahrenheit(t *testing.T) {\n\tcases := []struct{ in, want float64 }{{100, 212}, {0, 32}, {-40, -40}, {37, 98.6}}\n\tfor _, c := range cases {\n\t\tif got := Fahrenheit(c.in); got < c.want-1e-9 || got > c.want+1e-9 {\n\t\t\tt.Errorf(\"Fahrenheit(%v) = %v, want %v\", c.in, got, c.want)\n\t\t}\n\t}\n}\n\nfunc TestCents(t *testing.T) {\n\tcases := []struct {\n\t\tin   float64\n\t\twant int\n\t}{{12.5, 1250}, {0.1, 10}, {19.99, 1999}, {0, 0}}\n\tfor _, c := range cases {\n\t\tif got := Cents(c.in); got != c.want {\n\t\t\tt.Errorf(\"Cents(%v) = %d, want %d\", c.in, got, c.want)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Fahrenheit(c float64) float64 is declared",
+        "re": "func\\s+Fahrenheit\\s*\\(\\s*\\w+\\s+float64\\s*\\)\\s*float64"
+      },
+      {
+        "n": "Cents(birr float64) int is declared",
+        "re": "func\\s+Cents\\s*\\(\\s*\\w+\\s+float64\\s*\\)\\s*int\\b"
+      },
+      {
+        "n": "converts float64 to int explicitly",
+        "re": "\\bint\\s*\\("
+      }
+    ]
+  },
+  {
+    "id": "go-cond",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Conditions",
+    "title": "Letter grades",
+    "pkg": "exercise",
+    "prompt": "Write `Grade(score int) string`. Return \"A\" for 90 and above, \"B\" for 80–89, \"C\" for 70–79, \"D\" for 60–69, \"F\" below 60, and \"invalid\" for scores below 0 or above 100. Try a `switch` with no condition.",
+    "starter": "package exercise\n\nfunc Grade(score int) string {\n\t// your code here\n\treturn \"\"\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestGrade(t *testing.T) {\n\tcases := map[int]string{95: \"A\", 90: \"A\", 100: \"A\", 85: \"B\", 72: \"C\", 60: \"D\", 59: \"F\", 0: \"F\", -5: \"invalid\", 101: \"invalid\"}\n\tfor in, want := range cases {\n\t\tif got := Grade(in); got != want {\n\t\t\tt.Errorf(\"Grade(%d) = %q, want %q\", in, got, want)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Grade(score int) string is declared",
+        "re": "func\\s+Grade\\s*\\(\\s*\\w+\\s+int\\s*\\)\\s*string"
+      },
+      {
+        "n": "uses if or switch",
+        "re": "\\b(if|switch)\\b"
+      }
+    ]
+  },
+  {
+    "id": "go-loops",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Loops",
+    "title": "Sum with a loop",
+    "pkg": "exercise",
+    "prompt": "Write `SumTo(n int) int` that adds every whole number from 1 to `n` with a `for` loop, and `CountDigits(n int) int` that returns how many digits `n` has (0 has one digit; ignore the sign).",
+    "starter": "package exercise\n\nfunc SumTo(n int) int {\n\t// your code here\n\treturn 0\n}\n\nfunc CountDigits(n int) int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestSumTo(t *testing.T) {\n\tfor in, want := range map[int]int{0: 0, 1: 1, 5: 15, 100: 5050} {\n\t\tif got := SumTo(in); got != want {\n\t\t\tt.Errorf(\"SumTo(%d) = %d, want %d\", in, got, want)\n\t\t}\n\t}\n}\n\nfunc TestCountDigits(t *testing.T) {\n\tfor in, want := range map[int]int{0: 1, 7: 1, 42: 2, 2026: 4, -315: 3} {\n\t\tif got := CountDigits(in); got != want {\n\t\t\tt.Errorf(\"CountDigits(%d) = %d, want %d\", in, got, want)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "SumTo(n int) int is declared",
+        "re": "func\\s+SumTo\\s*\\(\\s*\\w+\\s+int\\s*\\)\\s*int"
+      },
+      {
+        "n": "CountDigits(n int) int is declared",
+        "re": "func\\s+CountDigits\\s*\\(\\s*\\w+\\s+int\\s*\\)\\s*int"
+      },
+      {
+        "n": "uses a for loop",
+        "re": "\\bfor\\b"
+      }
+    ]
+  },
+  {
+    "id": "go-func",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Functions",
+    "title": "Multiple returns and function values",
+    "pkg": "exercise",
+    "prompt": "Write `Divmod(a, b int) (int, int)` that returns the quotient and remainder, and `Apply(nums []int, f func(int) int) []int` that returns a new slice with `f` applied to every element.",
+    "starter": "package exercise\n\nfunc Divmod(a, b int) (int, int) {\n\t// your code here\n\treturn 0, 0\n}\n\nfunc Apply(nums []int, f func(int) int) []int {\n\t// your code here\n\treturn nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestDivmod(t *testing.T) {\n\tq, r := Divmod(17, 5)\n\tif q != 3 || r != 2 {\n\t\tt.Errorf(\"Divmod(17, 5) = %d, %d, want 3, 2\", q, r)\n\t}\n}\n\nfunc TestApply(t *testing.T) {\n\tdouble := func(n int) int { return n * 2 }\n\tif got := Apply([]int{1, 2, 3}, double); !reflect.DeepEqual(got, []int{2, 4, 6}) {\n\t\tt.Errorf(\"Apply(double) = %v, want [2 4 6]\", got)\n\t}\n\tif got := Apply([]int{}, double); len(got) != 0 {\n\t\tt.Errorf(\"Apply on empty slice = %v, want empty\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Divmod(a, b int) returns two ints",
+        "re": "func\\s+Divmod\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s+int\\s*\\)\\s*\\(\\s*(\\w+\\s*,\\s*\\w+\\s+int|int\\s*,\\s*int)\\s*\\)"
+      },
+      {
+        "n": "Apply takes a func(int) int",
+        "re": "func\\s+Apply\\s*\\(\\s*\\w+\\s+\\[\\]int\\s*,\\s*\\w+\\s+func\\s*\\(\\s*int\\s*\\)\\s*int\\s*\\)\\s*\\[\\]int"
+      }
+    ]
+  },
+  {
+    "id": "go-slices",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Slices",
+    "title": "Average and reverse",
+    "pkg": "exercise",
+    "prompt": "Write `Average(nums []float64) float64` (0 for an empty slice) and `Reverse(s []int) []int` that returns a new reversed slice without changing the input.",
+    "starter": "package exercise\n\nfunc Average(nums []float64) float64 {\n\t// your code here\n\treturn 0\n}\n\nfunc Reverse(s []int) []int {\n\t// your code here\n\treturn nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestAverage(t *testing.T) {\n\tif got := Average([]float64{2, 4, 6}); got != 4 {\n\t\tt.Errorf(\"Average = %v, want 4\", got)\n\t}\n\tif got := Average(nil); got != 0 {\n\t\tt.Errorf(\"Average(nil) = %v, want 0\", got)\n\t}\n}\n\nfunc TestReverse(t *testing.T) {\n\tin := []int{1, 2, 3}\n\tgot := Reverse(in)\n\tif !reflect.DeepEqual(got, []int{3, 2, 1}) {\n\t\tt.Errorf(\"Reverse = %v, want [3 2 1]\", got)\n\t}\n\tif !reflect.DeepEqual(in, []int{1, 2, 3}) {\n\t\tt.Errorf(\"Reverse changed its input to %v\", in)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Average(nums []float64) float64 is declared",
+        "re": "func\\s+Average\\s*\\(\\s*\\w+\\s+\\[\\]float64\\s*\\)\\s*float64"
+      },
+      {
+        "n": "Reverse(s []int) []int is declared",
+        "re": "func\\s+Reverse\\s*\\(\\s*\\w+\\s+\\[\\]int\\s*\\)\\s*\\[\\]int"
+      },
+      {
+        "n": "uses len()",
+        "re": "\\blen\\s*\\("
+      },
+      {
+        "n": "builds a new slice with make or append",
+        "re": "\\b(make|append)\\s*\\("
+      }
+    ]
+  },
+  {
+    "id": "go-maps",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Maps",
+    "title": "Count the words",
+    "pkg": "exercise",
+    "prompt": "Write `CountWords(s string) map[string]int` that maps each lowercase word to how many times it appears. Words are separated by whitespace; `strings.Fields` and `strings.ToLower` help.",
+    "starter": "package exercise\n\nfunc CountWords(s string) map[string]int {\n\t// your code here\n\treturn nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestCountWords(t *testing.T) {\n\tgot := CountWords(\"the cat  The dog\")\n\twant := map[string]int{\"the\": 2, \"cat\": 1, \"dog\": 1}\n\tif !reflect.DeepEqual(got, want) {\n\t\tt.Errorf(\"CountWords = %v, want %v\", got, want)\n\t}\n}\n\nfunc TestCountWordsEmpty(t *testing.T) {\n\tgot := CountWords(\"   \")\n\tif got == nil || len(got) != 0 {\n\t\tt.Errorf(\"CountWords on blank input = %#v, want an empty, non-nil map\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "CountWords(s string) map[string]int is declared",
+        "re": "func\\s+CountWords\\s*\\(\\s*\\w+\\s+string\\s*\\)\\s*map\\[string\\]int"
+      },
+      {
+        "n": "creates the map before writing to it",
+        "re": "make\\s*\\(\\s*map\\[string\\]int|map\\[string\\]int\\s*\\{\\s*\\}"
+      },
+      {
+        "n": "imports the strings package",
+        "re": "\"strings\""
+      }
+    ]
+  },
+  {
+    "id": "go-structs",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Structs",
+    "title": "Best student",
+    "pkg": "exercise",
+    "prompt": "Define `type Student struct { Name string; Scores []int }`. Write `BestStudent(students []Student) (string, bool)` that returns the name with the highest average score and true, or \"\" and false for an empty slice. If two averages tie, keep the first student.",
+    "starter": "package exercise\n\ntype Student struct {\n\t// your fields here\n}\n\nfunc BestStudent(students []Student) (string, bool) {\n\t// your code here\n\treturn \"\", false\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestBestStudent(t *testing.T) {\n\tclass := []Student{\n\t\t{Name: \"Abel\", Scores: []int{70, 80}},\n\t\t{Name: \"Sara\", Scores: []int{90, 95}},\n\t\t{Name: \"Liya\", Scores: []int{88, 97}},\n\t}\n\tif name, ok := BestStudent(class); !ok || name != \"Sara\" {\n\t\tt.Errorf(\"BestStudent = %q, %v, want \\\"Sara\\\", true\", name, ok)\n\t}\n}\n\nfunc TestBestStudentTie(t *testing.T) {\n\tclass := []Student{{Name: \"Yonas\", Scores: []int{80}}, {Name: \"Bethel\", Scores: []int{80}}}\n\tif name, _ := BestStudent(class); name != \"Yonas\" {\n\t\tt.Errorf(\"tie should keep the first student, got %q\", name)\n\t}\n}\n\nfunc TestBestStudentEmpty(t *testing.T) {\n\tif name, ok := BestStudent(nil); ok || name != \"\" {\n\t\tt.Errorf(\"BestStudent(nil) = %q, %v, want \\\"\\\", false\", name, ok)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Student has Name string and Scores []int",
+        "re": "type\\s+Student\\s+struct\\s*\\{[^}]*\\bName\\s+string[^}]*\\bScores\\s+\\[\\]int"
+      },
+      {
+        "n": "BestStudent returns (string, bool)",
+        "re": "func\\s+BestStudent\\s*\\(\\s*\\w+\\s+\\[\\]Student\\s*\\)\\s*\\(\\s*string\\s*,\\s*bool\\s*\\)"
+      }
+    ]
+  },
+  {
+    "id": "go-basic-ps",
+    "lang": "go",
+    "level": "basic",
+    "topic": "Basic problem solving",
+    "title": "Palindromes in any script",
+    "pkg": "exercise",
+    "prompt": "Write `IsPalindrome(s string) bool` that ignores case and anything that is not a letter or digit. Work with runes, not bytes, so Ge'ez script works too: \"ሰላላሰ\" is a palindrome.",
+    "starter": "package exercise\n\nfunc IsPalindrome(s string) bool {\n\t// your code here\n\treturn false\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestIsPalindrome(t *testing.T) {\n\tcases := map[string]bool{\n\t\t\"Racecar\":                        true,\n\t\t\"A man, a plan, a canal: Panama\": true,\n\t\t\"Addis\":                          false,\n\t\t\"ሰላላሰ\":                           true,\n\t\t\"ሰላም\":                            false,\n\t\t\"\":                               true,\n\t}\n\tfor in, want := range cases {\n\t\tif got := IsPalindrome(in); got != want {\n\t\t\tt.Errorf(\"IsPalindrome(%q) = %v, want %v\", in, got, want)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "IsPalindrome(s string) bool is declared",
+        "re": "func\\s+IsPalindrome\\s*\\(\\s*\\w+\\s+string\\s*\\)\\s*bool"
+      },
+      {
+        "n": "works with runes or the unicode package",
+        "re": "\\brune\\b|\\[\\]rune|unicode\\."
+      }
+    ]
+  },
+  {
+    "id": "go-pointers",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Pointers",
+    "title": "Swap and double",
+    "pkg": "exercise",
+    "prompt": "Write `Swap(a, b *int)` that swaps the values the pointers point to, and `Double(p *int)` that doubles the value in place. `Double(nil)` must do nothing instead of panicking.",
+    "starter": "package exercise\n\nfunc Swap(a, b *int) {\n\t// your code here\n}\n\nfunc Double(p *int) {\n\t// your code here\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestSwap(t *testing.T) {\n\tx, y := 1, 2\n\tSwap(&x, &y)\n\tif x != 2 || y != 1 {\n\t\tt.Errorf(\"after Swap: x=%d y=%d, want x=2 y=1\", x, y)\n\t}\n}\n\nfunc TestDouble(t *testing.T) {\n\tn := 21\n\tDouble(&n)\n\tif n != 42 {\n\t\tt.Errorf(\"after Double: n=%d, want 42\", n)\n\t}\n}\n\nfunc TestDoubleNil(t *testing.T) {\n\tdefer func() {\n\t\tif r := recover(); r != nil {\n\t\t\tt.Errorf(\"Double(nil) panicked: %v\", r)\n\t\t}\n\t}()\n\tDouble(nil)\n}\n",
+    "checks": [
+      {
+        "n": "Swap(a, b *int) is declared",
+        "re": "func\\s+Swap\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s+\\*int\\s*\\)"
+      },
+      {
+        "n": "Double(p *int) is declared",
+        "re": "func\\s+Double\\s*\\(\\s*\\w+\\s+\\*int\\s*\\)"
+      },
+      {
+        "n": "dereferences a pointer",
+        "re": "\\*\\w+\\s*(,|\\*=|=)"
+      },
+      {
+        "n": "checks for nil",
+        "re": "==\\s*nil|nil\\s*==|!=\\s*nil"
+      }
+    ]
+  },
+  {
+    "id": "go-methods",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Methods",
+    "title": "Bank account methods",
+    "pkg": "exercise",
+    "prompt": "Define `type Account struct { Owner string; balance int }`. Add pointer-receiver methods `Deposit(n int)` (ignore amounts ≤ 0) and `Withdraw(n int) bool` (false and no change if funds are short), and a value-receiver method `Balance() int`.",
+    "starter": "package exercise\n\ntype Account struct {\n\tOwner   string\n\tbalance int\n}\n\nfunc (a *Account) Deposit(n int) {\n\t// your code here\n}\n\nfunc (a *Account) Withdraw(n int) bool {\n\t// your code here\n\treturn false\n}\n\nfunc (a Account) Balance() int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package exercise\n\nimport \"testing\"\n\nfunc TestAccount(t *testing.T) {\n\tacc := &Account{Owner: \"Hana\"}\n\tacc.Deposit(100)\n\tacc.Deposit(-50)\n\tif !acc.Withdraw(30) {\n\t\tt.Fatal(\"Withdraw(30) = false, want true\")\n\t}\n\tif acc.Withdraw(500) {\n\t\tt.Error(\"Withdraw(500) = true with only 70 in the account\")\n\t}\n\tif got := acc.Balance(); got != 70 {\n\t\tt.Errorf(\"Balance() = %d, want 70\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Deposit has a pointer receiver",
+        "re": "func\\s*\\(\\s*\\w+\\s+\\*Account\\s*\\)\\s*Deposit\\s*\\(\\s*\\w+\\s+int\\s*\\)"
+      },
+      {
+        "n": "Withdraw has a pointer receiver and returns bool",
+        "re": "func\\s*\\(\\s*\\w+\\s+\\*Account\\s*\\)\\s*Withdraw\\s*\\(\\s*\\w+\\s+int\\s*\\)\\s*bool"
+      },
+      {
+        "n": "Balance() int is declared",
+        "re": "func\\s*\\(\\s*\\w+\\s+\\*?Account\\s*\\)\\s*Balance\\s*\\(\\s*\\)\\s*int"
+      }
+    ]
+  },
+  {
+    "id": "go-interfaces",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Interfaces",
+    "title": "Shapes behind an interface",
+    "pkg": "exercise",
+    "prompt": "Define `type Shape interface { Area() float64; Name() string }`, and two types that satisfy it: `Rect{W, H float64}` (name \"rect\") and `Circle{R float64}` (name \"circle\"). Write `TotalArea(shapes []Shape) float64` and `Largest(shapes []Shape) string` that returns the name of the biggest shape (\"\" for none).",
+    "starter": "package exercise\n\ntype Shape interface {\n\t// your methods here\n}\n\ntype Rect struct {\n\tW, H float64\n}\n\ntype Circle struct {\n\tR float64\n}\n\nfunc TotalArea(shapes []Shape) float64 {\n\t// your code here\n\treturn 0\n}\n\nfunc Largest(shapes []Shape) string {\n\t// your code here\n\treturn \"\"\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"math\"\n\t\"testing\"\n)\n\nvar _ Shape = Rect{}\nvar _ Shape = Circle{}\n\nfunc TestTotalArea(t *testing.T) {\n\tgot := TotalArea([]Shape{Rect{W: 2, H: 3}, Circle{R: 1}})\n\tif want := 6 + math.Pi; math.Abs(got-want) > 1e-9 {\n\t\tt.Errorf(\"TotalArea = %v, want %v\", got, want)\n\t}\n}\n\nfunc TestLargest(t *testing.T) {\n\tif got := Largest([]Shape{Rect{W: 1, H: 1}, Circle{R: 2}, Rect{W: 3, H: 3}}); got != \"circle\" {\n\t\tt.Errorf(\"Largest = %q, want \\\"circle\\\"\", got)\n\t}\n\tif got := Largest(nil); got != \"\" {\n\t\tt.Errorf(\"Largest(nil) = %q, want \\\"\\\"\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Shape declares Area() and Name()",
+        "re": "type\\s+Shape\\s+interface\\s*\\{[^}]*Area\\s*\\(\\s*\\)\\s*float64[^}]*Name\\s*\\(\\s*\\)\\s*string|type\\s+Shape\\s+interface\\s*\\{[^}]*Name\\s*\\(\\s*\\)\\s*string[^}]*Area\\s*\\(\\s*\\)\\s*float64"
+      },
+      {
+        "n": "Rect implements Area",
+        "re": "func\\s*\\(\\s*\\w+\\s+\\*?Rect\\s*\\)\\s*Area"
+      },
+      {
+        "n": "Circle implements Area",
+        "re": "func\\s*\\(\\s*\\w+\\s+\\*?Circle\\s*\\)\\s*Area"
+      },
+      {
+        "n": "TotalArea takes []Shape",
+        "re": "func\\s+TotalArea\\s*\\(\\s*\\w+\\s+\\[\\]Shape\\s*\\)\\s*float64"
+      }
+    ]
+  },
+  {
+    "id": "go-errors",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Errors",
+    "title": "Wrapped errors",
+    "pkg": "exercise",
+    "prompt": "Declare `var ErrInvalidAge = errors.New(\"invalid age\")`. Write `ParseAge(s string) (int, error)` that returns a whole number from 0 to 150. For anything else, return an error that wraps `ErrInvalidAge` with `fmt.Errorf` and `%w`, and includes the input, so `errors.Is(err, ErrInvalidAge)` is true.",
+    "starter": "package exercise\n\nimport \"errors\"\n\nvar ErrInvalidAge = errors.New(\"invalid age\")\n\nfunc ParseAge(s string) (int, error) {\n\t// your code here\n\treturn 0, nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"errors\"\n\t\"strings\"\n\t\"testing\"\n)\n\nfunc TestParseAgeValid(t *testing.T) {\n\tn, err := ParseAge(\"17\")\n\tif err != nil || n != 17 {\n\t\tt.Errorf(\"ParseAge(\\\"17\\\") = %d, %v, want 17, nil\", n, err)\n\t}\n}\n\nfunc TestParseAgeInvalid(t *testing.T) {\n\tfor _, in := range []string{\"abc\", \"-1\", \"200\", \"12.5\", \"\"} {\n\t\t_, err := ParseAge(in)\n\t\tif !errors.Is(err, ErrInvalidAge) {\n\t\t\tt.Errorf(\"ParseAge(%q) error = %v, want it to wrap ErrInvalidAge\", in, err)\n\t\t\tcontinue\n\t\t}\n\t\tif in != \"\" && !strings.Contains(err.Error(), in) {\n\t\t\tt.Errorf(\"error %q should mention the input %q\", err, in)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "ParseAge returns (int, error)",
+        "re": "func\\s+ParseAge\\s*\\(\\s*\\w+\\s+string\\s*\\)\\s*\\(\\s*int\\s*,\\s*error\\s*\\)"
+      },
+      {
+        "n": "wraps the error with %w",
+        "re": "fmt\\.Errorf\\([^)]*%w"
+      },
+      {
+        "n": "parses with strconv",
+        "re": "strconv\\."
+      }
+    ]
+  },
+  {
+    "id": "go-packages",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Packages",
+    "title": "Your own package",
+    "pkg": "mathx",
+    "prompt": "Write a package named `mathx`. Export `Max(nums ...int) (int, error)`, which returns `ErrEmpty` when called with no numbers, and `Clamp(v, lo, hi int) int`. Keep any helper you write unexported (lowercase), so other packages cannot call it.",
+    "starter": "package mathx\n\nimport \"errors\"\n\nvar ErrEmpty = errors.New(\"mathx: no numbers\")\n\nfunc Max(nums ...int) (int, error) {\n\t// your code here\n\treturn 0, nil\n}\n\nfunc Clamp(v, lo, hi int) int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package mathx\n\nimport (\n\t\"errors\"\n\t\"testing\"\n)\n\nfunc TestMax(t *testing.T) {\n\tif got, err := Max(3, 9, 2); err != nil || got != 9 {\n\t\tt.Errorf(\"Max(3, 9, 2) = %d, %v, want 9, nil\", got, err)\n\t}\n\tif got, _ := Max(-4, -7); got != -4 {\n\t\tt.Errorf(\"Max(-4, -7) = %d, want -4\", got)\n\t}\n\tif _, err := Max(); !errors.Is(err, ErrEmpty) {\n\t\tt.Errorf(\"Max() error = %v, want ErrEmpty\", err)\n\t}\n}\n\nfunc TestClamp(t *testing.T) {\n\tcases := []struct{ v, lo, hi, want int }{{5, 0, 10, 5}, {-3, 0, 10, 0}, {42, 0, 10, 10}}\n\tfor _, c := range cases {\n\t\tif got := Clamp(c.v, c.lo, c.hi); got != c.want {\n\t\t\tt.Errorf(\"Clamp(%d, %d, %d) = %d, want %d\", c.v, c.lo, c.hi, got, c.want)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "file declares package mathx",
+        "re": "^\\s*package\\s+mathx\\b"
+      },
+      {
+        "n": "Max is variadic and returns (int, error)",
+        "re": "func\\s+Max\\s*\\(\\s*\\w+\\s*\\.\\.\\.int\\s*\\)\\s*\\(\\s*int\\s*,\\s*error\\s*\\)"
+      },
+      {
+        "n": "Clamp is exported",
+        "re": "func\\s+Clamp\\s*\\("
+      }
+    ]
+  },
+  {
+    "id": "go-goroutines",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Goroutines",
+    "title": "Square in parallel",
+    "pkg": "exercise",
+    "prompt": "Write `SquareAll(nums []int) []int` that squares every number in its own goroutine and waits for all of them with a `sync.WaitGroup`. The result must keep the input order. Each goroutine writes only to its own index, so no mutex is needed.",
+    "starter": "package exercise\n\nfunc SquareAll(nums []int) []int {\n\t// your code here\n\treturn nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestSquareAll(t *testing.T) {\n\tif got := SquareAll([]int{1, 2, 3, 4}); !reflect.DeepEqual(got, []int{1, 4, 9, 16}) {\n\t\tt.Errorf(\"SquareAll = %v, want [1 4 9 16]\", got)\n\t}\n}\n\nfunc TestSquareAllLarge(t *testing.T) {\n\tin := make([]int, 1000)\n\tfor i := range in {\n\t\tin[i] = i\n\t}\n\tgot := SquareAll(in)\n\tfor i, v := range got {\n\t\tif v != i*i {\n\t\t\tt.Fatalf(\"SquareAll[%d] = %d, want %d\", i, v, i*i)\n\t\t}\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "SquareAll(nums []int) []int is declared",
+        "re": "func\\s+SquareAll\\s*\\(\\s*\\w+\\s+\\[\\]int\\s*\\)\\s*\\[\\]int"
+      },
+      {
+        "n": "starts goroutines with go",
+        "re": "\\bgo\\s+(func\\b|\\w+\\()"
+      },
+      {
+        "n": "waits with a sync.WaitGroup",
+        "re": "sync\\.WaitGroup"
+      },
+      {
+        "n": "calls Wait()",
+        "re": "\\.Wait\\(\\)"
+      }
+    ]
+  },
+  {
+    "id": "go-channels",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Channels",
+    "title": "Generator and sum",
+    "pkg": "exercise",
+    "prompt": "Write `Generate(n int) <-chan int` that starts a goroutine sending 1, 2, … n on a channel and then closes it. Write `Sum(ch <-chan int) int` that ranges over the channel until it is closed and returns the total.",
+    "starter": "package exercise\n\nfunc Generate(n int) <-chan int {\n\t// your code here\n\treturn nil\n}\n\nfunc Sum(ch <-chan int) int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"testing\"\n\t\"time\"\n)\n\nfunc TestGenerateSum(t *testing.T) {\n\tdone := make(chan int)\n\tgo func() { done <- Sum(Generate(100)) }()\n\tselect {\n\tcase got := <-done:\n\t\tif got != 5050 {\n\t\t\tt.Errorf(\"Sum(Generate(100)) = %d, want 5050\", got)\n\t\t}\n\tcase <-time.After(2 * time.Second):\n\t\tt.Fatal(\"timed out: is the channel closed after the last value?\")\n\t}\n}\n\nfunc TestGenerateOrder(t *testing.T) {\n\tgot := make(chan []int)\n\tgo func() {\n\t\tvar vals []int\n\t\tfor v := range Generate(5) {\n\t\t\tvals = append(vals, v)\n\t\t}\n\t\tgot <- vals\n\t}()\n\tselect {\n\tcase vals := <-got:\n\t\tfor i, v := range vals {\n\t\t\tif v != i+1 {\n\t\t\t\tt.Fatalf(\"value %d = %d, want %d\", i, v, i+1)\n\t\t\t}\n\t\t}\n\t\tif len(vals) != 5 {\n\t\t\tt.Errorf(\"received %d values, want 5\", len(vals))\n\t\t}\n\tcase <-time.After(2 * time.Second):\n\t\tt.Fatal(\"timed out: Generate must return a channel that is closed after the last value\")\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "Generate returns <-chan int",
+        "re": "func\\s+Generate\\s*\\(\\s*\\w+\\s+int\\s*\\)\\s*<-\\s*chan\\s+int"
+      },
+      {
+        "n": "Sum takes <-chan int",
+        "re": "func\\s+Sum\\s*\\(\\s*\\w+\\s+<-\\s*chan\\s+int\\s*\\)\\s*int"
+      },
+      {
+        "n": "makes a channel",
+        "re": "make\\s*\\(\\s*chan\\b"
+      },
+      {
+        "n": "closes the channel",
+        "re": "\\bclose\\s*\\("
+      },
+      {
+        "n": "sends from a goroutine",
+        "re": "\\bgo\\s+func\\b|\\bgo\\s+\\w+\\("
+      }
+    ]
+  },
+  {
+    "id": "go-sync",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Synchronization",
+    "title": "A safe counter",
+    "pkg": "exercise",
+    "prompt": "Build `SafeCounter`, a map of counts that many goroutines can use at once. Write `NewSafeCounter() *SafeCounter`, `Inc(key string)` and `Value(key string) int`, protecting the map with a `sync.Mutex`.",
+    "starter": "package exercise\n\ntype SafeCounter struct {\n\t// your fields here\n}\n\nfunc NewSafeCounter() *SafeCounter {\n\t// your code here\n\treturn nil\n}\n\nfunc (c *SafeCounter) Inc(key string) {\n\t// your code here\n}\n\nfunc (c *SafeCounter) Value(key string) int {\n\t// your code here\n\treturn 0\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"sync\"\n\t\"testing\"\n)\n\nfunc TestSafeCounter(t *testing.T) {\n\tc := NewSafeCounter()\n\tvar wg sync.WaitGroup\n\tfor i := 0; i < 100; i++ {\n\t\twg.Add(1)\n\t\tgo func() {\n\t\t\tdefer wg.Done()\n\t\t\tfor j := 0; j < 10; j++ {\n\t\t\t\tc.Inc(\"visits\")\n\t\t\t}\n\t\t}()\n\t}\n\twg.Wait()\n\tif got := c.Value(\"visits\"); got != 1000 {\n\t\tt.Errorf(\"Value(\\\"visits\\\") = %d, want 1000\", got)\n\t}\n\tif got := c.Value(\"missing\"); got != 0 {\n\t\tt.Errorf(\"Value(\\\"missing\\\") = %d, want 0\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "uses a sync.Mutex",
+        "re": "sync\\.(RW)?Mutex"
+      },
+      {
+        "n": "locks before touching the map",
+        "re": "\\.Lock\\(\\)"
+      },
+      {
+        "n": "unlocks (ideally with defer)",
+        "re": "\\.Unlock\\(\\)"
+      },
+      {
+        "n": "NewSafeCounter() *SafeCounter is declared",
+        "re": "func\\s+NewSafeCounter\\s*\\(\\s*\\)\\s*\\*SafeCounter"
+      },
+      {
+        "n": "initialises the map",
+        "re": "make\\s*\\(\\s*map\\[string\\]int|map\\[string\\]int\\s*\\{\\s*\\}"
+      }
+    ]
+  },
+  {
+    "id": "go-adv-ps",
+    "lang": "go",
+    "level": "advanced",
+    "topic": "Advanced problem solving",
+    "title": "Top words",
+    "pkg": "exercise",
+    "prompt": "Write `TopWords(text string, n int) []string` that returns the `n` most frequent words. Words are runs of letters, compared in lowercase. Order by count (highest first), then alphabetically. If there are fewer than `n` different words, return them all.",
+    "starter": "package exercise\n\nfunc TopWords(text string, n int) []string {\n\t// your code here\n\treturn nil\n}\n",
+    "test": "package exercise\n\nimport (\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestTopWords(t *testing.T) {\n\ttext := \"Coffee, coffee and bread. Bread and COFFEE! Tea?\"\n\tif got := TopWords(text, 2); !reflect.DeepEqual(got, []string{\"coffee\", \"and\"}) {\n\t\tt.Errorf(\"TopWords(2) = %v, want [coffee and]\", got)\n\t}\n}\n\nfunc TestTopWordsAll(t *testing.T) {\n\tif got := TopWords(\"b a b\", 10); !reflect.DeepEqual(got, []string{\"b\", \"a\"}) {\n\t\tt.Errorf(\"TopWords(10) = %v, want [b a]\", got)\n\t}\n\tif got := TopWords(\"\", 3); len(got) != 0 {\n\t\tt.Errorf(\"TopWords on empty text = %v, want empty\", got)\n\t}\n}\n",
+    "checks": [
+      {
+        "n": "TopWords(text string, n int) []string is declared",
+        "re": "func\\s+TopWords\\s*\\(\\s*\\w+\\s+string\\s*,\\s*\\w+\\s+int\\s*\\)\\s*\\[\\]string"
+      },
+      {
+        "n": "sorts the result",
+        "re": "sort\\.|slices\\.Sort"
+      },
+      {
+        "n": "counts with a map",
+        "re": "map\\[string\\]int"
+      }
+    ]
+  }
+]

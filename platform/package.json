@@ -1,0 +1,18 @@
+{
+  "name": "timirtbet-platform",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Timirtbet: GitHub sign-in, review circles, grading queue, grader service and peer review API",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/main.mjs api",
+    "start:grader": "node src/main.mjs grader",
+    "dev": "node src/main.mjs dev",
+    "test": "node --test test/*.test.mjs",
+    "test:firestore": "firebase emulators:exec --only firestore --project demo-timirtbet 'node --test test/firestore.int.mjs'"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.11.0"
+  }
+}

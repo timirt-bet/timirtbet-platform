@@ -1,0 +1,46 @@
+# Quick feedback for the student. The official result comes from the Timirtbet
+# test runner, which re-runs the same tests on its own servers when you push.
+name: tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/challenges
+          path: .challenges
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Test the exercises you changed
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"; fi
+          changed=$(git diff --name-only "$BASE" HEAD -- 'js/*/solution.js' 'go/*/solution.go')
+          if [ -z "$changed" ]; then echo "No exercise solutions changed."; exit 0; fi
+          status=0
+          for f in $changed; do
+            [ -f "$f" ] || continue
+            id=$(basename "$(dirname "$f")" | tr _ -)
+            echo "::group::$id"
+            case "$f" in
+              js/*) node .challenges/js/grade.mjs "$id" "$f" || status=1 ;;
+              go/*) sh .challenges/go/grade.sh "$id" "$f" || status=1 ;;
+            esac
+            echo "::endgroup::"
+          done
+          exit $status

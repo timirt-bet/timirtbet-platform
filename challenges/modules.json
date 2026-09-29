@@ -1,0 +1,10 @@
+[
+  { "id": "js-m1", "lang": "js", "level": "basic", "title": "Basics 1: values and control flow", "exercises": ["js-vars", "js-cond", "js-loops", "js-func"] },
+  { "id": "js-m2", "lang": "js", "level": "basic", "title": "Basics 2: working with data", "exercises": ["js-arrays", "js-objects", "js-basic-ps"] },
+  { "id": "js-m3", "lang": "js", "level": "advanced", "title": "Advanced 1: functions and objects", "exercises": ["js-closures", "js-this", "js-proto", "js-arraymethods"] },
+  { "id": "js-m4", "lang": "js", "level": "advanced", "title": "Advanced 2: async and robust code", "exercises": ["js-async", "js-eventloop", "js-errors", "js-adv-ps"] },
+  { "id": "go-m1", "lang": "go", "level": "basic", "title": "Basics 1: values and control flow", "exercises": ["go-vars", "go-cond", "go-loops", "go-func"] },
+  { "id": "go-m2", "lang": "go", "level": "basic", "title": "Basics 2: working with data", "exercises": ["go-slices", "go-maps", "go-structs", "go-basic-ps"] },
+  { "id": "go-m3", "lang": "go", "level": "advanced", "title": "Advanced 1: types and packages", "exercises": ["go-pointers", "go-methods", "go-interfaces", "go-errors", "go-packages"] },
+  { "id": "go-m4", "lang": "go", "level": "advanced", "title": "Advanced 2: concurrency", "exercises": ["go-goroutines", "go-channels", "go-sync", "go-adv-ps"] }
+]
