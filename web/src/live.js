@@ -300,16 +300,18 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     const tests=ex.lang==="js"
       ?`<section class="task-sec"><h2>Tests <span class="muted">what your code must do</span></h2><ol class="task-tests">${ex.tests.map(t=>`<li><b>${esc(t.n)}</b><code>${esc(t.t)}</code></li>`).join("")}</ol></section>`
       :`<section class="task-sec"><h2>Tests <span class="muted">run with <code>go test -race</code></span></h2><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></section>`;
-    const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`
-      :`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>You need a GitHub account to submit</b><p>Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(true)}<a class="btn gh-btn small" href="/api/auth/github" style="margin-top:10px">${GH}Sign in with GitHub</a></div></div>`;
+    const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`:"";
+    // Signed out: how to get started sits inside the task card, after the tests.
+    const start=L.me?"":`<section class="task-sec task-start"><h2>Submit your solution</h2><p class="task-start-lede">You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(false)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Sign in with GitHub</a></section>`;
     return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
     <div class="task-page">
-      <aside class="task-side">${side}<div id="prPanel">${peerPanel(ex)}</div></aside>
+      <aside class="task-side"><div id="prPanel">${peerPanel(ex)}</div>${side}</aside>
       <article class="panel task-main">
         <header class="task-h"><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)}${m?` · Module ${modNum(m)}`:""}</p><h1 class="pg-h">${esc(ex.title)}</h1><div class="ex-meta"><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(ex)} pts</span></div></header>
         <section class="task-sec"><h2>Task</h2><div class="prompt task-prompt">${mdLite(ex.prompt)}</div></section>
         <section class="task-sec"><h2>Starting point <span class="muted mono">${solutionFile(ex)}</span></h2>${codeBlock(ex.starter)}</section>
         ${tests}
+        ${start}
       </article>
     </div>`;
   };

@@ -256,7 +256,7 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .gh-local .shell{font-size:12px;margin:8px 0;white-space:pre-wrap}
 .gh-local .codeview{margin-top:8px;border:1px solid var(--line);border-radius:10px;overflow:auto}
 .gh-first{font-size:12px;color:var(--ink-3);margin:12px 0 0}
-@media (max-width:980px){.task-page{display:flex;flex-direction:column;align-items:stretch}.task-side,#pushPanel{display:contents}.task-page .st-card{order:0}.task-main{order:1}.gh-card{order:2}#prPanel{order:3}}
+@media (max-width:980px){.task-page{display:flex;flex-direction:column;align-items:stretch}.task-side,#pushPanel{display:contents}#prPanel{order:0}.task-page .st-card{order:1}.task-main{order:2}.gh-card{order:3}}
 @media (max-width:560px){.task-h,.task-sec{padding-left:16px;padding-right:16px}.task-prompt{font-size:15.5px}}
 .fix-list{margin:8px 0;padding-left:18px;font-size:13px;color:var(--ink-2)}
 .fix-list li{margin:3px 0}
@@ -271,3 +271,7 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .start-steps.compact li{font-size:13.5px}
 .start-steps.compact li>span{font-size:12.5px}
 .st-card a.btn,.start-card a.btn{text-decoration:none}
+.task-start{background:var(--accent-soft)}
+.task-start-lede{margin:0 0 4px;font-size:14.5px;color:var(--ink);max-width:62ch}
+.task-start a.btn{text-decoration:none}
+.task-side #prPanel>*{margin-top:0!important}

@@ -4,6 +4,7 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Submit your solution": "መፍትሔዎን ያስገቡ", "You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.": "ለማስገባት የGitHub መለያ ያስፈልግዎታል። መፍትሔዎችዎ በራስዎ የGitHub ማከማቻ ውስጥ ይኖራሉ፤ አራሚው እያንዳንዱን ለውጥ ይፈትሻል።",
     "Get started": "ይጀምሩ", "Get started with GitHub": "በGitHub ይጀምሩ", "You need a GitHub account to solve challenges and join a review circle. Anyone can read the challenges without one.": "ተግዳሮቶችን ለመፍታትና የግምገማ ክበብ ለመቀላቀል የGitHub መለያ ያስፈልግዎታል። ያለ መለያ ማንም ሰው ተግዳሮቶቹን ማንበብ ይችላል።",
     "Create a free GitHub account": "ነፃ የGitHub መለያ ይፍጠሩ", "Timirtbet uses GitHub for your code.": "ትምህርት ቤት ለኮድዎ GitHubን ይጠቀማል።", "Sign up on GitHub ↗": "በGitHub ይመዝገቡ ↗",
     "(about 2 minutes). Already have one? Skip this.": "(2 ደቂቃ ገደማ)። አስቀድሞ አለዎት? ይህን ይዝለሉ።", "Sign in here with GitHub": "እዚህ በGitHub ይግቡ",
