@@ -74,7 +74,7 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         let learner = await store.getLearner(id);
         if (!learner?.repo) {
           try { learner = await onboardStudent({ gh, store, config, student: { id, githubUsername: user.login, githubId: user.id }, log }); }
-          catch (e) { log(`onboarding ${user.login} failed, retrying next sign-in: ${e.message}`); learner = await store.upsertLearner(id, { githubUsername: user.login, githubId: user.id }); }
+          catch (e) { log(`onboarding ${user.login} failed, retrying next sign-in: ${e.message}`); learner = await store.upsertLearner(id, { githubUsername: user.login, githubId: user.id, onboardError: String(e.message || e).slice(0, 300) }); }
         } else if (learner.githubUsername !== user.login) learner = await store.upsertLearner(id, { githubUsername: user.login });
         const value = signSession(config.sessionSecret, { sid: id, v: learner.sessionVersion || 0, exp: Date.now() + SESSION_DAYS * 864e5 });
         return redirect(res, `${config.appUrl}/`, [cookie(COOKIE, value, { maxAge: SESSION_DAYS * 86400, secure })]);
@@ -129,9 +129,23 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         const circle = me.circleId ? await store.getCircle(me.circleId) : null;
         const [people, passes] = await Promise.all([publicLearners([me.id, ...(circle?.members || [])]), store.passesOf(me.id)]);
         return json(res, 200, {
-          me: { ...people[me.id], repo: me.repo || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.fromGit).map((x) => x.exerciseId), submitVia: "github" },
+          me: { ...people[me.id], repo: me.repo || null, repoError: me.repo ? null : me.onboardError || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.fromGit).map((x) => x.exerciseId), submitVia: "github" },
           circle: circle && { id: circle.id, name: circle.name, track: circle.track, inviteCode: circle.inviteCode, ownerId: circle.ownerId, members: circle.members.map((id) => people[id]).filter(Boolean) },
         });
+      }
+      // Creates the learner's repository if sign-in could not (the org invitation, template or permissions failed).
+      if (req.method === "POST" && p === "/api/me/repo") {
+        if (me.repo) return json(res, 200, { repo: me.repo });
+        try {
+          const l = await onboardStudent({ gh, store, config, student: { id: me.id, githubUsername: me.githubUsername, githubId: me.githubId }, log });
+          await store.upsertLearner(me.id, { onboardError: null });
+          return json(res, 200, { repo: l.repo });
+        } catch (e) {
+          const msg = String(e.message || e).slice(0, 300);
+          log(`onboarding ${me.githubUsername} failed again: ${msg}`);
+          await store.upsertLearner(me.id, { onboardError: msg });
+          return json(res, 502, { error: `GitHub said: ${msg}` });
+        }
       }
       if (req.method === "POST" && p === "/api/me/notice") { await store.upsertLearner(me.id, { noticeSeenAt: new Date().toISOString() }); return json(res, 200, { ok: true }); }
       if (req.method === "GET" && p === "/api/me/export") {

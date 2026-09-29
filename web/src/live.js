@@ -258,7 +258,8 @@ git push</pre></div></details>`;
   }
   // The side card: where this challenge stands, and the few steps to submit it from GitHub.
   function pushPanel(ex){
-    const file=solutionFile(ex),repo=L.me.repo||"",lt=L.latest[ex.id]||{},r=lt.result,saved=L.saved.has(ex.id);
+    if(!L.me.repo)return noRepoCard();
+    const file=solutionFile(ex),repo=L.me.repo,lt=L.latest[ex.id]||{},r=lt.result,saved=L.saved.has(ex.id);
     const editUrl=`https://github.com/${esc(repo)}/edit/main/${file}`;
     let state;
     if(saved)state=`<div class="st-card ok"><span class="st-ic" aria-hidden="true">✓</span><div><b>Solved</b><p>Your solution passed the grader and is saved.</p><div class="st-next">${nextStep(ex)}</div></div></div>`;
@@ -283,6 +284,15 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       <p class="gh-first">First time? Accept the invitation GitHub emailed you to join the organization, or the link won't open.</p>`;
     const mine=saved&&lt.code?`<details class="gh-local"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
     return `${state}<section class="panel gh-card"><h2>${saved?"Submit a new version":"How to submit"}</h2><div class="pad">${saved?`<details class="gh-local"><summary>Show the steps</summary>${steps}</details>`:steps}${mine}</div></section>`;
+  }
+  // Sign-in could not create the learner's repository: say so plainly, and let them try again.
+  function noRepoCard(){
+    const err=L.me.repoError||L.repoErr;
+    return `<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>Your repository isn't ready yet</b>
+      <p>You need your own repository in the organization to submit solutions. Setting it up didn't finish when you signed in.</p>
+      <ol class="fix-list"><li>Check your email for an invitation from GitHub to join the organization, and accept it.</li><li>Then press the button.</li></ol>
+      <button class="btn small primary" data-act="setup-repo">Set up my repository</button>
+      ${err?`<p class="mono err-detail">${esc(err)}</p>`:""}<p class="muted" style="font-size:12px">Still stuck? Send the message above to your teacher.</p></div></div>`;
   }
   // The challenge page: the task is the main view; submitting from GitHub is a side card.
   viewExercise=function(){
@@ -365,6 +375,9 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
     try{
       if(a==="notice-ok"){await api("POST","/api/me/notice");L.me.noticeSeen=true;render();}
+      else if(a==="setup-repo"){el.disabled=true;el.textContent="Setting up…";
+        try{await api("POST","/api/me/repo");L.repoErr=null;}catch(err){L.repoErr=err.message;}
+        await loadAll();}
       else if(a==="copy-code"){const ed=document.getElementById("editor");const ok=()=>{el.textContent="Copied";setTimeout(()=>{el.textContent="Copy your code";},1500);};
         try{await navigator.clipboard.writeText(ed.value);ok();}catch(_){el.textContent="Select the code in the editor and copy it";}}
       else if(a==="submit-module"){const id=el.dataset.id;el.disabled=true;el.textContent="Submitting…";delete L.modErr[id];

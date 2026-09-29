@@ -174,6 +174,25 @@ test("sign in, circle, push, circle review, rating", { skip: NEEDS_ANSWERS }, as
   } finally { t.close(); }
 });
 
+test("a learner whose repository wasn't created can retry, and sees why it failed", async () => {
+  const t = await setup();
+  try {
+    const { hana } = await t.signIn();
+    await t.store.upsertLearner("gh_1001", { repo: null });
+    const ok = t.gh.createFromTemplate, err = Object.assign(new Error("Resource not accessible by integration"), { status: 403 });
+    t.gh.createFromTemplate = async () => { throw err; };
+    let res = await t.post("/api/me/repo", {}, hana);
+    assert.equal(res.status, 502);
+    assert.match((await res.json()).error, /Resource not accessible/);
+    assert.match((await (await t.get("/api/me", hana)).json()).me.repoError, /Resource not accessible/);
+    t.gh.createFromTemplate = ok;
+    res = await t.post("/api/me/repo", {}, hana);
+    assert.equal(res.status, 200);
+    const me = (await (await t.get("/api/me", hana)).json()).me;
+    assert.ok(me.repo && me.repoError === null);
+  } finally { t.close(); }
+});
+
 test("solutions are submitted from GitHub only", async () => {
   const t = await setup();
   try {

@@ -4,6 +4,9 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Your repository isn't ready yet": "ማከማቻዎ ገና ዝግጁ አይደለም", "You need your own repository in the organization to submit solutions. Setting it up didn't finish when you signed in.": "መፍትሔዎችን ለማስገባት በድርጅቱ ውስጥ የራስዎ ማከማቻ ያስፈልጋል። ሲገቡ ማዘጋጀቱ አልተጠናቀቀም።",
+    "Check your email for an invitation from GitHub to join the organization, and accept it.": "ድርጅቱን ለመቀላቀል ከGitHub የመጣ ግብዣ በኢሜይልዎ ይፈልጉና ይቀበሉ።", "Then press the button.": "ከዚያ ቁልፉን ይጫኑ።",
+    "Set up my repository": "ማከማቻዬን አዘጋጅ", "Setting up…": "በማዘጋጀት ላይ…", "Still stuck? Send the message above to your teacher.": "አሁንም አልሰራም? ከላይ ያለውን መልእክት ለመምህርዎ ይላኩ።",
     "Starting point": "መነሻ", "what your code must do": "ኮድዎ ማድረግ ያለበት", "Solved": "የተፈቱ", "Your solution passed the grader and is saved.": "መፍትሔዎ አራሚውን አልፏል፣ ተቀምጧል።",
     "Not submitted yet": "ገና አልገባም", "Follow the steps below. Your result shows here about a minute after you commit.": "ከታች ያሉትን ደረጃዎች ይከተሉ። commit ካደረጉ ከአንድ ደቂቃ ገደማ በኋላ ውጤቱ እዚህ ይታያል።",
     "How to submit": "እንዴት እንደሚያስገቡ", "Submit a new version": "አዲስ ስሪት ያስገቡ", "Show the steps": "ደረጃዎቹን አሳይ",
