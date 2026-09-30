@@ -6,11 +6,13 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 source deploy/config.env
 REGION=${REGION:-us-central1}
-echo "== What the running API uses"
-gcloud run services describe timirtbet-api --region "$REGION" --format=json 2>/dev/null \
-  | node -e 'const s=JSON.parse(require("fs").readFileSync(0));const e=s.spec.template.spec.containers[0].env||[];for(const v of e)if(/GITHUB_(APP_ID|APP_INSTALLATION_ID|ORG|CLIENT_ID)/.test(v.name))console.log("  "+v.name+"="+JSON.stringify(v.value))'
+: "${PROJECT_ID:?PROJECT_ID missing in deploy/config.env}"
+gcloud config set project "$PROJECT_ID" >/dev/null 2>&1
+echo "== What the running API uses (project $PROJECT_ID)"
+gcloud run services describe timirtbet-api --project "$PROJECT_ID" --region "$REGION" --format=json \
+  | node -e 'const t=require("fs").readFileSync(0,"utf8");if(!t.trim()){console.log("  could not read the Cloud Run service (see the error above)");process.exit(0);}const s=JSON.parse(t);const e=s.spec.template.spec.containers[0].env||[];for(const v of e)if(/GITHUB_(APP_ID|APP_INSTALLATION_ID|ORG|CLIENT_ID)/.test(v.name))console.log("  "+v.name+"="+JSON.stringify(v.value))'
 echo "== Checking the private key against GitHub"
-KEY=$(gcloud secrets versions access latest --secret=github-app-key) || { echo "  cannot read secret github-app-key"; exit 1; }
+KEY=$(gcloud secrets versions access latest --secret=github-app-key --project "$PROJECT_ID") || { echo "  cannot read secret github-app-key"; exit 1; }
 KEY="$KEY" APP_ID="$GITHUB_APP_ID" INST="$GITHUB_APP_INSTALLATION_ID" ORG="$GITHUB_ORG" node --input-type=module -e '
 import crypto from "node:crypto";
 const b=(x)=>Buffer.from(x).toString("base64url"), now=Math.floor(Date.now()/1000);
