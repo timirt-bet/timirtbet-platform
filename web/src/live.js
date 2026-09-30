@@ -175,7 +175,7 @@ if(LIVE){
     if(!L.loaded){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
     baseRender();
     if(V.view==="exercise"&&V.ex)loadLatest(V.ex);
-    if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
+    if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;if(!L.saved.has(V.ex))s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
     const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. You can export or delete it from your profile at any time. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
@@ -261,19 +261,23 @@ git push</pre></div></details>`;
       const [r,pass]=await Promise.all([api("GET","/api/results/"+encodeURIComponent(id)),api("GET","/api/passes/"+encodeURIComponent(id))]);
       L.latest[id]={result:r.result,code:pass.code,at:pass.at};
     }catch(e){L.latest[id]={error:true};}
+    if(V.view==="exercise"&&V.ex===id&&!running){const t=document.getElementById("tSum");if(t)t.outerHTML=testSummary(EXM[id]);}
     if(V.view==="exercise"&&V.ex===id){const el=document.getElementById("pushPanel");if(el)el.innerHTML=pushPanel(EXM[id]);}
   }
   // The side card: where this challenge stands, and the few steps to submit it from GitHub.
+  // One line in the Tests heading: solved (with the next step), or how the last run went.
+  function testSummary(ex){
+    if(!L.me)return "";
+    if(L.saved.has(ex.id)){const m=MODOF[ex.id],next=m&&m.exercises.find(id=>!L.saved.has(id));
+      return `<span class="t-sum ok" id="tSum" aria-live="polite">Solved ✓${next?` · <button class="linkish" data-act="open" data-id="${next}">Next challenge →</button>`:""}</span>`;}
+    const r=(L.latest[ex.id]||{}).result;
+    if(r&&!r.passed)return `<span class="t-sum" id="tSum" aria-live="polite">Last run: ${r.passedCount} of ${r.total} passed</span>`;
+    return `<span class="t-sum" id="tSum" aria-live="polite"></span>`;
+  }
   function pushPanel(ex){
     if(!L.me.repo)return noRepoCard();
     const file=solutionFile(ex),repo=L.me.repo,lt=L.latest[ex.id]||{},r=lt.result,saved=L.saved.has(ex.id);
     const editUrl=`https://github.com/${esc(repo)}/edit/main/${file}`;
-    let state;
-    if(saved)state=`<div class="st-card ok"><span class="st-ic" aria-hidden="true">✓</span><div><b>Solved</b><p>Your solution passed the grader and is saved.</p><div class="st-next">${nextStep(ex)}</div></div></div>`;
-    else if(lt.loading)state=`<div class="st-card"><span class="st-ic" aria-hidden="true">…</span><div><b>Checking…</b></div></div>`;
-    else if(r&&!r.passed)// just a one-line reminder; the details show in the test list when the tests run
-      state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not solved yet</b><p>Last run: ${r.passedCount} of ${r.total} tests passed · ${ago(Date.parse(r.at))}</p><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:8px">▶ Run the tests</button></div></div>`;
-    else state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not submitted yet</b><p>Commit your solution on GitHub, then run the tests here.</p><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:8px">▶ Run the tests</button></div></div>`;
     const steps=`<ol class="gh-steps">
         <li><a class="btn small primary" href="${editUrl}" target="_blank" rel="noopener">Open ${ex.lang==="js"?"solution.js":"solution.go"} on GitHub ↗</a><span>It opens the file in your repository, ready to edit.</span></li>
         <li><b>Write your solution</b><span>Replace the starter code with your answer.</span></li>
@@ -287,7 +291,7 @@ git commit -m "${esc(ex.title)}"
 git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button></details>
       <p class="gh-first">First time? Accept the invitation GitHub emailed you to join the organization, or the link won't open.</p>`;
     const mine=saved&&lt.code?`<details class="gh-local"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
-    return `${state}<section class="panel gh-card"><h2>${saved?"Submit a new version":"How to submit"}</h2><div class="pad">${saved?`<details class="gh-local"><summary>Show the steps</summary>${steps}</details>`:steps}${mine}</div></section>`;
+    return `<section class="panel gh-card"><h2>${saved?"Submit a new version":"How to submit"}</h2><div class="pad">${saved?`<details class="gh-local"><summary>Show the steps</summary>${steps}</details>`:steps}${mine}</div></section>`;
   }
   // Sign-in could not create the learner's repository: say so plainly, and let them try again.
   function noRepoCard(){
@@ -347,14 +351,14 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     if(!(S.opened||{})[ex.id]){(S.opened=S.opened||{})[ex.id]=1;save();}// opening a challenge marks it started
     const runBtn=L.me&&L.me.repo?`<button class="btn small run-btn" data-act="check" data-id="${ex.id}">▶ Run the tests</button>`:"";
     const rows=testNames(ex).map((t,i)=>`<li class="t-row" data-name="${esc(t.name)}"><span class="t-ic" aria-hidden="true"></span><div><b>${esc(t.label)}</b>${t.code?`<code>${esc(t.code)}</code>`:""}<div class="t-msg mono" hidden></div></div></li>`).join("");
-    const tests=`<section class="task-sec" id="testSec"><div class="t-head"><h2>Tests <span class="muted">${ex.lang==="js"?"what your code must do":`run with <code>go test -race</code>`}</span></h2><span class="t-sum" id="tSum" aria-live="polite"></span>${runBtn}</div>
+    const tests=`<section class="task-sec" id="testSec"><div class="t-head"><h2>Tests <span class="muted">${ex.lang==="js"?"what your code must do":`run with <code>go test -race</code>`}</span></h2>${testSummary(ex)}${runBtn}</div>
       <ol class="task-tests" id="testList">${rows}</ol>${ex.lang==="go"?`<details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details>`:""}</section>`;
     const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`:"";
     // Signed out: how to get started sits inside the task card, after the tests.
     const start=L.me?"":`<section class="task-sec task-start"><h2>Submit your solution</h2><p class="task-start-lede">You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(false)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Sign in with GitHub</a></section>`;
     return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
     <div class="task-page">
-      <aside class="task-side"><div id="prPanel">${peerPanel(ex)}</div>${side}</aside>
+      <aside class="task-side">${side}<div id="prPanel">${peerPanel(ex)}</div></aside>
       <article class="panel task-main">
         <header class="task-h"><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)}${m?` · Module ${modNum(m)}`:""}</p><h1 class="pg-h">${esc(ex.title)}</h1><div class="ex-meta"><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(ex)} pts</span></div></header>
         <section class="task-sec"><h2>Task</h2><div class="prompt task-prompt">${mdLite(ex.prompt)}</div></section>
