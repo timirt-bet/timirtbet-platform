@@ -14,6 +14,14 @@ export class MemoryStore {
   async getLearner(id) { return clone(this.t.learners.get(id)) || null; }
   async upsertLearner(id, patch) { const cur = this.t.learners.get(id) || { id }; const next = { ...cur, ...patch, id }; this.t.learners.set(id, next); return clone(next); }
   async learnerByRepo(repo) { for (const l of this.t.learners.values()) if (l.repo === repo) return clone(l); return null; }
+  async learnerByLogin(login) { const k = String(login).toLowerCase(); for (const l of this.t.learners.values()) if ((l.githubUsername || "").toLowerCase() === k) return clone(l); return null; }
+  // Follows live on the follower's record: learner.following = [ids].
+  async setFollow(fromId, toId, on) {
+    const l = this.t.learners.get(fromId); if (!l) return;
+    const set = new Set(l.following || []); on ? set.add(toId) : set.delete(toId);
+    this.t.learners.set(fromId, { ...l, following: [...set] });
+  }
+  async followersOf(id) { return [...this.t.learners.values()].filter((l) => (l.following || []).includes(id)).map((l) => l.id); }
   async getLearners(ids) { const out = {}; for (const id of ids) { const l = this.t.learners.get(id); if (l) out[id] = clone(l); } return out; }
 
   // circles
@@ -87,6 +95,7 @@ export class MemoryStore {
   // Delete everything that identifies a learner. Reviews they wrote stay, unsigned.
   async deleteLearnerData(id) {
     this.t.learners.delete(id); this.t.reviewers.delete(id); this.t.inbox.delete(id);
+    for (const [k, l] of this.t.learners) if ((l.following || []).includes(id)) this.t.learners.set(k, { ...l, following: l.following.filter((x) => x !== id) });
     for (const [k, r] of this.t.results) if (r.learnerId === id) this.t.results.delete(k);
     for (const [k, p] of this.t.passes) if (p.learnerId === id) this.t.passes.delete(k);
     for (const [k, s] of this.t.submissions) {

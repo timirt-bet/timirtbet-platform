@@ -14,6 +14,23 @@ export function storeContract(test, makeStore) {
     assert.deepEqual(Object.keys(await s.getLearners(["gh_1", "gh_2", "gh_9"])).sort(), ["gh_1", "gh_2"]);
   });
 
+  test("people: find by login (any case), follow and unfollow", async () => {
+    const s = await makeStore();
+    await s.upsertLearner("gh_1", { githubUsername: "Hana-T" });
+    await s.upsertLearner("gh_2", { githubUsername: "dawit-b" });
+    assert.equal((await s.learnerByLogin("hana-t")).id, "gh_1");
+    assert.equal(await s.learnerByLogin("nobody"), null);
+    await s.setFollow("gh_2", "gh_1", true);
+    await s.setFollow("gh_2", "gh_1", true);
+    assert.deepEqual((await s.getLearner("gh_2")).following, ["gh_1"]);
+    assert.deepEqual(await s.followersOf("gh_1"), ["gh_2"]);
+    await s.setFollow("gh_2", "gh_1", false);
+    assert.deepEqual(await s.followersOf("gh_1"), []);
+    await s.setFollow("gh_2", "gh_1", true);
+    await s.deleteLearnerData("gh_1");
+    assert.deepEqual((await s.getLearner("gh_2")).following, []);
+  });
+
   test("circles: create, find by code, update, delete", async () => {
     const s = await makeStore();
     const c = await s.createCircle({ name: "Addis", track: "js", ownerId: "gh_1", inviteCode: "ABCDEFGH", members: ["gh_1"] });

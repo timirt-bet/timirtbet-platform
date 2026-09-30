@@ -43,10 +43,12 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 | Repository name, circle | Birth date, school, location |
 | Code you submit, test results | Passwords (there are none) |
 | Reviews written, ratings given | Tracking or analytics cookies |
+| Who you follow | |
 
 - **Notice at first sign-in:** a one-line notice says what is stored, and that it is stored in the United States.
 - **Export:** `GET /api/me/export`.
 - **Delete:** `DELETE /api/me` removes the learner's records and their repository, and takes them out of the organization. Reviews they wrote stay, unsigned.
+- **Profiles:** any signed-in learner can open another's profile at `/u/{login}`: points, solved challenges, module progress, reviewer level and score, number of reviews, circle name, followers and following. Never their code.
 - **Guests:** anyone can read every challenge and its tests without signing in.
 - **Age:** GitHub accounts require age 13+.
 
@@ -92,7 +94,7 @@ The GitHub Actions workflow in each learner's repository gives quicker feedback,
 Reviewer counters are stored as `{ratings, starsSum, pointsSum, openReviews}` and updated in a transaction when a rating arrives, so nothing ever recounts history.
 
 - **Who can review:** only someone who finished the whole module; never the author; nobody on probation; nobody with 3 open reviews. Circle members come first. Advanced challenges prefer Helpful reviewers or above. Higher score, higher level and fewer open reviews make a pick more likely.
-- **The review:** a rubric (Correctness, Readability, Style, each Needs work, Good or Excellent) and a comment of 40–4000 characters. Both sides are anonymous.
+- **The review:** a rubric (Correctness, Readability, Style, each Needs work, Good or Excellent) and a comment of 40–4000 characters. The reviewer doesn't see who wrote the code. The author sees who the reviewer is (GitHub username and level), so they know who to wait for and can nudge them.
 - **Rating:** only the author rates, once, from 1 to 5 stars.
 - **Review score:** `(5 × 3.5 + sum of stars) ÷ (5 + number of ratings)`.
 - **Points per rating:** ★5 +10 · ★4 +6 · ★3 +2 · ★2 −3 · ★1 −6. Reputation never shows below 0.
@@ -105,6 +107,8 @@ Reviewer counters are stored as `{ratings, starsSum, pointsSum, openReviews}` an
   | Trusted | 100 |
   | Mentor | 250 |
 - **Probation:** 4 or more ratings with a score under 3.0. No new reviews until the score recovers.
+- **The 72-hour clock:** a review is due 72 hours after it was assigned. The author and the reviewer both see the same countdown (on the module panel, the track page, the review queue and the review page). It turns amber under 24 hours and red under 6.
+- **Nudge:** while a module is in review, its author can nudge the reviewer at most once every 12 hours. The reviewer gets a notification in the bell and on GitHub.
 - **Reminder and stale reviews:** after 48 hours without a review, the reviewer gets one reminder. A review not written within 72 hours moves to someone else. The hourly task also assigns submissions that were waiting for a free reviewer, and so does any new pass.
 - **Second opinions:** a review rated ★1 is flagged. Mentors see flagged reviews and can add a second opinion, which the author then sees.
 
@@ -124,6 +128,8 @@ Every peer-review event reaches the learner in two places:
 | `review_rated`: your review got ★n (+/− points) | reviewer | yes | yes |
 | `level_up`: you reached Helpful, Trusted or Mentor | reviewer | yes | no |
 | `second_opinion`: a Mentor added a second opinion | author | yes | yes |
+| `review_nudge`: the author is waiting for your review | reviewer | yes | yes |
+| `new_follower`: someone started following you | the person followed | yes | no |
 
 A failed notification is logged and never blocks the review itself.
 
@@ -138,7 +144,8 @@ The web app is one page, but every screen has its own address and browser-tab ti
 | `/challenges/js/basic`, `/challenges/js/advanced` | A track, one level |
 | `/challenges/js/basic/vars` | A challenge (its id without the `js-`/`go-` prefix) |
 | `/reviews`, `/reviews/{submission}` | Reviews to write, and one review |
-| `/circle`, `/profile`, `/signin` | Circle, profile, getting started |
+| `/circle`, `/profile`, `/signin` | Circle, your account, getting started |
+| `/u/{github-login}` | A learner's profile |
 
 After signing in with GitHub, the learner returns to the page they were on.
 
@@ -152,7 +159,9 @@ After signing in with GitHub, the learner returns to the page they were on.
 | `GET /api/results/{exerciseId}` (your latest push's test results), `GET /api/passes/{exerciseId}` (your saved solution) | you |
 | `POST /api/modules/{id}/submit` (send a finished module for review) | you |
 | `GET /api/notifications`, `POST /api/notifications/read` | you |
-| `GET /api/submissions/mine`, `GET /api/reviews/queue`, `GET /api/reviews/given` | you |
+| `GET /api/submissions/mine` (with your reviewer, `dueAt` and `nudgeAfter`), `GET /api/reviews/queue` (with `dueAt`), `GET /api/reviews/given` | you |
+| `POST /api/submissions/{id}/nudge` (once every 12 hours) | author |
+| `GET /api/users/{login}`, `GET /api/users/{login}/followers`, `/following`; `POST`/`DELETE /api/users/{login}/follow` | signed in |
 | `POST /api/submissions/{id}/review` | assigned reviewer |
 | `POST /api/submissions/{id}/rating` | author |
 | `GET /api/reviews/flagged`, `POST /api/submissions/{id}/second-opinion` | Mentors |

@@ -13,6 +13,8 @@ export const KINDS = {
   review_rated: { github: true },      // your review got stars
   level_up: { github: false },         // you reached a new reviewer level
   second_opinion: { github: true },    // a Mentor added a second opinion on your review
+  review_nudge: { github: true },      // the author of a module you are reviewing nudged you
+  new_follower: { github: false },     // someone followed you
   push_passed: { github: false },      // a push passed the grader and is saved (GitHub already shows a ✓ on the commit)
   push_failed: { github: false },      // a push did not pass
   module_ready: { github: false },     // every challenge in a module passed from GitHub: submit it
@@ -37,6 +39,8 @@ export function message(n, ctx) {
     case "review_rated": return `Your review of **${unit}** was rated ${"★".repeat(n.stars)}${"☆".repeat(5 - n.stars)} (${n.points > 0 ? "+" : ""}${n.points} points).`;
     case "level_up": return `You reached **${n.level}** as a reviewer.`;
     case "second_opinion": return `A Mentor added a second opinion to the review of your **${unit}**.`;
+    case "review_nudge": return `@${n.from} is waiting for your review of **${unit}**.${n.dueAt ? ` It is due ${new Date(n.dueAt).toUTCString().slice(0, 22)} UTC.` : ""}`;
+    case "new_follower": return `@${n.from} started following you on Timirtbet.`;
     case "push_passed": return `Your push of **${unit}** passed and is saved.`;
     case "push_failed": return `Your push of **${unit}** passed ${n.passed} of ${n.total} tests.`;
     case "module_ready": return `You finished **${unit}**. Submit it for review on Timirtbet.`;

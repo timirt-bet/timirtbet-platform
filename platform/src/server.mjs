@@ -6,7 +6,8 @@ import { verifySignature } from "./signature.mjs";
 import { onboardStudent, offboardLearner } from "./onboarding.mjs";
 import { solutionPath } from "./grader.mjs";
 import { jobFromEvent, processJob, assignWaiting, reassignStale, retireSingles, submitModule, recordPush, ModuleError } from "./pipeline.mjs";
-import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS } from "./reviews.mjs";
+import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS, REVIEW_DEADLINE_MS } from "./reviews.mjs";
+const NUDGE_EVERY_MS = 12 * 3600 * 1000; // a submitter can nudge their reviewer once every 12 hours
 import { createNotifier } from "./notify.mjs";
 import { authorizeUrl, signSession, verifySession, parseCookies, cookie } from "./auth.mjs";
 import { createCircle, joinCircle, leaveCircle, newInviteCode, CircleError } from "./circles.mjs";
@@ -161,6 +162,37 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         await store.deleteLearnerData(me.id);
         return json(res, 200, { deleted: true }, { "set-cookie": cookie(COOKIE, "", { maxAge: 0, secure }) });
       }
+      // ---- profiles and following ----
+      if (req.method === "GET" && (m = p.match(/^\/api\/users\/([\w-]+)$/))) {
+        const u = await store.learnerByLogin(m[1]);
+        if (!u) return json(res, 404, { error: "No learner with that GitHub username." });
+        const [pub, followers, subs, given, circle, solvedIds] = await Promise.all([publicLearners([u.id]), store.followersOf(u.id), store.submissionsOf(u.id),
+          store.assignedTo(u.id), u.circleId ? store.getCircle(u.circleId) : null, store.solvedOf(u.id)]);
+        const p1 = pub[u.id];
+        return json(res, 200, { user: {
+          login: u.githubUsername, solved: p1.solved, solvedIds, points: p1.points, reviewer: p1.reviewer,
+          modulesReviewed: new Set(subs.filter((s) => s.moduleId && (s.status === "reviewed" || s.status === "rated")).map((s) => s.moduleId)).size,
+          reviewsGiven: given.filter((s) => s.review).length, joined: u.onboardedAt || null, circle: circle ? circle.name : null,
+          followers: followers.length, following: (u.following || []).length, isFollowing: followers.includes(me.id), isMe: u.id === me.id,
+        } });
+      }
+      if (req.method === "GET" && (m = p.match(/^\/api\/users\/([\w-]+)\/(followers|following)$/))) {
+        const u = await store.learnerByLogin(m[1]);
+        if (!u) return json(res, 404, { error: "No learner with that GitHub username." });
+        const ids = (m[2] === "followers" ? await store.followersOf(u.id) : u.following || []).slice(0, 200);
+        const pub = await publicLearners(ids);
+        return json(res, 200, { people: ids.map((id) => pub[id]).filter(Boolean).map((x) => ({ login: x.login, level: x.reviewer.level, levelIndex: x.reviewer.levelIndex, points: x.points })) });
+      }
+      if ((req.method === "POST" || req.method === "DELETE") && (m = p.match(/^\/api\/users\/([\w-]+)\/follow$/))) {
+        const u = await store.learnerByLogin(m[1]);
+        if (!u) return json(res, 404, { error: "No learner with that GitHub username." });
+        if (u.id === me.id) return json(res, 422, { error: "You can't follow yourself." });
+        const on = req.method === "POST", was = (me.following || []).includes(u.id);
+        if (on && !was && (me.following || []).length >= 500) return json(res, 422, { error: "You follow the most people allowed (500)." });
+        await store.setFollow(me.id, u.id, on);
+        if (on && !was) await notify(u.id, { kind: "new_follower", from: me.githubUsername });
+        return json(res, 200, { following: on });
+      }
       if (req.method === "GET" && (m = p.match(/^\/api\/learners\/([\w-]+)$/))) {
         const one = (await publicLearners([m[1]]))[m[1]];
         return one ? json(res, 200, { learner: one }) : json(res, 404, { error: "no such learner" });
@@ -229,13 +261,35 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
       }
 
       // ---- peer review ----
+      // The author sees who reviews their module and the 72-hour clock while it is open.
       if (req.method === "GET" && p === "/api/submissions/mine") {
-        return json(res, 200, { submissions: (await store.submissionsOf(me.id)).filter((s) => s.status !== "withdrawn").map(({ reviewerId, previousReviewers, ...s }) => s) });
+        const subs = (await store.submissionsOf(me.id)).filter((s) => s.status !== "withdrawn");
+        const ids = [...new Set(subs.map((s) => s.reviewerId).filter((id) => id && id !== "deleted"))];
+        const people = await store.getLearners(ids), stats = await store.reviewerStatsMany(ids);
+        return json(res, 200, { submissions: subs.map(({ reviewerId, previousReviewers, ...s }) => ({
+          ...s,
+          reviewer: people[reviewerId] ? (({ level, levelIndex }) => ({ login: people[reviewerId].githubUsername, level, levelIndex }))(reviewerProfile(stats[reviewerId])) : null,
+          dueAt: s.status === "awaiting_review" && s.assignedAt ? new Date(Date.parse(s.assignedAt) + REVIEW_DEADLINE_MS).toISOString() : null,
+          nudgeAfter: s.lastNudgedAt ? new Date(Date.parse(s.lastNudgedAt) + NUDGE_EVERY_MS).toISOString() : null,
+        })) });
+      }
+      // Nudge: the author reminds their reviewer (bell and GitHub), at most once every 12 hours.
+      if (req.method === "POST" && (m = p.match(/^\/api\/submissions\/([\w-]+)\/nudge$/))) {
+        const sub = await store.getSubmission(m[1]);
+        if (!sub || sub.studentId !== me.id) return json(res, 404, { error: "no such submission" });
+        if (sub.status !== "awaiting_review" || !sub.reviewerId) return json(res, 409, { error: "Nobody is reviewing this yet." });
+        const wait = sub.lastNudgedAt ? Date.parse(sub.lastNudgedAt) + NUDGE_EVERY_MS - Date.now() : 0;
+        if (wait > 0) return json(res, 429, { error: `You can nudge again in ${Math.ceil(wait / 3600e3)} h.` });
+        const at = new Date().toISOString();
+        await store.updateSubmission(sub.id, { lastNudgedAt: at });
+        await notify(sub.reviewerId, { kind: "review_nudge", unitId: sub.moduleId || sub.exerciseId, subId: sub.id, from: me.githubUsername,
+          dueAt: sub.assignedAt ? new Date(Date.parse(sub.assignedAt) + REVIEW_DEADLINE_MS).toISOString() : null });
+        return json(res, 200, { nudgedAt: at, nudgeAfter: new Date(Date.now() + NUDGE_EVERY_MS).toISOString() });
       }
       if (req.method === "GET" && p === "/api/reviews/queue") {
         // Only whole modules are reviewed; older single-challenge items are withdrawn by the hourly task.
         const mine = (await store.assignedTo(me.id)).filter((s) => s.status === "awaiting_review" && s.moduleId);
-        return json(res, 200, { toReview: mine.map(({ studentId, previousReviewers, ...s }) => s) });
+        return json(res, 200, { toReview: mine.map(({ studentId, previousReviewers, ...s }) => ({ ...s, dueAt: s.assignedAt ? new Date(Date.parse(s.assignedAt) + REVIEW_DEADLINE_MS).toISOString() : null })) });
       }
       if (req.method === "GET" && p === "/api/reviews/given") {
         const done = (await store.assignedTo(me.id)).filter((s) => s.review);

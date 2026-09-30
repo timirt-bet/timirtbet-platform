@@ -10,6 +10,8 @@ It was built for Ethiopian schools and is released under the [Apache License 2.0
 
 - **32 challenges** (15 JavaScript, 17 Go) in 8 modules of 3–5, from variables to concurrency. Learners write code in their own GitHub repository and push it; the grader checks every push, and the result shows on the challenge page, on the commit and as a notification.
 - **Peer review per module.** When a learner passes every challenge in a module, one classmate who also finished it reviews all of the solutions together, using a short rubric and a written comment.
+- **A 72-hour review clock.** The author sees who is reviewing their module and how long is left, and can nudge the reviewer. The reviewer sees the same countdown. Late reviews move to someone else.
+- **Profiles and following.** Every learner has a profile with their progress and reviewer level, and can follow classmates.
 - **Reputation.** Authors rate reviews ★1–5. Reviewers move through New, Helpful, Trusted and Mentor. Mentors give second opinions on ★1 reviews.
 - **Review circles** of up to 8 friends or classmates, joined with an invite code.
 - **Notifications** in the app and through GitHub (email or mobile), so nobody needs to hand over an email address.

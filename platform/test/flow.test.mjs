@@ -285,6 +285,50 @@ test("reviews not written within 72 hours move to someone else", async () => {
   } finally { t.close(); }
 });
 
+test("submitters see their reviewer and deadline, and can nudge every 12 hours", async () => {
+  const t = await setup();
+  try {
+    const { hana } = await t.signIn();
+    const assignedAt = new Date(Date.now() - 10 * 3600e3).toISOString();
+    const sub = await t.store.addSubmission({ studentId: "gh_1001", moduleId: "js-m1", exerciseId: "js-m1", code: "x", reviewerId: "gh_2", assignedAt });
+    const mine = (await (await t.get("/api/submissions/mine", hana)).json()).submissions.find((s) => s.id === sub.id);
+    assert.equal(mine.reviewer.login, "dawit-b");
+    assert.equal(mine.dueAt, new Date(Date.parse(assignedAt) + 72 * 3600e3).toISOString());
+    assert.equal(mine.nudgeAfter, null);
+    const queue = (await (await t.get("/api/reviews/queue", await t.as("gh_2"))).json()).toReview;
+    assert.equal(queue.find((s) => s.id === sub.id).dueAt, mine.dueAt, "the reviewer sees the same deadline");
+    assert.equal((await t.post(`/api/submissions/${sub.id}/nudge`, {}, await t.as("gh_3"))).status, 404, "only the author can nudge");
+    const ok = await t.post(`/api/submissions/${sub.id}/nudge`, {}, hana);
+    assert.equal(ok.status, 200);
+    const n = (await t.store.inboxOf("gh_2")).items.find((x) => x.kind === "review_nudge");
+    assert.equal(n.from, "hana-t"); assert.equal(n.subId, sub.id);
+    assert.equal(t.gh.calls.filter((c) => c.name === "createIssue").length > 0, true, "the nudge also reaches GitHub");
+    assert.equal((await t.post(`/api/submissions/${sub.id}/nudge`, {}, hana)).status, 429, "once every 12 hours");
+  } finally { t.close(); }
+});
+
+test("profiles and following", async () => {
+  const t = await setup();
+  try {
+    const { hana } = await t.signIn();
+    const p = (await (await t.get("/api/users/DAWIT-B", hana)).json()).user;
+    assert.equal(p.login, "dawit-b"); assert.equal(p.isFollowing, false); assert.equal(p.isMe, false);
+    assert.ok(p.solved >= 3);
+    assert.equal((await t.get("/api/users/nobody-here", hana)).status, 404);
+    assert.equal((await t.post("/api/users/hana-t/follow", {}, hana)).status, 422, "can't follow yourself");
+    assert.equal((await t.post("/api/users/dawit-b/follow", {}, hana)).status, 200);
+    await t.post("/api/users/dawit-b/follow", {}, hana);
+    assert.equal((await t.store.inboxOf("gh_2")).items.filter((x) => x.kind === "new_follower").length, 1, "one notice per new follow");
+    const again = (await (await t.get("/api/users/dawit-b", hana)).json()).user;
+    assert.equal(again.isFollowing, true); assert.equal(again.followers, 1);
+    assert.deepEqual((await (await t.get("/api/users/dawit-b/followers", hana)).json()).people.map((x) => x.login), ["hana-t"]);
+    assert.deepEqual((await (await t.get("/api/users/hana-t/following", hana)).json()).people.map((x) => x.login), ["dawit-b"]);
+    assert.equal((await t.send("DELETE", "/api/users/dawit-b/follow", undefined, hana)).status, 200);
+    assert.equal((await (await t.get("/api/users/dawit-b", hana)).json()).user.followers, 0);
+    assert.equal((await t.get("/api/users/dawit-b")).status, 401, "profiles are for signed-in learners");
+  } finally { t.close(); }
+});
+
 test("reviewers get whole modules: older single-challenge reviews are withdrawn", async () => {
   const t = await setup();
   try {

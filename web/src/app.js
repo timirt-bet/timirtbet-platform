@@ -242,7 +242,7 @@ function render(){
   document.getElementById("nav").innerHTML=nav.map(([v,l])=>`<button data-act="view" data-v="${v}" ${cur===v?'aria-current="page"':""}>${l}</button>`).join("");
   document.getElementById("who").innerHTML=me()?`<button class="who" data-act="view" data-v="profile">${avatar(me())}<span class="mono">@${esc(me())}</span></button>`:`<button class="btn gh-btn small" data-act="view" data-v="signin">${GH}Sign in</button>`;
   if(V.view!=="exercise"&&V.view!=="review")stopTick();
-  const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin};
+  const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin,user:viewUser};
   if(CM){CM.destroy();CM=null;}
   app.innerHTML=(views[V.view]||viewChallenges)();
   document.title=titleOf();
@@ -251,11 +251,12 @@ function render(){
 }
 const GH=`<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>`;
 function go(view,extra){stopTick();Object.assign(V,{view},extra||{});if(ROUTED&&location.pathname!==pathOf())history.pushState(null,"",pathOf());render();window.scrollTo(0,0);}
+function viewUser(){return viewChallenges();}// learners' profiles are on the live site only
 /* ---------- routing (live site): every page has its own address and title ----------
    /                                   the two tracks
    /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
    /challenges/js/basic/vars           a challenge (its id without the js-/go- prefix)
-   /reviews  /reviews/<id>  /circle  /profile  /signin                                        */
+   /reviews  /reviews/<id>  /circle  /profile  /signin  /u/<github-login> (a learner's profile)                                       */
 const ROUTED=LIVE&&typeof history!=="undefined"&&/^https?:$/.test(location.protocol);
 const TRACK_LEVELS=["basic","advanced"],cap=s=>s[0].toUpperCase()+s.slice(1),slugOf=id=>id.replace(/^(js|go)-/,"");
 function pathOf(){
@@ -265,6 +266,7 @@ function pathOf(){
     case "reviews":return "/reviews";
     case "review":return `/reviews/${encodeURIComponent(V.qid||"")}`;
     case "circle":case "profile":case "signin":return "/"+V.view;
+    case "user":return `/u/${encodeURIComponent(V.login||"")}`;
     default:return "/";
   }
 }
@@ -278,6 +280,7 @@ function titleOf(){
     case "circle":return `Review circle · ${T}`;
     case "profile":return `Profile · ${T}`;
     case "signin":return `Get started · ${T}`;
+    case "user":return `@${V.login} · ${T}`;
     default:return `${T} | ትምህርት ቤት`;
   }
 }
@@ -290,12 +293,13 @@ function routeFrom(path){
   }
   if(p[0]==="reviews")return p[1]?{view:"review",qid:p[1]}:{view:"reviews"};
   if(["circle","profile","signin"].includes(p[0]))return {view:p[0]};
+  if(p[0]==="u"&&/^[\w-]{1,39}$/.test(p[1]||""))return {view:"user",login:p[1]};
   return {view:"challenges"};
 }
 function applyRoute(path){
   const r=routeFrom(path);
   if(r.track){S.track=r.track;}
-  Object.assign(V,{view:r.view,level:r.level||null,confirm:null},r.ex?{ex:r.ex}:{},r.qid?{qid:r.qid,rvDraft:{rub:{c:0,r:0,s:0},text:""},rvAuto:null}:{});
+  Object.assign(V,{view:r.view,level:r.level||null,confirm:null},r.ex?{ex:r.ex}:{},r.login?{login:r.login,utab:null}:{},r.qid?{qid:r.qid,rvDraft:{rub:{c:0,r:0,s:0},text:""},rvAuto:null}:{});
   if(ROUTED&&location.pathname!==pathOf())history.replaceState(null,"",pathOf());// tidy unknown or partial addresses
 }
 if(ROUTED)window.addEventListener("popstate",()=>{stopTick();applyRoute(location.pathname);render();});

@@ -86,6 +86,8 @@ if(LIVE){
       case "push_passed":return `<span>Your push passed and is saved:</span> ${u}`;
       case "push_failed":return `<span>Your push did not pass yet:</span> ${u}<span class="nt-sub">${n.passed} / ${n.total} tests passed</span>`;
       case "module_ready":return `<span>Module finished. Submit it for review:</span> ${u}`;
+      case "review_nudge":return `<span><b class="mono">@${esc(n.from||"")}</b> is waiting for your review of</span> ${u}${n.dueAt?`<span class="nt-sub">${esc(leftText(Date.parse(n.dueAt)-Date.now()))}</span>`:""}`;
+      case "new_follower":return `<span><b class="mono">@${esc(n.from||"")}</b> started following you</span>`;
       default:return `<span>Something changed.</span>`;
     }
   }
@@ -111,7 +113,8 @@ if(LIVE){
   }
   function goNotif(n){
     openBell(false);
-    if((n.kind==="review_assigned"||n.kind==="review_due")&&L.queue.some(q=>q.id===n.subId))return openReview(n.subId);
+    if((n.kind==="review_assigned"||n.kind==="review_due"||n.kind==="review_nudge")&&L.queue.some(q=>q.id===n.subId))return openReview(n.subId);
+    if(n.kind==="new_follower"&&n.from)return go("user",{login:n.from,utab:null});
     if((n.kind==="review_received"||n.kind==="second_opinion")&&n.exerciseId&&EXM[n.exerciseId])return openEx(n.exerciseId);
     if((n.kind==="push_passed"||n.kind==="push_failed")&&EXM[n.exerciseId])return openEx(n.exerciseId);
     if(n.kind==="module_ready"&&MODM[n.unitId]){const m=MODM[n.unitId];L.pendingTrack=m.lang;return openEx(m.exercises[m.exercises.length-1]);}
@@ -168,6 +171,43 @@ if(LIVE){
     if(m)return {title:`Module ${modNum(m)} · ${m.title}`,lang:m.lang,sub:`${m.exercises.length} challenges`,items:(s.items||[]).map(i=>({ex:EXM[i.exerciseId],code:i.code,passed:i.passed,total:i.total}))};
     const e=EXM[s.exerciseId];return {title:e.title,lang:e.lang,sub:`${e.topic} · ${diffOf(e)}`,items:[{ex:e,code:s.code,passed:s.tests.passed,total:s.tests.total}]};};
   const unitTitle=id=>MODM[id]?`Module ${modNum(MODM[id])} · ${MODM[id].title}`:(EXM[id]?EXM[id].title:id);
+  // A learner's name, linking to their profile.
+  const person=(login,cls)=>login?`<button class="linkish mono who-link${cls?" "+cls:""}" data-act="user" data-login="${esc(login)}">@${esc(login)}</button>`:"";
+  /* ---------- the 72-hour review clock, shown to the author and the reviewer ---------- */
+  const DAY=864e5,REVIEW_MS=3*DAY;
+  function leftText(ms){
+    if(ms<=0)return "Time is up: moving to another reviewer";
+    const d=Math.floor(ms/DAY),h=Math.floor(ms%DAY/36e5),m=Math.floor(ms%36e5/6e4);
+    return (d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${Math.max(1,m)}m`)+" left";
+  }
+  const dueClass=ms=>ms<=6*36e5?"hot":ms<=DAY?"warn":"ok";
+  // A countdown with a bar that empties as the deadline nears. Updated every 30 seconds.
+  function clock(dueAt){
+    if(!dueAt)return "";const ms=Date.parse(dueAt)-Date.now();
+    return `<span class="due ${dueClass(ms)}" data-due="${esc(dueAt)}" role="timer"><span class="due-t">${leftText(ms)}</span><span class="due-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,ms/REVIEW_MS*100))}%"></i></span></span>`;
+  }
+  setInterval(()=>{document.querySelectorAll("[data-due]").forEach(el=>{
+    const ms=Date.parse(el.dataset.due)-Date.now();el.className="due "+dueClass(ms);
+    el.querySelector(".due-t").textContent=leftText(ms);el.querySelector(".due-bar i").style.width=Math.max(0,Math.min(100,ms/REVIEW_MS*100))+"%";
+  });},30000);
+  // While a module is in review, its author sees who reviews it, the time left, and can nudge them.
+  L.nudged={};
+  function inReviewBox(sub){
+    const r=sub.reviewer,wait=sub.nudgeAfter?Date.parse(sub.nudgeAfter)-Date.now():0,hrs=Math.ceil(wait/36e5);
+    const nudge=wait>0?`<button class="btn small" disabled title="You can nudge again in ${hrs} h">Nudged · again in ${hrs} h</button>`:`<button class="btn small" data-act="nudge" data-id="${sub.id}">Nudge @${esc(r.login)}</button>`;
+    return `<div class="in-review"><div class="ir-who">${avatar(r.login,"sm")}<span>Reviewed by ${person(r.login)} <span class="lvl lvl${r.levelIndex||0} sm">${esc(r.level)}</span></span></div>
+      ${clock(sub.dueAt)}
+      <div class="ir-foot">${nudge}<span class="muted">${L.nudged[sub.id]?`Sent. @${esc(r.login)} got a notification here and on GitHub.`:"Reviews are due within 72 hours. After that, the module moves to another reviewer."}</span></div></div>`;
+  }
+  const baseFoot=moduleFoot;
+  moduleFoot=function(m,ms,inline){
+    const sub=ms.sub;
+    if(L.me&&sub&&sub.status==="awaiting_review"&&sub.reviewer&&sub.dueAt){
+      if(inline)return `<span class="st wait">In review</span>${inReviewBox(sub)}`;
+      return `<span class="st wait">In review</span><span class="muted">by ${person(sub.reviewer.login)}</span>${clock(sub.dueAt)}`;
+    }
+    return baseFoot(m,ms,inline);
+  };
   const prof=()=>L.me?L.me.reviewer:{score:3.5,reputation:0,level:"New",levelIndex:0,ratings:0};
 
   const baseRender=render;
@@ -191,7 +231,7 @@ if(LIVE){
   circleMini=function(){
     if(!L.me)return "";
     if(!L.circle)return `<section class="panel"><h2>Review circle</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You're not in a circle, so reviews come from the wider pool. Join friends with an invite code, or start your own.</p><button class="btn" data-act="view" data-v="circle">Find a circle</button></div></section>`;
-    return `<section class="panel"><h2>${esc(L.circle.name)}</h2><div class="pad"><div class="avs">${L.circle.members.map(m=>avatar(m.login)).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${L.circle.members.length} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${L.queue.length?`<button class="btn primary" data-act="view" data-v="reviews">${L.queue.length} to review</button>`:""}</div></div></section>`;
+    return `<section class="panel"><h2>${esc(L.circle.name)}</h2><div class="pad"><div class="avs">${L.circle.members.map(m=>`<button class="av-link" data-act="user" data-login="${esc(m.login)}" title="@${esc(m.login)}">${avatar(m.login)}</button>`).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${L.circle.members.length} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${L.queue.length?`<button class="btn primary" data-act="view" data-v="reviews">${L.queue.length} to review</button>`:""}</div></div></section>`;
   };
   // Solved means a push passed the grader. Passes from the old in-browser editor need one push.
   passedEx=id=>L.saved.has(id);
@@ -378,9 +418,9 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
   viewReviews=function(){
     if(!L.me)return signinNeeded("Sign in to review other learners' code and build a reviewer reputation.");
     const p=prof();const nx=LEVELS[p.levelIndex+1];
-    const rows=L.queue.map(s=>{const u=unitOf(s);return `<div class="q-row"><span class="ic mono">${u.lang==="js"?"JS":"Go"}</span><div><div class="t">${esc(u.title)} <span class="muted">· ${esc(u.sub)}</span></div><div class="tch">assigned ${ago(Date.parse(s.assignedAt||s.at))} · due within 72 h</div></div><button class="btn small primary" data-act="review" data-id="${s.id}">Review</button></div>`;}).join("")||`<p class="muted">Nothing waiting for you. Solve more challenges to review more of them.</p>`;
+    const rows=L.queue.map(s=>{const u=unitOf(s);return `<div class="q-row"><span class="ic mono">${u.lang==="js"?"JS":"Go"}</span><div><div class="t">${esc(u.title)} <span class="muted">· ${esc(u.sub)}</span></div><div class="tch">assigned ${ago(Date.parse(s.assignedAt||s.at))}</div>${clock(s.dueAt)}</div><button class="btn small primary" data-act="review" data-id="${s.id}">Review</button></div>`;}).join("")||`<p class="muted">Nothing waiting for you. Solve more challenges to review more of them.</p>`;
     const flagged=p.levelIndex>=3?`<h2 class="h2">Second opinions (Mentors)</h2><div class="queue">${L.flagged.map(s=>{const u=unitOf(s);return `<div class="panel"><div class="pad"><b>${esc(u.title)}</b> <span class="muted">· review rated ★1</span><p style="font-size:14px">${esc(s.review.text)}</p>${u.items.map(i=>`<p class="lbl-sm" style="margin:10px 0 4px">${esc(i.ex.title)}</p>${codeBlock(i.code||"")}`).join("")}<form class="form" data-form="second" data-id="${s.id}" style="margin-top:10px"><label class="lbl-sm" for="so-${s.id}">Your second opinion</label><textarea id="so-${s.id}" rows="3"></textarea><button class="btn small" type="submit">Send</button></form></div></div>`;}).join("")||`<p class="muted">No flagged reviews.</p>`}</div>`:"";
-    return `<p class="eyebrow">Reviews</p><h1 class="pg-h">Review code, earn reputation</h1><p class="lede">You review a module only after finishing it yourself. You don't see who wrote the code, and they don't see who reviewed it.</p>
+    return `<p class="eyebrow">Reviews</p><h1 class="pg-h">Review code, earn reputation</h1><p class="lede">You review a module only after finishing it yourself. You don't see who wrote the code. The author sees your name and the time left: each review is due within 72 hours.</p>
     <div class="grid2" style="margin-top:20px"><div><div class="queue">${rows}</div>
      <h2 class="h2">Ratings your reviews got</h2><div class="panel"><div class="pad">${L.given.slice().reverse().map(g=>`<div class="act"><span><b>${esc(unitTitle(g.exerciseId))}</b><br><span class="muted" style="font-size:12.5px">${esc(g.review.text.slice(0,110))}${g.review.text.length>110?"…":""}</span></span><span class="starsv">${g.rating?stars(g.rating)+` <span class="mono muted" style="font-size:12px">${PTS[g.rating]>0?"+":""}${PTS[g.rating]}</span>`:"not rated yet"}</span></div>`).join("")||`<p class="muted">No reviews yet.</p>`}</div></div>${flagged}</div>
      <aside class="side"><section class="panel prof"><h2>Your reviewer profile</h2><div class="pad"><div class="prof-top"><div><div class="big">${p.score.toFixed(2)}<small> ★ score</small></div><div class="muted" style="font-size:13px">${p.ratings} rated reviews</div></div><span class="lvl lvl${p.levelIndex}">${p.level}</span></div><div class="rep-row"><span class="mono">${p.reputation} pts</span><span class="muted">${nx?`${nx.min-p.reputation} to ${nx.n}`:"Top level"}</span></div><div class="bar"><i style="width:${nx?Math.round((p.reputation-LEVELS[p.levelIndex].min)/(nx.min-LEVELS[p.levelIndex].min)*100):100}%"></i></div>${p.probation?`<p class="err" style="margin-top:10px">On probation: no new reviews until your score recovers above 3.0.</p>`:""}</div></section>${howRep()}</aside></div>`;
@@ -389,6 +429,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
   viewReview=function(){
     const s=L.queue.find(x=>x.id===V.qid);if(!s)return viewReviews();const u=unitOf(s);const d=V.rvDraft;
     return `<button class="back" data-act="view" data-v="reviews">← Reviews</button><p class="eyebrow">${LANGN[u.lang]} · ${esc(u.sub)}</p><h1 class="pg-h">Review: ${esc(u.title)}</h1>
+    <div class="rv-due"><span class="muted">Due</span>${clock(s.dueAt)}<span class="muted">The author can see this clock too.</span></div>
     <div class="ex-grid"><div class="side"><div class="panel"><h2>Tasks</h2><div class="pad">${u.items.map(i=>`<details class="task-d"><summary><b>${esc(i.ex.title)}</b></summary><div class="prompt">${mdLite(i.ex.prompt)}</div></details>`).join("")}</div></div><div class="panel"><h2>Automatic tests</h2><div class="pad"><b class="okc">${s.tests.passed} / ${s.tests.total} passed on the grader</b></div></div></div>
      <div>${u.items.map(i=>`<div class="panel"><h2>${esc(i.ex.title)} <span class="muted mono" style="font-size:12px;font-weight:500">${solutionFile(i.ex)}</span></h2>${codeBlock(i.code||"")}</div>`).join("")}<section class="panel"><h2>Your review</h2><div class="pad rv-form" id="rvBox">
       ${Object.keys(RUBN).map(k=>`<div class="rub-row"><span>${RUBN[k]}</span><div class="seg" role="group" aria-label="${RUBN[k]}">${[1,2,3].map(v=>`<button data-act="rub" data-k="${k}" data-v="${v}" aria-pressed="${d.rub[k]===v}">${RUBV[v]}</button>`).join("")}</div></div>`).join("")}
@@ -409,7 +450,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     const c=L.circle;const owner=c.ownerId===L.me.id;const rows=c.members.slice().sort((a,b)=>b.points-a.points);
     return `<p class="eyebrow">Review circle</p><div class="ex-head"><h1 class="pg-h">${esc(c.name)}</h1><div class="cmd" style="max-width:340px"><span class="muted" style="font-size:12.5px">Invite code</span><code id="inviteCode" class="mono">${esc(c.inviteCode)}</code><button class="btn small" data-act="copy" data-id="inviteCode">Copy</button>${owner?`<button class="btn small" data-act="rotate">New code</button>`:""}</div></div>
     <p class="lede">${c.members.length} of 8 members. Your submissions go to a member here first; the wider pool steps in only when nobody here who solved the challenge is free.</p>
-    <div class="panel" style="margin-top:20px"><h2>Leaderboard</h2><div class="tbl"><table><thead><tr><th>#</th><th>Learner</th><th>Points</th><th>Solved</th><th>Review score</th><th>Level</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.id===L.me.id?"me":""}"><td class="mono">${i+1}</td><td><span class="lrn">${avatar(x.login,"sm")}<span class="mono">@${esc(x.login)}</span>${x.id===L.me.id?` <span class="muted">(you)</span>`:""}</span></td><td class="mono">${x.points}</td><td class="mono">${x.solved}</td><td class="mono">${x.reviewer.score.toFixed(2)}</td><td>${x.reviewer.probation?`<span class="st act">Probation</span>`:`<span class="lvl lvl${x.reviewer.levelIndex} sm">${x.reviewer.level}</span>`}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="panel" style="margin-top:20px"><h2>Leaderboard</h2><div class="tbl"><table><thead><tr><th>#</th><th>Learner</th><th>Points</th><th>Solved</th><th>Review score</th><th>Level</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.id===L.me.id?"me":""}"><td class="mono">${i+1}</td><td><span class="lrn">${avatar(x.login,"sm")}${person(x.login)}${x.id===L.me.id?` <span class="muted">(you)</span>`:""}</span></td><td class="mono">${x.points}</td><td class="mono">${x.solved}</td><td class="mono">${x.reviewer.score.toFixed(2)}</td><td>${x.reviewer.probation?`<span class="st act">Probation</span>`:`<span class="lvl lvl${x.reviewer.levelIndex} sm">${x.reviewer.level}</span>`}</td></tr>`).join("")}</tbody></table></div></div>
     <section class="panel" style="margin-top:16px"><div class="pad">${V.confirm==="leave"?`<p style="margin:0 0 10px;font-size:14px">Leave ${esc(c.name)}? Your reviews will come from the wider pool.</p><div style="display:flex;gap:8px"><button class="btn" data-act="live-leave">Leave circle</button><button class="btn" data-act="confirm-no">Stay</button></div>`:`<button class="linkish" data-act="leave">Leave this circle</button>`}</div></section>`;
   };
   // What a newcomer needs before they can solve anything: a GitHub account, then one sign-in.
@@ -430,13 +471,57 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
 
   viewProfile=function(){
     if(!L.me)return viewSignin();const p=prof();
-    return `<div class="ex-head"><div class="lrn big">${avatar(L.me.login,"lg")}<div><p class="eyebrow" style="margin:0">Signed in with GitHub</p><h1 class="pg-h mono">@${esc(L.me.login)}</h1></div></div></div>
+    return `<div class="ex-head"><div class="lrn big">${avatar(L.me.login,"lg")}<div><p class="eyebrow" style="margin:0">Signed in with GitHub</p><h1 class="pg-h mono">@${esc(L.me.login)}</h1><div class="fol-row"><button class="linkish" data-act="user" data-login="${esc(L.me.login)}">Your public profile →</button></div></div></div></div>
     <div class="stats"><div class="stat"><div class="v">${L.me.points}</div><div class="l">Points</div></div><div class="stat"><div class="v">${L.me.solved}</div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${p.score.toFixed(2)}</div><div class="l">Review score</div></div><div class="stat"><div class="v">${p.reputation}</div><div class="l">Reputation · ${p.level}</div></div></div>
     <div class="two"><section class="panel"><h2>Your repository</h2><div class="pad">${L.me.repo?`<div class="cmd"><code id="cloneCmd">git clone https://github.com/${esc(L.me.repo)}.git</code><button class="btn small" data-act="copy" data-id="cloneCmd">Copy</button></div><p class="muted" style="font-size:13px">Accept the invitation to the Timirtbet organization that GitHub emailed you, then push to <code>main</code>.</p>`:`<p class="muted">Your repository is being set up. Sign out and in again if it doesn't appear.</p>`}</div></section>
+     <section class="panel"><h2>People</h2><div class="pad"><p class="muted" style="margin:0 0 10px;font-size:13.5px">Follow classmates to keep up with them. Anyone signed in can see your profile: your points, solved challenges, modules and reviewer level. Never your code.</p>${findForm()}</div></section>
      <section class="panel"><h2>Your data</h2><div class="pad"><table class="plain"><tbody><tr><td>GitHub id and username</td><td class="okc">stored</td></tr><tr><td>Your code, test results, reviews and ratings</td><td class="okc">stored</td></tr><tr><td>Your circle</td><td class="okc">stored</td></tr><tr><td>Name, email, phone, age, school, location</td><td class="muted">never asked</td></tr></tbody></table>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><a class="btn" href="/api/me/export">Export my data</a>${V.confirm==="signout"?`<span class="confirm">Sign out on every device? <button class="btn small" data-act="live-signout">Sign out</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="btn" data-act="signout">Sign out</button>`}</div>
       <form class="form" data-form="delete" style="margin-top:16px"><label class="lbl-sm" for="delConfirm">Delete my account: type <span class="mono">${esc(L.me.login)}</span> to confirm. This removes your data and your repository.</label><input id="delConfirm" class="mono" autocomplete="off"><div id="delErr" class="err" role="alert"></div><button class="btn" type="submit">Delete my account</button></form></div></section></div>`;
   };
+
+  /* ---------- a learner's profile: /u/<login> ---------- */
+  L.users={};// login (lower case) -> {user} | {loading} | {error}; lists under .followers / .following
+  async function loadUser(login,force){
+    const k=login.toLowerCase();if(L.users[k]&&!force&&!L.users[k].error)return;
+    L.users[k]={...(L.users[k]||{}),loading:!L.users[k]||!L.users[k].user};
+    try{const r=await api("GET","/api/users/"+encodeURIComponent(login));L.users[k]={...L.users[k],user:r.user,loading:false,error:null};}
+    catch(e){L.users[k]={error:e.status===404?"No learner with that GitHub username has signed in to Timirtbet.":e.message};}
+    if(V.view==="user"&&(V.login||"").toLowerCase()===k){
+      const real=L.users[k].user&&L.users[k].user.login;// show the name as the learner spells it
+      if(real&&real!==V.login){V.login=real;if(ROUTED)history.replaceState(null,"",pathOf());}
+      render();}
+  }
+  async function loadPeople(login,tab){
+    const k=login.toLowerCase();
+    try{const r=await api("GET",`/api/users/${encodeURIComponent(login)}/${tab}`);L.users[k][tab]=r.people;}catch(e){L.users[k][tab]={error:e.message};}
+    if(V.view==="user"&&(V.login||"").toLowerCase()===k&&V.utab===tab)render();
+  }
+  function modulesOf(solved){
+    const has=new Set(solved);
+    return ["js","go"].map(lang=>{const ms=MODULES.filter(m=>m.lang===lang);
+      return `<div class="pm-lang"><b>${LANGN[lang]}</b><ul class="pm-list">${ms.map(m=>{const n=m.exercises.filter(id=>has.has(id)).length;
+        return `<li class="${n===m.exercises.length?"done":n?"started":"todo"}" title="Module ${modNum(m)} · ${esc(m.title)}: ${n} of ${m.exercises.length}"><span class="ms-dot" aria-hidden="true"></span><span>${modNum(m)}. ${esc(m.title)}</span><span class="mono muted">${n}/${m.exercises.length}</span></li>`;}).join("")}</ul></div>`;}).join("");
+  }
+  viewUser=function(){
+    if(!L.me)return signinNeeded("Sign in to see other learners' profiles and follow them.");
+    const login=V.login||"",k=login.toLowerCase(),e=L.users[k];
+    if(!e||(!e.user&&!e.error)){loadUser(login);return `<p class="muted" style="padding:40px 0">Loading @${esc(login)}…</p>`;}
+    if(e.error)return `<button class="back" data-act="view" data-v="circle">← Back</button><h1 class="pg-h mono">@${esc(login)}</h1><p class="lede">${esc(e.error)}</p>${findForm()}`;
+    const u=e.user,r=u.reviewer;
+    const follow=u.isMe?`<button class="btn" data-act="view" data-v="profile">Your account</button>`
+      :`<button class="btn${u.isFollowing?"":" primary"}" data-act="follow" data-login="${esc(u.login)}" aria-pressed="${u.isFollowing}">${u.isFollowing?"Following ✓":"Follow"}</button>`;
+    const tab=V.utab,list=tab&&e[tab];
+    const people=!tab?"":!list?`<p class="muted">Loading…</p>`:list.error?`<p class="err">${esc(list.error)}</p>`:list.length?`<ul class="people">${list.map(x=>`<li>${avatar(x.login,"sm")}${person(x.login)}<span class="lvl lvl${x.levelIndex} sm">${esc(x.level)}</span><span class="mono muted">${x.points} pts</span></li>`).join("")}</ul>`
+      :`<p class="muted">${tab==="followers"?(u.isMe?"Nobody follows you yet.":`Nobody follows @${esc(u.login)} yet.`):(u.isMe?"You don't follow anyone yet.":`@${esc(u.login)} doesn't follow anyone yet.`)}</p>`;
+    return `<div class="ex-head user-head"><div class="lrn big">${avatar(u.login,"lg")}<div><p class="eyebrow" style="margin:0">${u.circle?`Circle: ${esc(u.circle)}`:"Learner"}${u.joined?` · joined ${new Date(u.joined).toLocaleDateString(undefined,{month:"short",year:"numeric"})}`:""}</p><h1 class="pg-h mono">@${esc(u.login)}</h1>
+        <div class="fol-row"><button class="linkish" data-act="utab" data-t="followers"${tab==="followers"?' aria-current="true"':""}><b>${u.followers}</b> ${u.followers===1?"follower":"followers"}</button><button class="linkish" data-act="utab" data-t="following"${tab==="following"?' aria-current="true"':""}><b>${u.following}</b> following</button><a class="linkish" href="https://github.com/${esc(u.login)}" target="_blank" rel="noopener">GitHub ↗</a></div></div></div>${follow}</div>
+      ${tab?`<section class="panel"><h2>${tab==="followers"?"Followers":"Following"} <button class="linkish" data-act="utab" data-t="" style="float:right;font-weight:500">Close</button></h2><div class="pad">${people}</div></section>`:""}
+      <div class="stats"><div class="stat"><div class="v">${u.points}</div><div class="l">Points</div></div><div class="stat"><div class="v">${u.solved}<small>/${BANK.length}</small></div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${u.modulesReviewed}</div><div class="l">Modules reviewed</div></div><div class="stat"><div class="v">${u.reviewsGiven}</div><div class="l">Reviews written</div></div></div>
+      <div class="two"><section class="panel"><h2>Modules</h2><div class="pad">${modulesOf(u.solvedIds||[])}</div></section>
+        <section class="panel"><h2>As a reviewer</h2><div class="pad"><div class="prof-top"><div><div class="big">${r.score.toFixed(2)}<small> ★ score</small></div><div class="muted" style="font-size:13px">${r.ratings} rated reviews</div></div><span class="lvl lvl${r.levelIndex}">${esc(r.level)}</span></div><div class="rep-row"><span class="mono">${r.reputation} pts reputation</span></div></div></section></div>`;
+  };
+  function findForm(){return `<form class="form find-form" data-form="find"><label class="lbl-sm" for="findLogin">Find a learner by GitHub username</label><div class="find-row"><input id="findLogin" class="mono" maxlength="39" autocomplete="off" placeholder="username"><button class="btn" type="submit">Open profile</button></div></form>`;}
 
   // Signing in leaves the page for GitHub: remember where the learner was, to come back there.
   document.addEventListener("click",e=>{const a=e.target.closest('a[href="/api/auth/github"]');if(a){try{sessionStorage.setItem("timirtbet.return",location.pathname);}catch(_){}}},true);
@@ -445,6 +530,16 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     try{
       if(a==="notice-ok"){await api("POST","/api/me/notice");L.me.noticeSeen=true;render();}
       else if(a==="check"){runTests(el.dataset.id);}
+      else if(a==="user"){const lg=el.dataset.login;go("user",{login:lg,utab:null});if(L.users[lg.toLowerCase()])loadUser(lg,true);}
+      else if(a==="utab"){const t=el.dataset.t||null;V.utab=t;const k=(V.login||"").toLowerCase();if(t&&L.users[k])loadPeople(V.login,t);render();}
+      else if(a==="follow"){const k=el.dataset.login.toLowerCase(),e=L.users[k],on=!e.user.isFollowing;el.disabled=true;
+        await api(on?"POST":"DELETE",`/api/users/${encodeURIComponent(el.dataset.login)}/follow`);
+        e.user.isFollowing=on;e.user.followers+=on?1:-1;delete e.followers;const mine=L.users[L.me.login.toLowerCase()];if(mine)delete mine.following;
+        if(V.utab==="followers")loadPeople(V.login,"followers");render();}
+      else if(a==="nudge"){const id=el.dataset.id;el.disabled=true;el.textContent="Sending…";
+        let bad=null;try{const r=await api("POST",`/api/submissions/${id}/nudge`);const s=L.subs.find(x=>x.id===id);if(s)s.nudgeAfter=r.nudgeAfter;L.nudged[id]=true;}catch(err){bad=err.message;}
+        const pp=document.getElementById("prPanel");if(pp&&V.view==="exercise")pp.innerHTML=peerPanel(EXM[V.ex]);else render();
+        if(bad)alertIn("prPanel",bad);}
       else if(a==="setup-repo"){el.disabled=true;el.textContent="Setting up…";
         try{await api("POST","/api/me/repo");L.repoErr=null;}catch(err){L.repoErr=err.message;}
         await loadAll();}
@@ -470,6 +565,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       if(kind==="join"){await api("POST","/api/circles/join",{code:document.getElementById("joinCode").value});await loadAll();}
       else if(kind==="create"){await api("POST","/api/circles",{name:document.getElementById("cName").value,track:document.getElementById("cTrack").value});await loadAll();}
       else if(kind==="delete"){await api("DELETE","/api/me",{confirm:document.getElementById("delConfirm").value.trim()});L.me=null;const was=owner;useAccount(null);try{localStorage.removeItem(ACCT(was));}catch(e){}setBell();go("challenges");}
+      else if(kind==="find"){const v=document.getElementById("findLogin").value.trim().replace(/^@/,"");if(/^[\w-]{1,39}$/.test(v))go("user",{login:v,utab:null});else throw new Error("Type a GitHub username.");}
       else if(kind==="second"){await api("POST",`/api/submissions/${f.dataset.id}/second-opinion`,{text:f.querySelector("textarea").value});await loadAll();}
     }catch(err){const box=f.querySelector(".err")||f;box.textContent=err.message;if(box===f)f.insertAdjacentHTML("beforeend",`<p class="err">${esc(err.message)}</p>`);}
   });

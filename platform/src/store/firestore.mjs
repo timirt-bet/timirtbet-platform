@@ -17,8 +17,16 @@ export class FirestoreStore {
   }
 
   async getLearner(id) { return data(await this.c.learners.doc(id).get()); }
-  async upsertLearner(id, patch) { const ref = this.c.learners.doc(id); await ref.set({ ...patch, id }, { merge: true }); return data(await ref.get()); }
+  async upsertLearner(id, patch) { const ref = this.c.learners.doc(id); await ref.set({ ...patch, ...(patch.githubUsername ? { loginLower: patch.githubUsername.toLowerCase() } : {}), id }, { merge: true }); return data(await ref.get()); }
   async learnerByRepo(repo) { return (await all(this.c.learners.where("repo", "==", repo).limit(1)))[0] || null; }
+  // GitHub usernames are stored as typed; loginLower makes the lookup case-insensitive.
+  async learnerByLogin(login) {
+    const k = String(login).toLowerCase();
+    return (await all(this.c.learners.where("loginLower", "==", k).limit(1)))[0]
+      || (await all(this.c.learners.where("githubUsername", "==", login).limit(1)))[0] || null;
+  }
+  async setFollow(fromId, toId, on) { await this.c.learners.doc(fromId).set({ following: on ? FieldValue.arrayUnion(toId) : FieldValue.arrayRemove(toId) }, { merge: true }); }
+  async followersOf(id) { return (await all(this.c.learners.where("following", "array-contains", id))).map((l) => l.id); }
   async getLearners(ids) {
     if (!ids.length) return {};
     const snaps = await this.db.getAll(...ids.map((id) => this.c.learners.doc(id)));
@@ -123,6 +131,7 @@ export class FirestoreStore {
     for (const d of (await this.c.submissions.where("reviewerId", "==", id).get()).docs) await d.ref.update({ reviewerId: "deleted" });
     await this.c.reviewers.doc(id).delete();
     await this.c.inbox.doc(id).delete();
+    for (const d of (await this.c.learners.where("following", "array-contains", id).get()).docs) await d.ref.update({ following: FieldValue.arrayRemove(id) });
     await this.c.learners.doc(id).delete();
   }
 }

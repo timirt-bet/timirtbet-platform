@@ -8,6 +8,8 @@ const apply = (cur, patch) => {
   for (const [k, v] of Object.entries(patch)) {
     if (v === undefined) continue;
     if (v && v.constructor?.name === "NumericIncrementTransform") out[k] = (out[k] || 0) + v.operand;
+    else if (v && v.constructor?.name === "ArrayUnionTransform") out[k] = [...new Set([...(out[k] || []), ...v.elements])];
+    else if (v && v.constructor?.name === "ArrayRemoveTransform") out[k] = (out[k] || []).filter((x) => !v.elements.includes(x));
     else out[k] = structuredClone(v);
   }
   return out;
@@ -27,10 +29,10 @@ export function fakeFirestore() {
     _col: name,
   });
   const query = (name, filters = [], lim = Infinity) => ({
-    where: (f, op, v) => { if (op !== "==") throw new Error("fake supports == only"); return query(name, [...filters, [f, v]], lim); },
+    where: (f, op, v) => { if (op !== "==" && op !== "array-contains") throw new Error("fake supports == and array-contains only"); return query(name, [...filters, [f, op, v]], lim); },
     limit: (n) => query(name, filters, n),
     get: async () => {
-      const docs = [...col(name).entries()].filter(([, d]) => filters.every(([f, v]) => d[f] === v)).slice(0, lim).map(([id, d]) => snap(id, d, docRef(name, id)));
+      const docs = [...col(name).entries()].filter(([, d]) => filters.every(([f, op, v]) => (op === "==" ? d[f] === v : Array.isArray(d[f]) && d[f].includes(v)))).slice(0, lim).map(([id, d]) => snap(id, d, docRef(name, id)));
       return { docs };
     },
   });

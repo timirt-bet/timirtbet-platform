@@ -234,11 +234,38 @@ const I18N = (() => {
     "Basics 1: values and control flow": "መሰረታዊ 1፦ እሴቶችና የፍሰት ቁጥጥር", "Basics 2: working with data": "መሰረታዊ 2፦ ከዳታ ጋር መሥራት",
     "Advanced 1: functions and objects": "የላቀ 1፦ ፋንክሽኖችና ኦብጀክቶች", "Advanced 2: async and robust code": "የላቀ 2፦ Async እና ጠንካራ ኮድ",
     "Advanced 1: types and packages": "የላቀ 1፦ ዓይነቶችና ፓኬጆች", "Advanced 2: concurrency": "የላቀ 2፦ ትይዩ አሠራር",
+    // profiles, following, the review clock
+    "Follow": "ተከተል", "Following ✓": "እየተከተሉ ነው ✓", "Followers": "ተከታዮች", "Following": "የሚከተላቸው", "followers": "ተከታዮች", "follower": "ተከታይ", "following": "ይከተላል",
+    "Close": "ዝጋ", "Your account": "መለያዎ", "Your public profile →": "የእርስዎ ይፋዊ መገለጫ →", "Learner": "ተማሪ",
+    "Modules": "ሞጁሎች", "As a reviewer": "እንደ ገምጋሚ", "Modules reviewed": "የተገመገሙ ሞጁሎች", "Reviews written": "የተጻፉ ግምገማዎች",
+    "People": "ሰዎች", "Follow classmates to keep up with them. Anyone signed in can see your profile: your points, solved challenges, modules and reviewer level. Never your code.": "የክፍል ጓደኞችዎን ይከተሉ። የገባ ማንኛውም ሰው መገለጫዎን ማየት ይችላል፦ ነጥቦችዎን፣ የፈቱዋቸውን ተግዳሮቶች፣ ሞጁሎችንና የገምጋሚ ደረጃዎን። ኮድዎን ግን በፍጹም።",
+    "Find a learner by GitHub username": "ተማሪን በGitHub የተጠቃሚ ስም ይፈልጉ", "Open profile": "መገለጫ ክፈት", "Type a GitHub username.": "የGitHub የተጠቃሚ ስም ይጻፉ።",
+    "No learner with that GitHub username has signed in to Timirtbet.": "በዚያ የGitHub የተጠቃሚ ስም ወደ ትምህርት ቤት የገባ ተማሪ የለም።",
+    "Nobody follows you yet.": "ገና ማንም አይከተልዎትም።", "You don't follow anyone yet.": "ገና ማንንም አይከተሉም።",
+    "Sign in to see other learners' profiles and follow them.": "የሌሎች ተማሪዎችን መገለጫ ለማየትና ለመከተል ይግቡ።",
+    "Reviewed by": "የሚገመግመው", "by": "በ", "Due": "የመጨረሻ ጊዜ", "The author can see this clock too.": "ደራሲውም ይህን ሰዓት ያያል።", "Sending…": "በመላክ ላይ…",
+    "Reviews are due within 72 hours. After that, the module moves to another reviewer.": "ግምገማዎች በ72 ሰዓት ውስጥ መጠናቀቅ አለባቸው። ከዚያ በኋላ ሞጁሉ ወደ ሌላ ገምጋሚ ይሄዳል።",
+    "Time is up: moving to another reviewer": "ጊዜው አልቋል፦ ወደ ሌላ ገምጋሚ እየሄደ ነው",
+    "You don't see who wrote the code. The author sees your name and the time left: each review is due within 72 hours.": "ኮዱን ማን እንደጻፈው አያዩም። ደራሲው ግን ስምዎንና የቀረውን ጊዜ ያያል፦ እያንዳንዱ ግምገማ በ72 ሰዓት ውስጥ መጠናቀቅ አለበት።",
+    "started following you": "መከተል ጀምሯል", "is waiting for your review of": "የእርስዎን ግምገማ እየጠበቀ ነው፦",
   };
 
   const S = (s) => AM[s] || s;
   // Dynamic text: [pattern, replacement]; replacements may call S() on captured parts.
   const PAT = [
+    [/^(\d+)d (\d+)h left$/, (m, d, h) => `${d} ቀን ${h} ሰዓት ቀርቷል`],
+    [/^(\d+)h (\d+)m left$/, (m, h, n) => `${h} ሰዓት ${n} ደቂቃ ቀርቷል`],
+    [/^(\d+)m left$/, (m, n) => `${n} ደቂቃ ቀርቷል`],
+    [/^Nudge @([\w-]+)$/, (m, u) => `@${u}ን አስታውስ`],
+    [/^Nudged · again in (\d+) h$/, (m, n) => `ተልኳል · እንደገና በ${n} ሰዓት`],
+    [/^You can nudge again in (\d+) h\.?$/, (m, n) => `በ${n} ሰዓት ውስጥ እንደገና ማስታወስ ይችላሉ`],
+    [/^Sent\. @([\w-]+) got a notification here and on GitHub\.$/, (m, u) => `ተልኳል። @${u} እዚህና በGitHub ማሳወቂያ ደርሶታል።`],
+    [/^Circle: (.+?)( · joined (.+))?$/, (m, c, j, d) => `ክበብ፦ ${c}${j ? ` · የተቀላቀለው ${d}` : ""}`],
+    [/^Learner · joined (.+)$/, (m, d) => `ተማሪ · የተቀላቀለው ${d}`],
+    [/^Loading @([\w-]+)…$/, (m, u) => `@${u} በመጫን ላይ…`],
+    [/^Nobody follows @([\w-]+) yet\.$/, (m, u) => `ገና ማንም @${u}ን አይከተልም።`],
+    [/^@([\w-]+) doesn't follow anyone yet\.$/, (m, u) => `@${u} ገና ማንንም አይከተልም።`],
+    [/^(\d+) pts reputation$/, (m, n) => `${n} ነጥብ ዝና`],
     [/^(\d+) challenges$/, (m, n) => `${n} ተግዳሮቶች`],
     [/^(JavaScript|Go): (\d+) challenges$/, (m, l, n) => `${l}፦ ${n} ተግዳሮቶች`],
     [/^← (JavaScript|Go) challenges$/, (m, l) => `← የ${l} ተግዳሮቶች`],
