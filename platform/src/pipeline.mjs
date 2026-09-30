@@ -137,8 +137,15 @@ export async function processJob({ job, gh, store, bank, modules = {}, grader, f
     const items = [], missing = [];
     for (const id of job.exerciseIds) {
       const file = path.join(dir, solutionPath(bank[id]));
-      if (fs.existsSync(file)) items.push({ exerciseId: id, code: fs.readFileSync(file, "utf8") });
-      else missing.push({ exerciseId: id, passed: false, error: `Missing ${solutionPath(bank[id])}`, tests: [] });
+      if (!fs.existsSync(file)) { missing.push({ exerciseId: id, passed: false, error: `Missing ${solutionPath(bank[id])}`, tests: [] }); continue; }
+      const code = fs.readFileSync(file, "utf8");
+      // Untouched starter code (for example the repository's first commit) is not a submission: skip it.
+      if (code.trim() !== (bank[id].starter || "").trim()) items.push({ exerciseId: id, code });
+    }
+    if (!items.length && !missing.length) {
+      await gh.setStatus(owner, repo, job.sha, { state: "success", description: "No solutions to check yet", context: STATUS_CONTEXT, target_url: target });
+      await store.updateJob(job.key, { status: "done", doneAt: new Date().toISOString() });
+      return { results: [] };
     }
     const graded = items.length ? await grader.grade(items) : [];
     const results = [...graded.map((r) => ({ ...r, code: items.find((i) => i.exerciseId === r.exerciseId)?.code })), ...missing];

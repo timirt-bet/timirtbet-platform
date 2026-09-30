@@ -4,6 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import fs from "node:fs";
+import path from "node:path";
 import { createApp } from "../src/server.mjs";
 import { MemoryStore } from "../src/store/memory.mjs";
 import { inProcessQueue } from "../src/queue.mjs";
@@ -31,6 +32,8 @@ async function setup({ prFiles, verifyTask } = {}) {
     for (const ex of [...modules["js-m1"].exercises, "go-sync", "js-arrays"]) await store.addResult({ learnerId: id, exerciseId: ex, ref: "seed", passed: true, code: `// ${ex}` });
   }
   const repoDir = fixtureRepo(NEEDS_ANSWERS ? [] : ["js-loops", "go-sync"]);
+  // js-func has a wrong attempt (not the starter), so it is graded and fails.
+  fs.writeFileSync(path.join(repoDir, "js/js-func/solution.js"), "function greet(name) { return name; }\n");
   const fetchRepo = async () => { const d = fs.mkdtempSync(repoDir + "-copy-"); fs.cpSync(repoDir, d, { recursive: true }); return d; };
   const queue = inProcessQueue();
   const app = createApp({ store, gh, bank, modules, config, queue, grader: localGrader({ bank, challengesDir: CHALLENGES }), fetchRepo, oauth, verifyTask, log: () => {} });
@@ -215,6 +218,20 @@ test("Run the tests: grades the solution on main in the learner's repository", a
       r = await check(); assert.equal(r.body.passed, true);
       assert.ok((await (await t.get("/api/me", hana)).json()).me.savedIds.includes("js-vars"), "a pass from the repository counts");
     }
+  } finally { t.close(); }
+});
+
+test("untouched starter code (like a new repository's first commit) is not graded", async () => {
+  const t = await setup();
+  try {
+    await t.signIn();
+    const push = { ref: "refs/heads/main", after: "first1", repository: { full_name: "timirtbet/hana-t-code" }, commits: [{ added: ["js/js-cond/solution.js", "js/js-vars/solution.js"], modified: [] }] };
+    assert.equal((await t.hook("push", push)).status, 202);
+    await t.app.idle();
+    const st = t.gh.calls.filter((c) => c.name === "setStatus").map((c) => c.args[3]);
+    assert.deepEqual(st.map((x) => [x.state, x.description]).at(-1), ["success", "No solutions to check yet"]);
+    assert.equal(await t.store.latestResult("gh_1001", "js-cond"), null, "no failing result is recorded");
+    assert.equal((await t.store.inboxOf("gh_1001")).items.filter((n) => n.kind.startsWith("push_")).length, 0, "no notifications");
   } finally { t.close(); }
 });
 

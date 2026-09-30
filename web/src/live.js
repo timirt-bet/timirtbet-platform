@@ -271,11 +271,8 @@ git push</pre></div></details>`;
     let state;
     if(saved)state=`<div class="st-card ok"><span class="st-ic" aria-hidden="true">✓</span><div><b>Solved</b><p>Your solution passed the grader and is saved.</p><div class="st-next">${nextStep(ex)}</div></div></div>`;
     else if(lt.loading)state=`<div class="st-card"><span class="st-ic" aria-hidden="true">…</span><div><b>Checking…</b></div></div>`;
-    else if(r&&!r.passed){
-      const bad=(r.tests||[]).filter(t=>!t.pass);
-      state=`<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>${r.passedCount} of ${r.total} tests passed</b><p>Your last push, ${ago(Date.parse(r.at))}. Fix these, commit, and run the tests again:</p>
-        <ul class="st-fails">${bad.map(t=>`<li><b>${esc(t.name||t.n||"")}</b>${t.message?`<span class="mono">${esc(t.message)}</span>`:""}</li>`).join("")}${r.error?`<li><span class="mono">${esc(r.error)}</span></li>`:""}</ul><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:10px">▶ Run the tests again</button></div></div>`;
-    }
+    else if(r&&!r.passed)// just a one-line reminder; the details show in the test list when the tests run
+      state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not solved yet</b><p>Last run: ${r.passedCount} of ${r.total} tests passed · ${ago(Date.parse(r.at))}</p><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:8px">▶ Run the tests</button></div></div>`;
     else state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not submitted yet</b><p>Commit your solution on GitHub, then run the tests here.</p><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:8px">▶ Run the tests</button></div></div>`;
     const steps=`<ol class="gh-steps">
         <li><a class="btn small primary" href="${editUrl}" target="_blank" rel="noopener">Open ${ex.lang==="js"?"solution.js":"solution.go"} on GitHub ↗</a><span>It opens the file in your repository, ready to edit.</span></li>

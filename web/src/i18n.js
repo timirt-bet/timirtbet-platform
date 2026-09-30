@@ -4,6 +4,7 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "Not solved yet": "ገና አልተፈታም",
     "▶ Run the tests": "▶ ሙከራዎቹን አሂድ", "▶ Run the tests again": "▶ ሙከራዎቹን እንደገና አሂድ", "Running…": "በማሄድ ላይ…", "Getting your code from GitHub…": "ኮድዎን ከGitHub በማምጣት ላይ…",
     "Come back here and run the tests on your committed code.": "ወደዚህ ተመልሰው commit ባደረጉት ኮድ ላይ ሙከራዎቹን ያሂዱ።", "Commit your solution on GitHub, then run the tests here.": "መፍትሔዎን በGitHub commit ያድርጉ፣ ከዚያ ሙከራዎቹን እዚህ ያሂዱ።",
     "Did not run": "አልሄደም",
@@ -267,6 +268,7 @@ const I18N = (() => {
     [/^(\d+) d ago$/, (m, n) => `ከ${n} ቀን በፊት`],
     [/^(\d+) min ago$/, (m, n) => `ከ${n} ደቂቃ በፊት`],
     [/^just now$/, () => "አሁን"],
+    [/^Last run: (\d+) of (\d+) tests passed · (.+)$/, (m, a, b, t) => `የመጨረሻ ሙከራ፦ ከ${b} ${a} አልፈዋል · ${tr(t) || t}`],
     [/^Checking commit (\w+)…$/, (m, c) => `commit ${c}ን በመፈተሽ ላይ…`],
     [/^All (\d+) passed ✓$/, (m, n) => `ሁሉም ${n} አልፈዋል ✓`],
     [/^(\d+) of (\d+) passed$/, (m, a, b) => `ከ${b} ${a} አልፈዋል`],
