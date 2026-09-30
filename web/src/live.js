@@ -175,6 +175,7 @@ if(LIVE){
     if(!L.loaded){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
     baseRender();
     if(V.view==="exercise"&&V.ex)loadLatest(V.ex);
+    if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
     const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. You can export or delete it from your profile at any time. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
@@ -272,15 +273,15 @@ git push</pre></div></details>`;
     else if(lt.loading)state=`<div class="st-card"><span class="st-ic" aria-hidden="true">…</span><div><b>Checking…</b></div></div>`;
     else if(r&&!r.passed){
       const bad=(r.tests||[]).filter(t=>!t.pass);
-      state=`<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>${r.passedCount} of ${r.total} tests passed</b><p>Your last push, ${ago(Date.parse(r.at))}. Fix these and push again:</p>
-        <ul class="st-fails">${bad.map(t=>`<li><b>${esc(t.name||t.n||"")}</b>${t.message?`<span class="mono">${esc(t.message)}</span>`:""}</li>`).join("")}${r.error?`<li><span class="mono">${esc(r.error)}</span></li>`:""}</ul></div></div>`;
+      state=`<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>${r.passedCount} of ${r.total} tests passed</b><p>Your last push, ${ago(Date.parse(r.at))}. Fix these, commit, and run the tests again:</p>
+        <ul class="st-fails">${bad.map(t=>`<li><b>${esc(t.name||t.n||"")}</b>${t.message?`<span class="mono">${esc(t.message)}</span>`:""}</li>`).join("")}${r.error?`<li><span class="mono">${esc(r.error)}</span></li>`:""}</ul><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:10px">▶ Run the tests again</button></div></div>`;
     }
-    else state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not submitted yet</b><p>Follow the steps below. Your result shows here about a minute after you commit.</p></div></div>`;
+    else state=`<div class="st-card"><span class="st-ic" aria-hidden="true">○</span><div><b>Not submitted yet</b><p>Commit your solution on GitHub, then run the tests here.</p><button class="btn small primary" data-act="check" data-id="${ex.id}" style="margin-top:8px">▶ Run the tests</button></div></div>`;
     const steps=`<ol class="gh-steps">
         <li><a class="btn small primary" href="${editUrl}" target="_blank" rel="noopener">Open ${ex.lang==="js"?"solution.js":"solution.go"} on GitHub ↗</a><span>It opens the file in your repository, ready to edit.</span></li>
         <li><b>Write your solution</b><span>Replace the starter code with your answer.</span></li>
-        <li><b>Click “Commit changes”</b><span>Keep “Commit directly to the main branch” selected, then confirm.</span></li>
-        <li><b>Come back here</b><span>The grader checks it and shows the result above.</span></li></ol>
+        <li><b>Click “Commit changes”</b><span>Keep “Commit directly to the main branch” selected. If GitHub says “File could not be edited”, choose the Commit email ending in @users.noreply.github.com.</span></li>
+        <li><button class="btn small primary" data-act="check" data-id="${ex.id}">▶ Run the tests</button><span>Come back here and run the tests on your committed code.</span></li></ol>
       <details class="gh-local"><summary>Prefer your own computer?</summary><pre class="shell mono" id="pushCmd">git clone https://github.com/${esc(repo)}.git
 cd ${esc(repo.split("/")[1]||"your-repo")}
 # edit ${file}
@@ -300,13 +301,57 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       <button class="btn small primary" data-act="setup-repo">Set up my repository</button>
       ${err?`<p class="mono err-detail">${esc(err)}</p>`:""}<p class="muted" style="font-size:12px">Still stuck? Send the message above to your teacher.</p></div></div>`;
   }
+  /* ---------- Run the tests: grade what is committed on main, and play the results in the test list ---------- */
+  // JS: the named tests; Go: the Test functions in the test file.
+  function testNames(ex){
+    if(ex.lang==="js")return ex.tests.map(t=>({name:t.n,label:t.n,code:t.t}));
+    return [...new Set([...(ex.test||"").matchAll(/func (Test\w+)\(/g)].map(x=>x[1]))].map(n=>({name:n,label:n.replace(/^Test/,"").replace(/([a-z])([A-Z])/g,"$1 $2"),code:""}));
+  }
+  const pause=ms=>new Promise(r=>setTimeout(r,ms));
+  let running=false;
+  async function runTests(id){
+    if(running||V.view!=="exercise"||V.ex!==id)return;running=true;
+    const list=document.getElementById("testList"),sum=document.getElementById("tSum");
+    const rows=[...list.querySelectorAll(".t-row")],btns=[...document.querySelectorAll('[data-act="check"]')];
+    btns.forEach(b=>{b.disabled=true;b.dataset.label=b.textContent;b.textContent="Running…";});
+    document.getElementById("testSec").classList.remove("celebrate");
+    document.getElementById("testSec").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+    rows.forEach(r=>{r.className="t-row run";const m=r.querySelector(".t-msg");m.hidden=true;m.textContent="";});
+    sum.className="t-sum";sum.textContent="Getting your code from GitHub…";
+    const started=Date.now();let res,err;
+    try{res=await api("POST","/api/check/"+encodeURIComponent(id));}catch(e){err=e.message;}
+    await pause(Math.max(0,700-(Date.now()-started)));// let the spinners be seen
+    if(err){rows.forEach(r=>{r.className="t-row";});sum.className="t-sum bad";sum.textContent=err;}
+    else{
+      sum.textContent=`Checking commit ${res.commit}…`;
+      const byName=n=>res.tests.filter(t=>t.name===n||t.name.startsWith(n+"/"));
+      for(const r of rows){
+        const got=byName(r.dataset.name),ok=got.length>0&&got.every(t=>t.pass);
+        await pause(260);
+        r.className="t-row "+(ok?"pass":"fail");
+        const bad=got.find(t=>!t.pass);const msg=bad?bad.message:(!got.length?(res.error||"Did not run"):"");
+        if(!ok&&msg){const m=r.querySelector(".t-msg");m.textContent=msg;m.hidden=false;}
+      }
+      await pause(200);
+      sum.className="t-sum "+(res.passed?"ok":"bad");
+      sum.textContent=res.passed?`All ${res.total} passed ✓`:`${res.passedCount} of ${res.total} passed`;
+      if(res.passed)document.getElementById("testSec").classList.add("celebrate");
+      if(L.latest[id])L.latest[id].stale=true;
+      V.keepRun={id,html:list.innerHTML,sum:sum.outerHTML,ok:res.passed};// keep the played results after the page refreshes
+      await loadAll();// status card, module overview and points catch up
+    }
+    document.querySelectorAll('[data-act="check"]').forEach(b=>{b.disabled=false;if(b.dataset.label)b.textContent=b.dataset.label;});
+    running=false;
+  }
+
   // The challenge page: the task is the main view; submitting from GitHub is a side card.
   viewExercise=function(){
     const ex=EXM[V.ex],d=diffOf(ex),m=MODOF[ex.id];
     if(!(S.opened||{})[ex.id]){(S.opened=S.opened||{})[ex.id]=1;save();}// opening a challenge marks it started
-    const tests=ex.lang==="js"
-      ?`<section class="task-sec"><h2>Tests <span class="muted">what your code must do</span></h2><ol class="task-tests">${ex.tests.map(t=>`<li><b>${esc(t.n)}</b><code>${esc(t.t)}</code></li>`).join("")}</ol></section>`
-      :`<section class="task-sec"><h2>Tests <span class="muted">run with <code>go test -race</code></span></h2><details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details></section>`;
+    const runBtn=L.me&&L.me.repo?`<button class="btn small run-btn" data-act="check" data-id="${ex.id}">▶ Run the tests</button>`:"";
+    const rows=testNames(ex).map((t,i)=>`<li class="t-row" data-name="${esc(t.name)}"><span class="t-ic" aria-hidden="true"></span><div><b>${esc(t.label)}</b>${t.code?`<code>${esc(t.code)}</code>`:""}<div class="t-msg mono" hidden></div></div></li>`).join("");
+    const tests=`<section class="task-sec" id="testSec"><div class="t-head"><h2>Tests <span class="muted">${ex.lang==="js"?"what your code must do":`run with <code>go test -race</code>`}</span></h2><span class="t-sum" id="tSum" aria-live="polite"></span>${runBtn}</div>
+      <ol class="task-tests" id="testList">${rows}</ol>${ex.lang==="go"?`<details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details>`:""}</section>`;
     const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`:"";
     // Signed out: how to get started sits inside the task card, after the tests.
     const start=L.me?"":`<section class="task-sec task-start"><h2>Submit your solution</h2><p class="task-start-lede">You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(false)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Sign in with GitHub</a></section>`;
@@ -398,6 +443,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
     const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
     try{
       if(a==="notice-ok"){await api("POST","/api/me/notice");L.me.noticeSeen=true;render();}
+      else if(a==="check"){runTests(el.dataset.id);}
       else if(a==="setup-repo"){el.disabled=true;el.textContent="Setting up…";
         try{await api("POST","/api/me/repo");L.repoErr=null;}catch(err){L.repoErr=err.message;}
         await loadAll();}

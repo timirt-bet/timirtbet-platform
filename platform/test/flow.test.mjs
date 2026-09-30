@@ -193,6 +193,31 @@ test("a learner whose repository wasn't created can retry, and sees why it faile
   } finally { t.close(); }
 });
 
+test("Run the tests: grades the solution on main in the learner's repository", async () => {
+  const t = await setup();
+  try {
+    const { hana } = await t.signIn();
+    const check = async () => { const r = await t.post("/api/check/js-vars", {}, hana); return { status: r.status, body: await r.json() }; };
+    let r = await check();
+    assert.equal(r.status, 422); assert.match(r.body.error, /no js\/js-vars\/solution\.js on main/);
+    t.gh.files["js/js-vars/solution.js"] = bank["js-vars"].starter;
+    r = await check(); assert.equal(r.status, 422); assert.match(r.body.error, /starter code/);
+    t.gh.files["js/js-vars/solution.js"] = "function describe(v) { return typeof v; }";
+    r = await check();
+    assert.equal(r.status, 200); assert.equal(r.body.passed, false); assert.ok(r.body.passedCount > 0 && r.body.passedCount < r.body.total);
+    assert.equal(r.body.commit, "c0ffee1");
+    assert.equal((await t.post("/api/check/js-vars", {}, hana)).status, 429, "not twice within a few seconds");
+    const latest = (await (await t.get("/api/results/js-vars", hana)).json()).result;
+    assert.equal(latest.passed, false); assert.equal(latest.source, "git");
+    if (!NEEDS_ANSWERS) {
+      await new Promise((x) => setTimeout(x, 5100));
+      t.gh.files["js/js-vars/solution.js"] = answer("js-vars");
+      r = await check(); assert.equal(r.body.passed, true);
+      assert.ok((await (await t.get("/api/me", hana)).json()).me.savedIds.includes("js-vars"), "a pass from the repository counts");
+    }
+  } finally { t.close(); }
+});
+
 test("solutions are submitted from GitHub only", async () => {
   const t = await setup();
   try {

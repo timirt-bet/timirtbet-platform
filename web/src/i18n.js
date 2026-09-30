@@ -4,6 +4,9 @@
    Add a string: put the exact English text (as shown on screen) on the left. */
 const I18N = (() => {
   const AM = {
+    "▶ Run the tests": "▶ ሙከራዎቹን አሂድ", "▶ Run the tests again": "▶ ሙከራዎቹን እንደገና አሂድ", "Running…": "በማሄድ ላይ…", "Getting your code from GitHub…": "ኮድዎን ከGitHub በማምጣት ላይ…",
+    "Come back here and run the tests on your committed code.": "ወደዚህ ተመልሰው commit ባደረጉት ኮድ ላይ ሙከራዎቹን ያሂዱ።", "Commit your solution on GitHub, then run the tests here.": "መፍትሔዎን በGitHub commit ያድርጉ፣ ከዚያ ሙከራዎቹን እዚህ ያሂዱ።",
+    "Did not run": "አልሄደም",
     "All modules": "ሁሉም ሞጁሎች", "Basic": "መሰረታዊ", "Advanced": "የላቀ", "Started": "የተጀመረ", "Not started": "ያልተጀመረ",
     "Submit your solution": "መፍትሔዎን ያስገቡ", "You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.": "ለማስገባት የGitHub መለያ ያስፈልግዎታል። መፍትሔዎችዎ በራስዎ የGitHub ማከማቻ ውስጥ ይኖራሉ፤ አራሚው እያንዳንዱን ለውጥ ይፈትሻል።",
     "Get started": "ይጀምሩ", "Get started with GitHub": "በGitHub ይጀምሩ", "You need a GitHub account to solve challenges and join a review circle. Anyone can read the challenges without one.": "ተግዳሮቶችን ለመፍታትና የግምገማ ክበብ ለመቀላቀል የGitHub መለያ ያስፈልግዎታል። ያለ መለያ ማንም ሰው ተግዳሮቶቹን ማንበብ ይችላል።",
@@ -264,6 +267,10 @@ const I18N = (() => {
     [/^(\d+) d ago$/, (m, n) => `ከ${n} ቀን በፊት`],
     [/^(\d+) min ago$/, (m, n) => `ከ${n} ደቂቃ በፊት`],
     [/^just now$/, () => "አሁን"],
+    [/^Checking commit (\w+)…$/, (m, c) => `commit ${c}ን በመፈተሽ ላይ…`],
+    [/^All (\d+) passed ✓$/, (m, n) => `ሁሉም ${n} አልፈዋል ✓`],
+    [/^(\d+) of (\d+) passed$/, (m, a, b) => `ከ${b} ${a} አልፈዋል`],
+    [/^Your last push, (.+)\. Fix these, commit, and run the tests again:$/, (m, t) => `የመጨረሻው ግፊትዎ፣ ${tr(t) || t}። እነዚህን አስተካክለው commit ያድርጉና ሙከራዎቹን እንደገና ያሂዱ፦`],
     [/^Open (solution\.(?:js|go)) on GitHub ↗$/, (m, f) => `${f}ን በGitHub ይክፈቱ ↗`],
     [/^(\d+) of (\d+) tests passed$/, (m, a, b) => `ከ${b} ሙከራዎች ${a} አልፈዋል`],
     [/^Your last push, (.+)\. Fix these and push again:$/, (m, t) => `የመጨረሻው ግፊትዎ፣ ${tr(t) || t}። እነዚህን አስተካክለው እንደገና ይግፉ፦`],

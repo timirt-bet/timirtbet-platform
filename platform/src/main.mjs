@@ -32,7 +32,11 @@ if (mode === "grader") {
   let gh;
   if (offline) {
     const note = (name) => async (...args) => { console.log(`[github offline] ${name} ${args.slice(0, 3).join(" ")}`); return name === "listPRFiles" ? [] : { id: 0 }; };
-    gh = new Proxy({}, { get: (_, name) => (name === "getToken" ? async () => "offline" : name === "tarballUrl" ? () => "" : note(String(name))) });
+    // Learners' repositories live in memory: POST /api/dev/commit puts a file there, "Run the tests" reads it.
+    const devFiles = new Map(); let devSha = 0;
+    const getFileAt = async (owner, repo, p) => ({ text: devFiles.get(`${owner}/${repo}/${p}`) ?? null, sha: `dev${String(devSha).padStart(12, "0")}` });
+    gh = new Proxy({}, { get: (_, name) => (name === "getToken" ? async () => "offline" : name === "tarballUrl" ? () => "" : name === "getFileAt" ? getFileAt
+      : name === "devCommit" ? (repo, p, text) => { devFiles.set(`${repo}/${p}`, text); devSha++; } : note(String(name))) });
     for (const k of ["GITHUB_ORG", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "GITHUB_WEBHOOK_SECRET", "SESSION_SECRET", "APP_URL"]) env[k] ||= k === "APP_URL" ? `http://localhost:${port}` : k === "GITHUB_ORG" ? "timirtbet-dev" : "dev-" + k.toLowerCase();
     env.INSECURE_COOKIES = "1";
   } else {

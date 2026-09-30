@@ -4,6 +4,7 @@
 import crypto from "node:crypto";
 import { verifySignature } from "./signature.mjs";
 import { onboardStudent, offboardLearner } from "./onboarding.mjs";
+import { solutionPath } from "./grader.mjs";
 import { jobFromEvent, processJob, assignWaiting, reassignStale, retireSingles, submitModule, recordPush, ModuleError } from "./pipeline.mjs";
 import { reviewerProfile, validateReview, level, reputation, MENTOR, LEVELS } from "./reviews.mjs";
 import { createNotifier } from "./notify.mjs";
@@ -30,6 +31,7 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
   const redirectUri = `${config.appUrl}/api/auth/github/callback`;
   const notify = createNotifier({ store, gh, config, bank, modules, log });
   const deps = { gh, store, bank, modules, grader, fetchRepo, config, notify, log };
+  const checkedAt = new Map(); // learner -> last "Run the tests" (per instance; stops double clicks)
   queue.onJob((job) => processJob({ job, ...deps }));
 
   const session = async (req) => {
@@ -173,6 +175,33 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
       } catch (e) { if (e instanceof CircleError) return json(res, e.status, { error: e.message }); throw e; }
 
       // ---- web editor submissions ----
+      // "Run the tests": grade the solution file as it is now on main in the learner's own repository.
+      if (req.method === "POST" && (m = p.match(/^\/api\/check\/([\w-]+)$/))) {
+        const ex = bank[m[1]];
+        if (!ex) return json(res, 404, { error: "unknown challenge" });
+        if (!me.repo) return json(res, 409, { error: "Your repository isn't set up yet." });
+        const last = checkedAt.get(me.id) || 0;
+        if (Date.now() - last < 5000) return json(res, 429, { error: "Wait a few seconds before running the tests again." });
+        const [owner, repo] = me.repo.split("/"), file = solutionPath(ex);
+        let got;
+        try { got = await gh.getFileAt(owner, repo, file, "main"); }
+        catch (e) { log(`check ${me.repo} failed: ${e.message}`); return json(res, 502, { error: "Couldn't read your repository on GitHub. Try again in a minute." }); }
+        if (got.text == null) return json(res, 422, { error: `There is no ${file} on main in your repository.` });
+        if (got.text.trim() === ex.starter.trim()) return json(res, 422, { error: `${file} still has the starter code. Commit your solution first.` });
+        checkedAt.set(me.id, Date.now()); // only real grading runs count toward the wait
+        const results = (await grader.grade([{ exerciseId: ex.id, code: got.text }])).map((r) => ({ ...r, code: got.text }));
+        await recordPush({ store, bank, modules, learner: me, results, ref: got.sha, notify });
+        const r = results[0];
+        return json(res, 200, { passed: r.passed, passedCount: r.passedCount ?? 0, total: r.total ?? 0, commit: got.sha.slice(0, 7),
+          tests: (r.tests || []).map((x) => ({ name: x.name, pass: x.pass, message: x.message || null })), error: r.error || null });
+      }
+      // Development only: put a file on main in the signed-in learner's (in-memory) repository, like a commit on GitHub.
+      if (config.devLogin && req.method === "POST" && p === "/api/dev/commit" && gh.devCommit) {
+        const { exerciseId, code } = body();
+        if (!bank[exerciseId] || typeof code !== "string" || !me.repo) return json(res, 422, { error: "exerciseId and code" });
+        gh.devCommit(me.repo, solutionPath(bank[exerciseId]), code);
+        return json(res, 200, { ok: true });
+      }
       // Development only: act as if the signed-in learner pushed this code to their repository.
       if (config.devLogin && req.method === "POST" && p === "/api/dev/push") {
         const { exerciseId, code } = body();

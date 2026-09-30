@@ -39,6 +39,8 @@ export function fakeGitHub({ prFiles = [] } = {}) {
     async commentOnPR(o, r, n, body) { rec("commentOnPR", o, r, n, body); return {}; },
     async createIssue(o, r, title, body) { rec("createIssue", o, r, title, body); return { number: 1 }; },
     async listPRFiles(...a) { rec("listPRFiles", ...a); return prFiles; },
+    files: {}, // path -> text on main, for getFileAt
+    async getFileAt(o, r, p) { rec("getFileAt", o, r, p); return { text: this.files[p] ?? null, sha: "c0ffee1234567890" }; },
     async deleteRepo(...a) { rec("deleteRepo", ...a); return null; },
     async removeFromOrg(...a) { rec("removeFromOrg", ...a); return null; },
     async getToken() { return "test-token"; },

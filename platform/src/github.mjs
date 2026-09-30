@@ -35,6 +35,14 @@ export function createGitHub({ token, baseUrl = "https://api.github.com", fetchI
     createFromTemplate: (org, template, name, description) =>
       request("POST", `/repos/${enc(org)}/${enc(template)}/generate`, { owner: org, name, description, private: true, include_all_branches: false }),
     getRepo: (owner, repo) => request("GET", `/repos/${enc(owner)}/${enc(repo)}`),
+    // One file on a branch, as text, with the commit it is at (null if the file doesn't exist).
+    async getFileAt(owner, repo, filePath, branch = "main") {
+      const head = await request("GET", `/repos/${enc(owner)}/${enc(repo)}/branches/${enc(branch)}`);
+      try {
+        const f = await request("GET", `/repos/${enc(owner)}/${enc(repo)}/contents/${filePath.split("/").map(enc).join("/")}?ref=${enc(head.commit.sha)}`);
+        return { text: Buffer.from(f.content || "", "base64").toString("utf8"), sha: head.commit.sha };
+      } catch (e) { if (e.status === 404) return { text: null, sha: head.commit.sha }; throw e; }
+    },
     addCollaborator: (owner, repo, username, permission = "push") =>
       request("PUT", `/repos/${enc(owner)}/${enc(repo)}/collaborators/${enc(username)}`, { permission }),
     setStatus: (owner, repo, sha, { state, description, context, target_url }) =>
