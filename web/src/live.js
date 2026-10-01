@@ -512,9 +512,26 @@ git push
     <div class="stats"><div class="stat"><div class="v">${L.me.points}</div><div class="l">Points</div></div><div class="stat"><div class="v">${L.me.solved}</div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${p.score.toFixed(2)}</div><div class="l">Review score</div></div><div class="stat"><div class="v">${p.reputation}</div><div class="l">Reputation · ${p.level}</div></div></div>
     <div class="two"><section class="panel"><h2>Your repository</h2><div class="pad">${L.me.repo?`<div class="cmd"><code id="cloneCmd">git clone https://github.com/${esc(L.me.repo)}.git</code><button class="btn small" data-act="copy" data-id="cloneCmd">Copy</button></div><p class="muted" style="font-size:13px">Accept the invitation to the Timirtbet organization that GitHub emailed you, then push to <code>main</code>.</p>`:`<p class="muted">Your repository is being set up. Sign out and in again if it doesn't appear.</p>`}</div></section>
      <section class="panel"><h2>People</h2><div class="pad"><p class="muted" style="margin:0 0 10px;font-size:13.5px">Follow classmates to keep up with them. Anyone signed in can see your profile: your points, solved challenges, modules and reviewer level. Never your code.</p>${findForm()}</div></section>
-     <section class="panel"><h2>Your data</h2><div class="pad"><table class="plain"><tbody><tr><td>GitHub id and username</td><td class="okc">stored</td></tr><tr><td>Your code, test results, reviews and ratings</td><td class="okc">stored</td></tr><tr><td>Your circle</td><td class="okc">stored</td></tr><tr><td>Name, email, phone, age, school, location</td><td class="muted">never asked</td></tr></tbody></table>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><a class="btn" href="/api/me/export">Export my data</a>${V.confirm==="signout"?`<span class="confirm">Sign out on every device? <button class="btn small" data-act="live-signout">Sign out</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="btn" data-act="signout">Sign out</button>`}</div>
-      <form class="form" data-form="delete" style="margin-top:16px"><label class="lbl-sm" for="delConfirm">Delete my account: type <span class="mono">${esc(L.me.login)}</span> to confirm. This removes your data and your repository.</label><input id="delConfirm" class="mono" autocomplete="off"><div id="delErr" class="err" role="alert"></div><button class="btn" type="submit">Delete my account</button></form></div></section></div>`;
+    </div>
+    <section class="panel data-card"><h2>Your data</h2><div class="pad">
+      <p class="dc-lede">Timirtbet keeps only what it needs to run your lessons, on Google Cloud in the United States. Anyone signed in can see your profile, never your code.</p>
+      <div class="dc-grid">
+        <div><p class="dc-h">What we keep</p><ul class="dc-list">
+          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>GitHub id and username</b><small>To sign you in. No password, no permissions.</small></span></li>
+          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Your code and test results</b><small>The solutions you run tests on, and how they did.</small></span></li>
+          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Reviews and ratings</b><small>Reviews you write and get, and the stars given.</small></span></li>
+          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Your circle and who you follow</b><small>So reviews and updates reach the right people.</small></span></li></ul></div>
+        <div><p class="dc-h">What we never ask for</p><ul class="dc-never">${["Name","Email","Phone","Age","School","Location","Password"].map(x=>`<li>${x}</li>`).join("")}</ul>
+          <p class="dc-note">No tracking or advertising cookies either.</p></div>
+      </div>
+      <div class="dc-actions"><a class="btn" href="/api/me/export" download="timirtbet-export.json"><span aria-hidden="true">⤓</span> Download my data</a><span class="muted">One JSON file with everything listed here.</span></div>
+    </div></section>
+    <section class="panel acct-card"><h2>Account</h2><div class="pad">
+      <div class="acct-row"><div><b>Sign out</b><p>Signs you out of Timirtbet on every device.</p></div>${V.confirm==="signout"?`<span class="confirm"><button class="btn small" data-act="live-signout">Yes, sign out</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="btn" data-act="signout">Sign out</button>`}</div>
+      <details class="danger"${V.delOpen?" open":""}><summary><span><b>Delete my account</b><span class="danger-sub">Permanently remove your account and repository</span></span></summary>
+        <div class="danger-body"><p>This can't be undone. It will:</p><ul><li>delete your progress, points and solutions here</li><li>delete your repository <span class="mono">${esc(L.me.repo||"")}</span> on GitHub</li><li>remove you from the Timirtbet organization and your circle</li><li>keep reviews you wrote, without your name</li></ul>
+        <form class="form" data-form="delete"><label class="lbl-sm" for="delConfirm">To confirm, type <span class="mono">${esc(L.me.login)}</span></label><input id="delConfirm" class="mono" autocomplete="off" spellcheck="false" data-login="${esc(L.me.login)}"><div id="delErr" class="err" role="alert"></div><button class="btn danger-btn" type="submit" id="delBtn" disabled>Delete my account forever</button></form></div></details>
+    </div></section>`;
   };
 
   /* ---------- a learner's profile: /u/<login> ---------- */
@@ -560,6 +577,8 @@ git push
   };
   function findForm(){return `<form class="form find-form" data-form="find"><label class="lbl-sm" for="findLogin">Find a learner by GitHub username</label><div class="find-row"><input id="findLogin" class="mono" maxlength="39" autocomplete="off" placeholder="username"><button class="btn" type="submit">Open profile</button></div></form>`;}
 
+  document.addEventListener("input",e=>{if(e.target.id==="delConfirm"){const b=document.getElementById("delBtn");if(b)b.disabled=e.target.value.trim()!==e.target.dataset.login;}});
+  document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches("details.danger"))V.delOpen=e.target.open;},true);
   // Signing in leaves the page for GitHub: remember where the learner was, to come back there.
   document.addEventListener("click",e=>{const a=e.target.closest('a[href="/api/auth/github"]');if(a){try{sessionStorage.setItem("timirtbet.return",location.pathname);}catch(_){}}},true);
   const liveClick=async(e)=>{
