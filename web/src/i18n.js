@@ -234,6 +234,9 @@ const I18N = (() => {
     "Basics 1: values and control flow": "መሰረታዊ 1፦ እሴቶችና የፍሰት ቁጥጥር", "Basics 2: working with data": "መሰረታዊ 2፦ ከዳታ ጋር መሥራት",
     "Advanced 1: functions and objects": "የላቀ 1፦ ፋንክሽኖችና ኦብጀክቶች", "Advanced 2: async and robust code": "የላቀ 2፦ Async እና ጠንካራ ኮድ",
     "Advanced 1: types and packages": "የላቀ 1፦ ዓይነቶችና ፓኬጆች", "Advanced 2: concurrency": "የላቀ 2፦ ትይዩ አሠራር",
+    // the hooray after a first pass
+    "Challenge complete!": "ተግዳሮቱ ተጠናቋል!", "Every test passed and your solution is saved.": "ሁሉም ሙከራዎች አልፈዋል፤ መፍትሔዎም ተቀምጧል።", "points": "ነጥቦች",
+    "Keep going": "ይቀጥሉ", "Great!": "በጣም ጥሩ!", "Click anywhere to close": "ለመዝጋት የትም ይጫኑ",
     // profiles, following, the review clock
     "Follow": "ተከተል", "Following ✓": "እየተከተሉ ነው ✓", "Followers": "ተከታዮች", "Following": "የሚከተላቸው", "followers": "ተከታዮች", "follower": "ተከታይ", "following": "ይከተላል",
     "Close": "ዝጋ", "Your account": "መለያዎ", "Your public profile →": "የእርስዎ ይፋዊ መገለጫ →", "Learner": "ተማሪ",
@@ -253,6 +256,8 @@ const I18N = (() => {
   const S = (s) => AM[s] || s;
   // Dynamic text: [pattern, replacement]; replacements may call S() on captured parts.
   const PAT = [
+    [/^Next: (.+) →$/, (m, t) => `ቀጣይ፦ ${S(t)} →`],
+    [/^🎉 That finishes Module (\d+)\. You can submit it for review\.$/, (m, n) => `🎉 ይህ ሞጁል ${n}ን ያጠናቅቃል። ለግምገማ ማስገባት ይችላሉ።`],
     [/^(\d+)d (\d+)h left$/, (m, d, h) => `${d} ቀን ${h} ሰዓት ቀርቷል`],
     [/^(\d+)h (\d+)m left$/, (m, h, n) => `${h} ሰዓት ${n} ደቂቃ ቀርቷል`],
     [/^(\d+)m left$/, (m, n) => `${n} ደቂቃ ቀርቷል`],

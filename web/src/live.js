@@ -136,7 +136,9 @@ if(LIVE){
       const top=box.items[0]&&box.items[0].id;
       const fresh=!first&&top&&top!==lastTop&&box.unread>0;
       L.inbox=box;lastTop=top;setBell();
-      if(fresh){toast(box.items[0]);await loadAll();}
+      if(fresh){const n=box.items[0],was=n.kind==="push_passed"&&!L.saved.has(n.exerciseId);
+        if(!was)toast(n);await loadAll();
+        if(was&&L.saved.has(n.exerciseId))celebrate(n.exerciseId);}
     }catch(e){if(e.status===401){checkSession();return;}}
     const waiting=V.view==="exercise"&&V.ex&&!L.saved.has(V.ex);// waiting for a push: check more often
     pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:waiting?15000:45000);
@@ -342,6 +344,39 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       <button class="btn small primary" data-act="setup-repo">Set up my repository</button>
       ${err?`<p class="mono err-detail">${esc(err)}</p>`:""}<p class="muted" style="font-size:12px">Still stuck? Send the message above to your teacher.</p></div></div>`;
   }
+  /* ---------- Hooray: a challenge solved for the first time (the pass is saved) ---------- */
+  const CONFETTI=["#1F7A5A","#F5C542","#E0603A","#3B82C4","#9B5DE5","#2EC4B6"];
+  function celebrate(id){
+    const ex=EXM[id];if(!ex||document.getElementById("hooray"))return;
+    S.celebrated=S.celebrated||{};if(S.celebrated[id])return;S.celebrated[id]=1;save();
+    const m=MODOF[id],next=m&&m.exercises.find(x=>!L.saved.has(x)),modDone=m&&!next;
+    const calm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const bits=calm?"":Array.from({length:90},(_,i)=>{const c=CONFETTI[i%CONFETTI.length],x=Math.random()*100,d=(Math.random()*0.6).toFixed(2),t=(2.4+Math.random()*1.6).toFixed(2),r=Math.round(Math.random()*720-360),dx=Math.round(Math.random()*160-80),w=6+Math.round(Math.random()*6);
+      return `<i style="left:${x}%;background:${c};width:${w}px;height:${Math.round(w*1.6)}px;--dx:${dx}px;--r:${r}deg;animation-delay:${d}s;animation-duration:${t}s${i%3?"":";border-radius:99px"}"></i>`;}).join("");
+    const el=document.createElement("div");el.id="hooray";el.className="hooray";
+    el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");el.setAttribute("aria-labelledby","hoorayH");
+    el.innerHTML=`<div class="confetti" aria-hidden="true">${bits}</div>
+      <div class="hooray-card">
+        <div class="hooray-badge" aria-hidden="true">✓</div>
+        <p class="hooray-k">Challenge complete!</p>
+        <h2 id="hoorayH">${esc(ex.title)}</h2>
+        <p class="hooray-sub">Every test passed and your solution is saved.</p>
+        <div class="hooray-pts"><b>+${ptsOf(ex)}</b> points</div>
+        ${modDone?`<p class="hooray-mod">🎉 That finishes Module ${modNum(m)}. You can submit it for review.</p>`:""}
+        <div class="hooray-act">${next&&!modDone?`<button class="btn primary" data-hooray="next" data-id="${next}">Next: ${esc(EXM[next].title)} →</button>`:""}<button class="btn${next&&!modDone?"":" primary"}" data-hooray="close">${modDone?"Great!":"Keep going"}</button></div>
+        <p class="hooray-hint">Click anywhere to close</p>
+      </div>`;
+    document.body.appendChild(el);
+    const prev=document.activeElement;
+    const close=(then)=>{if(!el.isConnected)return;el.classList.add("out");document.removeEventListener("keydown",onKey,true);
+      setTimeout(()=>{el.remove();if(then)then();else if(prev&&prev.focus)prev.focus();},calm?0:220);};
+    const onKey=e=>{if(e.key==="Escape"){e.stopPropagation();close();}};
+    document.addEventListener("keydown",onKey,true);
+    el.addEventListener("click",e=>{const b=e.target.closest("[data-hooray]");
+      if(b&&b.dataset.hooray==="next"){const nx=b.dataset.id;close(()=>openEx(nx));}else close();});
+    requestAnimationFrame(()=>{el.classList.add("in");const f=el.querySelector(".hooray-act .btn");if(f)f.focus();});
+  }
+
   /* ---------- Run the tests: grade what is committed on main, and play the results in the test list ---------- */
   // JS: the named tests; Go: the Test functions in the test file.
   function testNames(ex){
@@ -377,9 +412,11 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       sum.className="t-sum "+(res.passed?"ok":"bad");
       sum.textContent=res.passed?`All ${res.total} passed ✓`:`${res.passedCount} of ${res.total} passed`;
       if(res.passed)document.getElementById("testSec").classList.add("celebrate");
+      const firstTime=res.passed&&!L.saved.has(id);
       if(L.latest[id])L.latest[id].stale=true;
       V.keepRun={id,html:list.innerHTML,sum:sum.outerHTML,ok:res.passed};// keep the played results after the page refreshes
       await loadAll();// status card, module overview and points catch up
+      if(firstTime&&L.saved.has(id))celebrate(id);// only once the pass is saved
     }
     document.querySelectorAll('[data-act="check"]').forEach(b=>{b.disabled=false;if(b.dataset.label)b.textContent=b.dataset.label;});
     running=false;
