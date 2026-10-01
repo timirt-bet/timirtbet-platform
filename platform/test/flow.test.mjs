@@ -247,6 +247,22 @@ test("by default a push is not graded: learners press Run the tests", async () =
   } finally { t.close(); }
 });
 
+test("sign-in started on another address moves to APP_URL first, once", async () => {
+  const t = await setup();
+  try {
+    const other = await t.get("/api/auth/github", { "x-forwarded-host": "timirtbet-509915.web.app" });
+    assert.equal(other.status, 302);
+    assert.equal(other.headers.get("location"), `${APP}/api/auth/github?here=1`);
+    assert.equal(other.headers.getSetCookie().length, 0, "no sign-in cookie on the wrong address");
+    const same = await t.get("/api/auth/github", { "x-forwarded-host": new URL(APP).host });
+    assert.match(same.headers.get("location"), /^https:\/\/github\.com\/login\/oauth\/authorize/);
+    const once = await t.get("/api/auth/github?here=1", { "x-forwarded-host": "elsewhere.example" });
+    assert.match(once.headers.get("location"), /^https:\/\/github\.com\//, "never loops");
+    const none = await t.get("/api/auth/github");
+    assert.match(none.headers.get("location"), /^https:\/\/github\.com\//, "no header: unchanged");
+  } finally { t.close(); }
+});
+
 test("solutions are submitted from GitHub only", async () => {
   const t = await setup();
   try {

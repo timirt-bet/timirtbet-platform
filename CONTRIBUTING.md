@@ -6,7 +6,7 @@ Thank you for helping. Timirtbet is used by learners in Ethiopia, so changes sho
 
 - **Report a bug or suggest an idea:** open an issue with what you did, what you expected and what happened (a screenshot helps).
 - **Improve a challenge** or write a new one (see below).
-- **Translate:** fix or extend the Amharic in `web/src/i18n.js`, or add a language.
+- **Translate:** fix or extend the Amharic in `web/src/next/messages/am.js`. Each message has a key; `en.js` holds the English for the same keys.
 - **Fix code:** pick an open issue, or open one first for anything large.
 
 ## Set up
@@ -23,6 +23,7 @@ node authoring/build.mjs
 The screens are moving from `web/src/app.js` and `web/src/live.js` to Preact components in `web/src/next/`, one screen at a time. While that happens:
 
 - Put new screens and components in `web/src/next/` and add `// @ts-check` at the top; `npm run typecheck` checks them.
+- Shared data comes from `web/src/next/state.js` (signals) and API calls go through `web/src/next/api.js`. Assign new values to a signal; changing an object in place does not redraw the screens.
 - Keep the `id` and `data-act` attributes the browser tests use (`web/test/`), so the tests keep proving nothing changed for learners.
 - `cd web && npm test` builds the page, checks the size budget (100 KB compressed), type-checks, and runs the browser tests against development mode. Flows that need a passing solution are skipped without the reference answers.
 
@@ -45,5 +46,5 @@ The answers to the challenges are kept out of this public repository so learners
 
 - Keep each pull request to one change, and describe what it does and how you checked it.
 - `npm test` must pass. Add a test for new behavior.
-- Write user-facing text plainly, and add the Amharic for it in `web/src/i18n.js` (ask in the pull request if you need help).
+- Write user-facing text plainly: add it to `web/src/next/messages/en.js` under a short key, with the Amharic in `am.js` (ask in the pull request if you need help). New screens show it with `t("key")`.
 - By sending a pull request you agree to license your work under the Apache License 2.0.

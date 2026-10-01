@@ -1,25 +1,17 @@
 /* ---------- live mode: the same screens, backed by the Timirtbet API ---------- */
 if(LIVE){
-  const L={me:null,circle:null,subs:[],queue:[],given:[],flagged:[],solved:new Set(),saved:new Set(),loaded:false,jobs:{},graded:{},graderFail:{},saveErr:{},modErr:{}};
-  async function api(method,path,body){
-    const res=await fetch(path,{method,credentials:"same-origin",headers:body?{"content-type":"application/json"}:{},body:body?JSON.stringify(body):undefined});
-    const data=res.status===204?null:await res.json().catch(()=>null);
-    if(!res.ok)throw Object.assign(new Error((data&&(data.error||(data.errors||[]).join(", ")))||`Request failed (${res.status})`),{status:res.status});
-    return data;
-  }
+  // Shared data (me, circle, subs, queue, given, flagged, solved, saved, inbox, loaded) lives in
+  // src/next/state.js as signals; L reads and writes them, so old and new screens agree.
+  const L=TBNext.bridge({jobs:{},graded:{},graderFail:{},saveErr:{},modErr:{}});
+  const api=TBNext.api;
   async function loadAll(){
     for(const k in (L.latest||{}))L.latest[k].stale=true;// refetch the latest push when the page is drawn again
-    try{
-      const r=await api("GET","/api/me");L.me=r.me;L.circle=r.circle;L.solved=new Set(r.me.solvedIds||[]);L.saved=new Set(r.me.savedIds||r.me.solvedIds||[]);
-      const [subs,queue,given]=await Promise.all([api("GET","/api/submissions/mine"),api("GET","/api/reviews/queue"),api("GET","/api/reviews/given")]);
-      L.subs=subs.submissions;L.queue=queue.toReview;L.given=given.reviews;
-      if(r.me.reviewer.levelIndex>=3)L.flagged=(await api("GET","/api/reviews/flagged")).flagged;
-    }catch(e){if(e.status!==401)console.error(e);L.me=null;}
+    await TBNext.refresh();
     useAccount(L.me&&L.me.login);
     PUSH_ONLY=true;
     try{const back=sessionStorage.getItem("timirtbet.return");sessionStorage.removeItem("timirtbet.return");
       if(L.me&&back&&back!=="/"&&location.pathname==="/"&&ROUTED){history.replaceState(null,"",back);applyRoute(back);}}catch(e){}
-    L.loaded=true;render();
+    render();
     if(L.me)pollInbox(true);else setBell();
   }
 

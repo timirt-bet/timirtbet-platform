@@ -5,6 +5,9 @@
 // window.TBNext whether a screen has a new version: if so it is rendered here, otherwise the
 // old string-built screen is used. With no screens registered the site is exactly as before.
 import { h, render } from "preact";
+import { messages, setLang } from "./i18n.js";
+import { api } from "./api.js";
+import { state, refresh, bridge } from "./state.js";
 
 /** @type {Map<string, import("preact").ComponentType<any>>} */
 const screens = new Map();
@@ -19,6 +22,12 @@ export function register(view, Screen) { screens.set(view, Screen); }
 
 window.TBNext = {
   register,
+  messages,
+  setLang,
+  api,
+  state,
+  refresh,
+  bridge,
   has: (view) => screens.has(view),
   render(view, el) {
     const Screen = screens.get(view);

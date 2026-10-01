@@ -32,7 +32,7 @@ You can run your own copy on the Google Cloud free tier, under your own GitHub o
 |---|---|
 | Challenges (text, tests, starter code) | `authoring/ex_js.mjs`, `authoring/ex_go.mjs`, then `node authoring/build.mjs` |
 | Modules (how challenges are grouped for review) | `challenges/modules.json` |
-| Amharic text, or another language | `web/src/i18n.js` (one dictionary per language) |
+| Amharic text | `web/src/next/messages/am.js` (one line per message, next to `en.js`; the tests fail if a message has no Amharic) |
 | Name, logo letter, colors | `web/src/shell.html`, `web/src/base.css` |
 | Review rules (levels, points, reassign times) | `platform/src/reviews.mjs`, `platform/src/pipeline.mjs` |
 | GitHub team and template names | `GITHUB_LEARNERS_TEAM`, `GITHUB_TEMPLATE_REPO` environment variables |

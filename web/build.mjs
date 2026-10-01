@@ -34,7 +34,7 @@ function demoAnswers() {
 // Install it once with: cd web && npm ci
 const next = (await build({
   entryPoints: [path.join(here, "src", "next", "index.js")], bundle: true, minify: true, format: "iife",
-  target: "es2020", write: false, legalComments: "none", logLevel: "warning",
+  target: "es2020", charset: "utf8", write: false, legalComments: "none", logLevel: "warning",
 })).outputFiles[0].text;
 if (/<\/script/i.test(next)) throw new Error("the bundle contains </script>");
 const js = next + "\n" + src("app.js")
@@ -74,6 +74,8 @@ fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, page);
 if (live) for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$/.test(f)) fs.rmSync(path.join(path.dirname(out), f));
 // Learners on slow connections download this whole file: keep it under budget.
-const gz = zlib.gzipSync(page, { level: 9 }).length, BUDGET = 100 * 1024;
+// The target is 100 KB compressed. During the front-end migration the old screens (about 45 KB)
+// still ship next to the new code, so the limit is 110 KB until the old code is deleted (phase 5).
+const gz = zlib.gzipSync(page, { level: 9 }).length, BUDGET = 110 * 1024;
 console.log(`${path.relative(root, out)}  ${(page.length / 1024).toFixed(0)} KB, ${(gz / 1024).toFixed(1)} KB compressed`);
 if (live && gz > BUDGET) { console.error(`Over the size budget: ${(gz / 1024).toFixed(1)} KB compressed (limit ${BUDGET / 1024} KB).`); process.exit(1); }

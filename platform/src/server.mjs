@@ -65,6 +65,11 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
 
       // ---- sign in with GitHub ----
       if (req.method === "GET" && p === "/api/auth/github") {
+        // The sign-in cookie belongs to the address where sign-in starts, and GitHub always returns
+        // to APP_URL. Started on another address (the web.app one, or a second domain)? Move to
+        // APP_URL first, once, so the cookie and the return trip use the same address.
+        const from = String(req.headers["x-forwarded-host"] || "").split(",")[0].trim().toLowerCase();
+        if (from && from !== new URL(config.appUrl).host && !url.searchParams.has("here")) return redirect(res, `${config.appUrl}/api/auth/github?here=1`);
         const state = crypto.randomBytes(16).toString("hex");
         const pending = signSession(config.sessionSecret, { st: state, exp: Date.now() + 600_000 });
         return redirect(res, authorizeUrl({ clientId: config.githubClientId, redirectUri, state }), [cookie(COOKIE, pending, { maxAge: 600, secure })]);
