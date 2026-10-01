@@ -40,6 +40,7 @@ gcloud run deploy timirtbet-api --image "$IMAGES/api:$TAG" --region "$REGION" \
   --quiet
 
 step "Web app"
+(cd web && npm ci --silent)
 APP_URL="$APP_URL" node web/build.mjs --live
 npx -y firebase-tools@15 deploy --only hosting --project "$PROJECT_ID" --non-interactive
 

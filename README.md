@@ -44,7 +44,7 @@ How the pieces fit together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 You need Node 22+ and Go 1.22+.
 
 ```sh
-node web/build.mjs --live
+(cd web && npm ci) && node web/build.mjs --live
 cd platform && npm install
 node src/main.mjs dev
 ```
@@ -57,6 +57,7 @@ Then open `http://localhost:8080/api/auth/dev?login=your-name`. Open a second na
 cd platform && npm test      # API flows, grader, both stores, reputation, circles, sign-in, notifications
 npm run test:firestore       # the store checks against the Firestore emulator (needs firebase-tools and Java)
 node authoring/build.mjs     # every starter fails its tests (and every answer passes, if you have them)
+cd ../web && npm test        # builds the site, type-checks the new code, then 23 browser tests of every flow
 ```
 
 **About the answers.** Reference answers to the challenges are not in this repository, so learners can't copy them. They are kept in a separate private repository for maintainers. Without them, everything still builds and runs, and the few tests that need a passing answer are skipped. Schools running their own copy can write their own answers in `solutions/js/<id>.js` and `solutions/go/<id>.go`; that folder is ignored by git. See [CONTRIBUTING.md](CONTRIBUTING.md).

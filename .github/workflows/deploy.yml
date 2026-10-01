@@ -42,8 +42,9 @@ jobs:
       - name: Platform tests
         working-directory: platform
         run: npm ci && npm test
-      - name: Web app builds
-        run: node web/build.mjs --live
+      - name: Web app builds and passes its type check
+        working-directory: web
+        run: npm ci && npm run build && npm run typecheck
 
   deploy:
     needs: test
@@ -110,5 +111,6 @@ jobs:
       - name: Build and deploy the web app
         env: { APP_URL: "${{ vars.APP_URL }}" }
         run: |
+          (cd web && npm ci)
           node web/build.mjs --live
           npx -y firebase-tools@15 deploy --only hosting --project "$PROJECT" --non-interactive

@@ -1,0 +1,21 @@
+{
+  "name": "timirtbet-web",
+  "private": true,
+  "description": "The Timirtbet web app: Preact screens (src/next) migrating from the original src/app.js, its build, and browser tests.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs --live",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node build.mjs --live && tsc -p tsconfig.json && node --test --test-concurrency=1 test/*.test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "1.56.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "htm": "^3.1.1",
+    "preact": "^11.0.0"
+  }
+}

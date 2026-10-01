@@ -244,7 +244,9 @@ function render(){
   if(V.view!=="exercise"&&V.view!=="review")stopTick();
   const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin,user:viewUser};
   if(CM){CM.destroy();CM=null;}
-  app.innerHTML=(views[V.view]||viewChallenges)();
+  // Migration bridge: a screen that has a new (Preact) version is drawn by src/next; the rest as before.
+  if(window.TBNext&&TBNext.has(V.view))TBNext.render(V.view,app);
+  else{if(window.TBNext)TBNext.unmount(app);app.innerHTML=(views[V.view]||viewChallenges)();}
   document.title=titleOf();
   upgradeEditor();
   document.getElementById("resetZone").innerHTML=V.confirm==="reset"?`<span class="confirm">Clear everything on this device? <button class="btn small" data-act="reset-yes">Yes, reset</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="linkish" data-act="reset">Reset demo</button>`;

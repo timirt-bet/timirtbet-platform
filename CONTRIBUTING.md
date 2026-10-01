@@ -18,6 +18,14 @@ cd platform && npm install && npm test
 node authoring/build.mjs
 ```
 
+## The web app
+
+The screens are moving from `web/src/app.js` and `web/src/live.js` to Preact components in `web/src/next/`, one screen at a time. While that happens:
+
+- Put new screens and components in `web/src/next/` and add `// @ts-check` at the top; `npm run typecheck` checks them.
+- Keep the `id` and `data-act` attributes the browser tests use (`web/test/`), so the tests keep proving nothing changed for learners.
+- `cd web && npm test` builds the page, checks the size budget (100 KB compressed), type-checks, and runs the browser tests against development mode. Flows that need a passing solution are skipped without the reference answers.
+
 ## Reference answers
 
 The answers to the challenges are kept out of this public repository so learners can't copy them.

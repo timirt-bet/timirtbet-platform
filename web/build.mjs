@@ -4,6 +4,8 @@
 //   node web/build.mjs --artifact-> web/dist/artifact.html   (demo, page body only, for the claude.ai preview)
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
+import { build } from "esbuild";
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const root = path.resolve(here, "..");
@@ -28,7 +30,14 @@ function demoAnswers() {
   }
   return out;
 }
-const js = src("app.js")
+// The new front end (src/next, Preact + htm + signals), bundled into one script that runs before app.js.
+// Install it once with: cd web && npm ci
+const next = (await build({
+  entryPoints: [path.join(here, "src", "next", "index.js")], bundle: true, minify: true, format: "iife",
+  target: "es2020", write: false, legalComments: "none", logLevel: "warning",
+})).outputFiles[0].text;
+if (/<\/script/i.test(next)) throw new Error("the bundle contains </script>");
+const js = next + "\n" + src("app.js")
   .replace("/*__BANK__*/[]", JSON.stringify(JSON.parse(bank)))
   .replace("/*__MODULES__*/[]", JSON.stringify(JSON.parse(modules)))
   .replace('/*__HARNESS__*/""', JSON.stringify(harness))
@@ -64,4 +73,7 @@ const out = path.join(here, "dist", live ? "index.html" : artifact ? "artifact.h
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, page);
 if (live) for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$/.test(f)) fs.rmSync(path.join(path.dirname(out), f));
-console.log(`${path.relative(root, out)}  ${(page.length / 1024).toFixed(0)} KB`);
+// Learners on slow connections download this whole file: keep it under budget.
+const gz = zlib.gzipSync(page, { level: 9 }).length, BUDGET = 100 * 1024;
+console.log(`${path.relative(root, out)}  ${(page.length / 1024).toFixed(0)} KB, ${(gz / 1024).toFixed(1)} KB compressed`);
+if (live && gz > BUDGET) { console.error(`Over the size budget: ${(gz / 1024).toFixed(1)} KB compressed (limit ${BUDGET / 1024} KB).`); process.exit(1); }
