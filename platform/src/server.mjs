@@ -99,6 +99,9 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         if (!verifySignature(config.webhookSecret, raw, req.headers["x-hub-signature-256"])) return json(res, 401, { error: "bad signature" });
         const event = req.headers["x-github-event"];
         if (event === "ping") return json(res, 200, { pong: true });
+        // Learners grade their work themselves with "Run the tests" (POST /api/check/:id) after committing.
+        // Pushes and pull requests are graded automatically only when AUTO_GRADE=1.
+        if (!config.autoGrade) return json(res, 200, { skipped: true, reason: "grading runs when the learner presses Run the tests" });
         const job = await jobFromEvent({ event, payload: body(), gh, bank });
         if (!job) return json(res, 200, { skipped: true });
         if (!(await store.claimJob(job.key, { kind: job.kind, repo: job.repo }))) return json(res, 200, { duplicate: true });

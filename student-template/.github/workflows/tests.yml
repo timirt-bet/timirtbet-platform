@@ -1,9 +1,9 @@
-# Quick feedback for the student. The official result comes from the Timirtbet
-# test runner, which re-runs the same tests on its own servers when you push.
+# Optional practice run. It doesn't run by itself: open the Actions tab and choose
+# "Run workflow". Your official result comes from pressing "Run the tests" on the
+# challenge page in Timirtbet, which grades what you committed to main.
 name: tests
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

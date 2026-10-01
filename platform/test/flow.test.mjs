@@ -23,7 +23,7 @@ const APP = "https://timirtbet.example";
 const config = { org: "timirtbet", studentsTeam: "learners", templateRepo: "student-template", webhookSecret: "wh", sessionSecret: "sess", githubClientId: "Iv1.test", appUrl: APP, secureCookies: false };
 const oauth = { exchange: async (code) => { if (code !== "good") throw new Error("bad code"); return "gho_token"; }, user: async () => ({ id: 1001, login: "hana-t" }) };
 
-async function setup({ prFiles, verifyTask } = {}) {
+async function setup({ prFiles, verifyTask, autoGrade = true } = {}) {
   const gh = fakeGitHub({ prFiles });
   const store = new MemoryStore();
   // Four learners who already finished module js-m1 and solved go-sync and js-arrays.
@@ -36,7 +36,7 @@ async function setup({ prFiles, verifyTask } = {}) {
   fs.writeFileSync(path.join(repoDir, "js/js-func/solution.js"), "function greet(name) { return name; }\n");
   const fetchRepo = async () => { const d = fs.mkdtempSync(repoDir + "-copy-"); fs.cpSync(repoDir, d, { recursive: true }); return d; };
   const queue = inProcessQueue();
-  const app = createApp({ store, gh, bank, modules, config, queue, grader: localGrader({ bank, challengesDir: CHALLENGES }), fetchRepo, oauth, verifyTask, log: () => {} });
+  const app = createApp({ store, gh, bank, modules, config: { ...config, autoGrade }, queue, grader: localGrader({ bank, challengesDir: CHALLENGES }), fetchRepo, oauth, verifyTask, log: () => {} });
   const server = http.createServer(app.handler); await new Promise((r) => server.listen(0, r));
   const base = `http://127.0.0.1:${server.address().port}`;
   const as = async (sid) => ({ cookie: `__session=${signSession("sess", { sid, v: (await store.getLearner(sid)).sessionVersion || 0, exp: Date.now() + 60000 })}` });
@@ -231,6 +231,18 @@ test("untouched starter code (like a new repository's first commit) is not grade
     const st = t.gh.calls.filter((c) => c.name === "setStatus").map((c) => c.args[3]);
     assert.deepEqual(st.map((x) => [x.state, x.description]).at(-1), ["success", "No solutions to check yet"]);
     assert.equal(await t.store.latestResult("gh_1001", "js-cond"), null, "no failing result is recorded");
+    assert.equal((await t.store.inboxOf("gh_1001")).items.filter((n) => n.kind.startsWith("push_")).length, 0, "no notifications");
+  } finally { t.close(); }
+});
+
+test("by default a push is not graded: learners press Run the tests", async () => {
+  const t = await setup({ autoGrade: false });
+  try {
+    await t.signIn();
+    const push = { ref: "refs/heads/main", after: "nograde1", repository: { full_name: "timirtbet/hana-t-code" }, commits: [{ added: [], modified: ["js/js-vars/solution.js"] }] };
+    const r = await t.hook("push", push);
+    assert.equal(r.status, 200); assert.equal((await r.json()).skipped, true);
+    assert.equal(await t.store.latestResult("gh_1001", "js-vars"), null, "nothing graded");
     assert.equal((await t.store.inboxOf("gh_1001")).items.filter((n) => n.kind.startsWith("push_")).length, 0, "no notifications");
   } finally { t.close(); }
 });

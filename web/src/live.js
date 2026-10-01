@@ -140,8 +140,7 @@ if(LIVE){
         if(!was)toast(n);await loadAll();
         if(was&&L.saved.has(n.exerciseId))celebrate(n.exerciseId);}
     }catch(e){if(e.status===401){checkSession();return;}}
-    const waiting=V.view==="exercise"&&V.ex&&!L.saved.has(V.ex);// waiting for a push: check more often
-    pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:waiting?15000:45000);
+    pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:45000);
   }
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L.me)pollInbox(false);});
   document.addEventListener("click",e=>{
@@ -255,7 +254,7 @@ if(LIVE){
       <p class="muted">Solutions are submitted from your own GitHub repository, <a class="mono" href="https://github.com/${esc(repo)}" target="_blank" rel="noopener">${esc(repo||"your repository")}</a>. The editor here is for practice.</p>
       <ol><li>Accept the invitation to the organization that GitHub emailed you (once).</li>
       <li>Edit <code>${file}</code>: on GitHub in the browser, or on your computer after cloning.</li>
-      <li>Commit and push to <code>main</code>. Each push is graded; a pass counts toward your module.</li></ol>
+      <li>Commit and push to <code>main</code>, then press Run the tests on the challenge page.</li></ol>
       <pre class="shell mono">git clone https://github.com/${esc(repo)}.git
 cd ${esc(repo.split("/")[1]||"your-repo")}
 # edit ${file}, then:
@@ -330,7 +329,8 @@ cd ${esc(repo.split("/")[1]||"your-repo")}
 # edit ${file}
 git add ${file}
 git commit -m "${esc(ex.title)}"
-git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button></details>
+git push
+# then press "Run the tests" here</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</button></details>
       <p class="gh-first">First time? Accept the invitation GitHub emailed you to join the organization, or the link won't open.</p>`;
     const mine=saved&&lt.code?`<details class="gh-local"><summary>Your saved solution</summary>${codeBlock(lt.code)}</details>`:"";
     return `<section class="panel gh-card"><h2>${saved?"Submit a new version":"How to submit"}</h2><div class="pad">${saved?`<details class="gh-local"><summary>Show the steps</summary>${steps}</details>`:steps}${mine}</div></section>`;
@@ -432,7 +432,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
       <ol class="task-tests" id="testList">${rows}</ol>${ex.lang==="go"?`<details class="gofile"><summary>${esc(ex.id.replace(/-/g,"_"))}_test.go</summary>${codeBlock(ex.test)}</details>`:""}</section>`;
     const side=L.me?`<div id="pushPanel">${pushPanel(ex)}</div>`:"";
     // Signed out: how to get started sits inside the task card, after the tests.
-    const start=L.me?"":`<section class="task-sec task-start"><h2>Submit your solution</h2><p class="task-start-lede">You need a GitHub account to submit. Your solutions live in your own GitHub repository, and the grader checks every change.</p>${startSteps(false)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Sign in with GitHub</a></section>`;
+    const start=L.me?"":`<section class="task-sec task-start"><h2>Submit your solution</h2><p class="task-start-lede">You need a GitHub account to submit. Your solutions live in your own GitHub repository, and you run the tests here when you're ready.</p>${startSteps(false)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:14px">${GH}Sign in with GitHub</a></section>`;
     return `<button class="back" data-act="track" data-v="${ex.lang}">← ${LANGN[ex.lang]} challenges</button>
     <div class="task-page">
       <aside class="task-side">${side}<div id="prPanel">${peerPanel(ex)}</div></aside>
@@ -500,7 +500,7 @@ git push</pre><button class="btn small" data-act="copy" data-id="pushCmd">Copy</
   viewSignin=function(){
     if(L.me)return viewProfile();
     return `<section class="panel narrow"><div class="pad"><h1 class="pg-h" style="font-size:26px">Get started with GitHub</h1>
-      <p class="lede">Timirtbet uses your GitHub account instead of its own sign-up form. You write your solutions in a GitHub repository, and the grader checks them there.</p>
+      <p class="lede">Timirtbet uses your GitHub account instead of its own sign-up form. You write your solutions in a GitHub repository, then run the tests here when you're ready.</p>
       ${startSteps(false)}
       <a class="btn gh-btn" href="/api/auth/github" style="margin-top:16px">${GH}Continue with GitHub</a>
       <p class="muted" style="font-size:13px;margin:14px 0 0">Timirtbet asks GitHub for no permissions, so all it learns is your public username. Without an account you can still read every challenge and its tests.</p></div></section>`;

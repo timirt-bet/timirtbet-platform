@@ -71,7 +71,9 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 
 ## Grading
 
-- **From Git:** GitHub sends `push` (to `main`) and `pull_request` events to `/api/hooks/github`.
+- **Learners start it:** after committing, the learner presses **Run the tests** on the challenge page (`POST /api/check/{id}`). The API reads that challenge's solution file from `main` in their repository, grades it and records the result. Nothing is graded on push, so learners can commit as often as they like.
+- **Automatic grading on push (off by default):** set `AUTO_GRADE=1` on the API to grade every push and pull request as well, as described below. Without it, webhooks are acknowledged and skipped.
+- **From Git (only with `AUTO_GRADE=1`):** GitHub sends `push` (to `main`) and `pull_request` events to `/api/hooks/github`.
   - The API checks the HMAC signature and maps changed files to challenges: `js/<id>/solution.js` and `go/<id_with_underscores>/solution.go`.
   - It claims the job `repo@sha` once, so a repeated webhook is graded only once, and publishes it to Pub/Sub.
 - **Processing:** Pub/Sub pushes the job to `/api/tasks/grade` with a Google-signed token. The API checks the token's signature, issuer, audience, expiry and service account, then processes the job.
@@ -87,7 +89,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 - **Feedback on GitHub:** the commit gets a `timirtbet/tests` status, and pull requests get a comment listing failing tests.
 - **Retries:** if processing fails, Pub/Sub retries with a 10–600 second backoff, and moves the job to `grading-failed` after 5 attempts.
 
-The GitHub Actions workflow in each learner's repository gives quicker feedback, but learners can edit it, so its result never counts.
+The GitHub Actions workflow in each learner's repository runs only when they start it from the Actions tab. Learners can edit it, so its result never counts.
 
 ## Peer review and reputation (`platform/src/reviews.mjs`)
 

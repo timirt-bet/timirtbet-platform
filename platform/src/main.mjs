@@ -73,7 +73,7 @@ if (mode === "grader") {
     oauth: githubOAuth({ clientId: need("GITHUB_CLIENT_ID"), clientSecret: need("GITHUB_CLIENT_SECRET") }),
     config: {
       org: need("GITHUB_ORG"), studentsTeam: env.GITHUB_LEARNERS_TEAM || "learners", templateRepo: env.GITHUB_TEMPLATE_REPO || "student-template",
-      githubClientId: need("GITHUB_CLIENT_ID"), webhookSecret: need("GITHUB_WEBHOOK_SECRET"), sessionSecret: need("SESSION_SECRET"),
+      githubClientId: need("GITHUB_CLIENT_ID"), webhookSecret: need("GITHUB_WEBHOOK_SECRET"), autoGrade: process.env.AUTO_GRADE === "1", sessionSecret: need("SESSION_SECRET"),
       appUrl: need("APP_URL"), secureCookies: env.INSECURE_COOKIES !== "1", devLogin: offline, githubNotify: env.GITHUB_NOTIFY !== "0",
     },
   });
