@@ -380,7 +380,7 @@ function modChip(ms){const sub=ms.sub;
   return "";}
 document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.mod[data-mod]")){S.modOpen=S.modOpen||{};S.modOpen[d.dataset.mod]=d.open;save();}},true);
 function moduleReady(m,ms){return ms.passed===ms.total;}
-function modHowCard(){return `<details class="panel how"><summary>How module review works</summary><div class="pad"><ol class="steps"><li>Solve each challenge and submit it to the grader</li><li>Every pass counts and earns points</li><li>When all challenges in a module pass, submit the module</li><li>Someone who finished that module reviews all of it</li><li>You rate the review ★1–5</li></ol><p class="muted" style="font-size:13px;margin:10px 0 0">Reviewers must have finished the same module. Reviews are anonymous both ways.</p></div></details>`;}
+function modHowCard(){return `<details class="panel how"><summary>How module review works</summary><div class="pad"><ol class="steps"><li>Commit each challenge to your GitHub repository and run the tests here</li><li>Every pass earns points</li><li>When every challenge in a module passes, submit the module</li><li>Someone who finished that module reviews all of it within 72 hours</li><li>You rate the review ★1–5</li></ol><p class="muted" style="font-size:13px;margin:10px 0 0">Reviewers must have finished the same module. You see who reviews your module; they don't see who wrote it.</p></div></details>`;}
 function progressCard(solved){
   const pts=myPoints(),max=BANK.reduce((a,e)=>a+ptsOf(e),0);
   if(!me())return `<section class="panel"><h2>Practising as a guest</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">Every challenge and its tests work without an account; your code stays in this browser. Sign in with GitHub to submit for review and join a circle.</p><button class="btn gh-btn" data-act="view" data-v="signin">${GH}Sign in with GitHub</button></div></section>`;
@@ -392,7 +392,7 @@ function circleMini(){
   const waiting=QUEUE.filter(q=>!S.done.includes(q.id)&&passedEx(q.ex)&&inCircle(q.author)).length;
   return `<section class="panel"><h2>${esc(S.circle.name)}</h2><div class="pad"><div class="avs">${[me()].concat(S.circle.members).map(m=>avatar(m)).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${S.circle.members.length+1} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${waiting?`<button class="btn primary" data-act="view" data-v="reviews">${waiting} to review</button>`:""}</div></div></section>`;
 }
-function howCard(){return `<details class="panel how"><summary>How review works</summary><div class="pad"><ol class="steps">${STEPS.map(s=>`<li>${esc(s)}</li>`).join("")}</ol><p class="muted" style="font-size:13px;margin:10px 0 0">Reviewers must have solved the challenge themselves. Reviews are anonymous both ways.</p></div></details>`;}
+function howCard(){return modHowCard();}// reviews are per module
 
 /* ---------- a challenge ---------- */
 /* CodeMirror 6 (web/editor) replaces the plain textarea once its script has loaded; the textarea is the fallback. */

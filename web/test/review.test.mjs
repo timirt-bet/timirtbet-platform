@@ -28,7 +28,9 @@ test("submit, see the reviewer and clock, nudge, review, rate", { skip: NEEDS_AN
 
   // The track page shows the same reviewer and clock.
   await author.open("/challenges/js");
-  assert.match(await author.text("details.mod .mod-foot"), /In review by @rv-selam \d+d \d+h left/);
+  assert.match(await author.text("details.mod .mod-foot"), /^Reviewer @rv-selam \d+d \d+h left$/);
+  assert.equal((await author.text("details.mod")).match(/In review/g).length, 1, "said once, in the module header");
+  assert.deepEqual(await author.locator("details.mod").first().locator(".ch-row .st").allInnerTexts(), ["Solved", "Solved", "Solved", "Solved"], "rows show each challenge's own state");
 
   // The reviewer: the queue with the clock, and the nudge in the bell.
   await reviewer.open("/reviews");
@@ -63,3 +65,16 @@ test("submit, see the reviewer and clock, nudge, review, rate", { skip: NEEDS_AN
   assert.match(await reviewer.text(".panel .act"), /★★★★☆/);
   await reviewer.close(); await author.close();
 });
+
+test("single-challenge reviews from before modules never show on challenge rows", async () => {
+  const p = await site.learner("rv-old");
+  await p.open("/challenges/js");
+  // An old review, as /api/submissions/mine still returns it for learners who had one.
+  await p.evaluate(() => { window.TBNext.state.subs.value = [{ id: "old1", exerciseId: "js-vars", status: "rated", rating: 5, at: "2026-09-01T00:00:00Z" }, { id: "old2", exerciseId: "js-cond", status: "reviewed", at: "2026-09-02T00:00:00Z" }]; });
+  await p.locator('[data-act="level"]').first().click(); await p.waitForTimeout(200); // redraw the page
+  const rows = await p.locator(".ch-row .st").allInnerTexts();
+  assert.ok(rows.length >= 4);
+  assert.ok(rows.every((t) => !/Reviewed|Rate the review|In review/.test(t)), rows.join(" | "));
+  await p.close();
+});
+

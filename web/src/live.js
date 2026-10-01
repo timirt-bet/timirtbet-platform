@@ -197,7 +197,7 @@ if(LIVE){
     const sub=ms.sub;
     if(L.me&&sub&&sub.status==="awaiting_review"&&sub.reviewer&&sub.dueAt){
       if(inline)return `<span class="st wait">In review</span>${inReviewBox(sub)}`;
-      return `<span class="st wait">In review</span><span class="muted">by ${person(sub.reviewer.login)}</span>${clock(sub.dueAt)}`;
+      return `<span class="muted">Reviewer</span>${person(sub.reviewer.login)}${clock(sub.dueAt)}`;// the module header already says "In review"
     }
     return baseFoot(m,ms,inline);
   };
@@ -228,8 +228,9 @@ if(LIVE){
   };
   // Solved means a push passed the grader. Passes from the old in-browser editor need one push.
   passedEx=id=>L.saved.has(id);
-  status=function(id){const sub=latestSub(id);if(sub){if(sub.status==="rated")return {k:"done",l:"Reviewed ★"+sub.rating};if(sub.status==="reviewed")return {k:"act",l:"Rate the review"};return {k:"wait",l:"In review"};}
-    if(L.saved.has(id))return {k:"pass",l:"Solved"};if(L.solved.has(id))return {k:"try",l:"Passed · push to submit"};return {k:"new",l:"Not solved"};};
+  // A challenge row shows only that challenge's own state. Reviews are per module (shown on the
+  // module); single-challenge reviews from before modules existed are not shown on rows.
+  status=function(id){if(L.saved.has(id))return {k:"pass",l:"Solved"};if(L.solved.has(id))return {k:"try",l:"Passed · push to submit"};return {k:"new",l:"Not solved"};};
   canSubmit=function(ex,code){const r=S.res[ex.id],sub=latestSub(ex.id);return !!(L.me&&r&&r.code===code&&r.p===r.t&&!(sub&&sub.status!=="rated")&&!L.jobs[ex.id]);};
   hint=function(ex,code){
     if(!L.me)return "Your code stays in this browser. Sign in to save progress. Ctrl+Enter runs.";
