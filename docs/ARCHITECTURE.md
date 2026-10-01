@@ -4,19 +4,22 @@ Timirtbet (ትምህርት ቤት) teaches JavaScript and Go through challenges,
 
 ```mermaid
 flowchart TD
-    U["Learner (browser)"] -- "Sign in with GitHub" --> API
-    U -- "git push / pull request" --> GH["GitHub: org, private repo per learner"]
-    GH -- "webhook" --> API["API · Cloud Run"]
-    API -- "job" --> Q["Pub/Sub grading-jobs"]
-    Q -- "push (Google-signed)" --> API
-    API -- "code in, results out" --> G["Grader · Cloud Run<br/>no credentials, 1 job per instance"]
+    U["Learner (browser)"] -- "Sign in with GitHub (OAuth, no scopes)" --> API["API · Cloud Run"]
+    U -- "commit solution to main" --> GH["GitHub: org, private repo per learner"]
+    U -- "Run the tests" --> API
+    API -- "read solution file on main (GitHub App)" --> GH
+    API -- "code in, results out (Google ID token)" --> G["Grader · Cloud Run<br/>no credentials, 1 job per instance"]
     API --> DB[(Firestore)]
+    API -- "notifications as issue comments" --> GH
     G --> P{Passed?}
-    P -- no --> FB["Feedback: red status, PR comment, results in the app"]
-    P -- yes --> SUB["Submission → reviewer from the circle (wider pool if none free)"]
+    P -- no --> FB["Test list shows what failed"]
+    P -- yes --> PASS["Pass saved, points, celebration"]
+    PASS -- "whole module passed" --> SUB["Module submitted → reviewer from the circle (wider pool if none free), 72h clock"]
     SUB --> RATE["Author rates the review ★1–5"] --> REP["Review score → reputation → levels, probation"]
     RATE -- "★1" --> MENTOR["A Mentor gives a second opinion"]
-    SCHED["Cloud Scheduler, hourly"] -- "Google-signed" --> API
+    SCHED["Cloud Scheduler, hourly"] -- "Google-signed: reminders, reassign late reviews" --> API
+    GH -. "webhook, only with AUTO_GRADE=1" .-> API
+    API -. "job" .-> Q["Pub/Sub grading-jobs"] -. "push (Google-signed)" .-> API
 ```
 
 Timirtbet is open source under the Apache License 2.0. The reference answers to the challenges are the one part kept private (a separate `solutions` repository), so learners can't copy them; the platform never needs them at run time.
@@ -28,9 +31,9 @@ Timirtbet is open source under the Apache License 2.0. The reference answers to 
 | Web app | Firebase Hosting (CDN); `/api/**` rewritten to the API | `web/` |
 | API | Cloud Run `timirtbet-api`, public | `platform/src/server.mjs`, `main.mjs api` |
 | Grader | Cloud Run `timirtbet-grader`, private, 1 request per instance, no roles | `platform/src/grader-server.mjs`, `main.mjs grader` |
-| Queue | Pub/Sub `grading-jobs` → push subscription → `/api/tasks/grade`; dead letters in `grading-failed` | `queue.mjs`, `gcp.mjs` |
+| Queue | Pub/Sub `grading-jobs` → push subscription → `/api/tasks/grade`; dead letters in `grading-failed`. Used only for automatic grading (`AUTO_GRADE=1`); "Run the tests" calls the grader directly | `queue.mjs`, `gcp.mjs` |
 | Timer | Cloud Scheduler, hourly → `/api/tasks/reassign` | `pipeline.mjs` |
-| Data | Firestore: `learners`, `circles`, `results`, `passes`, `submissions`, `reviewers`, `jobs` | `store/firestore.mjs` (same interface as `store/memory.mjs`) |
+| Data | Firestore: `learners`, `circles`, `results`, `passes`, `submissions`, `reviewers`, `jobs`, `inbox` | `store/firestore.mjs` (same interface as `store/memory.mjs`) |
 | Secrets | Secret Manager: GitHub App key, GitHub client secret, webhook secret, session secret | `deploy/setup.sh` |
 
 ## Privacy: what is stored
