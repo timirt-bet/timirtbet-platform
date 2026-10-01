@@ -134,6 +134,24 @@ If GitHub Actions is not available to you, deploy from Cloud Shell instead: `bas
 3. Solve a challenge in the web editor.
 4. Push a solution to your repository; the commit gets a `timirtbet/tests` check.
 
+## Your own domain (optional)
+
+Use your own address, for example `timirtbet.org`, with other names (`www.timirtbet.org`, `timirtbet.com`) forwarding to it. Until you finish step 5 the site keeps working on `https://<project-id>.web.app`.
+
+1. **Connect the main domain (browser).** Firebase console → your project → **Hosting** → **Add custom domain** → `timirtbet.org`. Leave "Redirect" off. Firebase shows the DNS records to add: a TXT record and one or more A records. Keep the page open.
+2. **Add the records at your registrar (browser).** For GoDaddy: **My Products** → the domain → **DNS**.
+    - Delete the existing **A** record for `@` (GoDaddy's "Parked" record) and any other A or AAAA records for `@`.
+    - Turn off **Forwarding** for the domain if it is on.
+    - Add each record exactly as Firebase shows it (type, name `@`, value). TTL can stay at the default.
+3. **Add the other names as redirects.** Back in Firebase, **Add custom domain** again for `www.timirtbet.org`, `timirtbet.com` and `www.timirtbet.com`, each time turning on **Redirect** to `timirtbet.org`. For each, add the records Firebase shows at the registrar; for a `www` name, first delete GoDaddy's default CNAME record `www → @`.
+4. **Wait for "Connected".** Each domain in Firebase moves from "Needs setup" to "Connected" once DNS has spread and the certificate is issued: usually under an hour, at most 24 hours. Don't continue until `https://timirtbet.org` opens the site.
+5. **Tell GitHub and the API about the address.**
+    - GitHub App settings: add `https://timirtbet.org/api/auth/github/callback` as a **Callback URL** (keep the `web.app` one), and set the **Homepage URL** to `https://timirtbet.org`.
+    - In Cloud Shell, add `APP_URL=https://timirtbet.org` to `deploy/config.env`, then run `bash deploy/deploy-now.sh`. (With GitHub Actions, set the repository variable `APP_URL` instead.)
+6. **Check it.** Open `https://timirtbet.com`: it should land on `https://timirtbet.org`. Open the old `https://<project-id>.web.app` address: it forwards too. Sign in with GitHub and run a challenge's tests.
+
+Sign-in cookies belong to one address, so everyone is moved to the main one before anything loads.
+
 ## Before real students
 
 - Block the grader's internet access (VPC with a deny-all egress rule).

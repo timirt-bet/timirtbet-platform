@@ -49,6 +49,13 @@ let page = src("shell.html").replace("<script>\n/*__JS__*/", live ? "<script>\n/
 if (!live && !page.includes("TBEditor")) throw new Error("editor script not added");
 page = page.replace("/*__CSS__*/", css).replace("/*__JS__*/", () => js);
 if (live) page = page.replace("<script>", '<script>window.TIMIRTBET_MODE="live";</script>\n<script>');
+// With a custom domain (APP_URL), visitors who arrive on the default Firebase address are sent
+// there before anything loads, so sign-in cookies and the GitHub callback all use one address.
+const appUrl = live && process.env.APP_URL ? new URL(process.env.APP_URL) : null;
+if (appUrl && !/\.(web\.app|firebaseapp\.com)$/.test(appUrl.hostname)) {
+  const go = `<script>(function(){var h=location.hostname;if(/\\.(web\\.app|firebaseapp\\.com)$/.test(h))location.replace(${JSON.stringify(appUrl.origin)}+location.pathname+location.search+location.hash);})();</script>\n`;
+  page = go + page;
+}
 if (!artifact) {
   const i = page.indexOf("<header");
   page = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="description" content="Learn JavaScript and Go. Your review circle reviews every solution.">\n<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>\n${page.slice(0, i)}</head>\n<body>\n${page.slice(i)}</body>\n</html>\n`;

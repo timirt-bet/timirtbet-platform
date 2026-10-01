@@ -12,6 +12,7 @@ NUM=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
 IMAGES="$REGION-docker.pkg.dev/$PROJECT_ID/timirtbet"
 TAG="$(git rev-parse --short HEAD)-$(date +%s)"
 API_URL="https://timirtbet-api-$NUM.$REGION.run.app"
+APP_URL="${APP_URL:-https://$PROJECT_ID.web.app}"   # set APP_URL in config.env once your own domain is connected
 step() { printf '\n== %s\n' "$*"; }
 
 step "Tests"
@@ -34,12 +35,12 @@ step "API"
 gcloud run deploy timirtbet-api --image "$IMAGES/api:$TAG" --region "$REGION" \
   --service-account "timirtbet-api@$PROJECT_ID.iam.gserviceaccount.com" \
   --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GRADER_URL=$GRADER_URL,TASKS_AUDIENCE=$API_URL/api/tasks,TASKS_INVOKER_EMAIL=tasks-invoker@$PROJECT_ID.iam.gserviceaccount.com,GITHUB_ORG=$GITHUB_ORG,GITHUB_APP_ID=$GITHUB_APP_ID,GITHUB_APP_INSTALLATION_ID=$GITHUB_APP_INSTALLATION_ID,GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID,APP_URL=https://$PROJECT_ID.web.app" \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GRADER_URL=$GRADER_URL,TASKS_AUDIENCE=$API_URL/api/tasks,TASKS_INVOKER_EMAIL=tasks-invoker@$PROJECT_ID.iam.gserviceaccount.com,GITHUB_ORG=$GITHUB_ORG,GITHUB_APP_ID=$GITHUB_APP_ID,GITHUB_APP_INSTALLATION_ID=$GITHUB_APP_INSTALLATION_ID,GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID,APP_URL=$APP_URL" \
   --set-secrets "GITHUB_APP_PRIVATE_KEY=github-app-key:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest,SESSION_SECRET=session-secret:latest" \
   --quiet
 
 step "Web app"
-node web/build.mjs --live
+APP_URL="$APP_URL" node web/build.mjs --live
 npx -y firebase-tools@15 deploy --only hosting --project "$PROJECT_ID" --non-interactive
 
-step "Done: https://$PROJECT_ID.web.app"
+step "Done: $APP_URL"

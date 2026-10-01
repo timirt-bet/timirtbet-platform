@@ -103,7 +103,7 @@ VARS=(
   "TIMIRTBET_APP_ID=$GITHUB_APP_ID"
   "TIMIRTBET_APP_INSTALLATION_ID=$GITHUB_APP_INSTALLATION_ID"
   "TIMIRTBET_CLIENT_ID=$GITHUB_CLIENT_ID"
-  "APP_URL=https://$PROJECT_ID.web.app"
+  "APP_URL=${APP_URL:-https://$PROJECT_ID.web.app}"
 )
 
 step "GitHub repository variables ($PLATFORM_REPO)"
@@ -119,7 +119,7 @@ fi
 cat <<DONE
 
 Done. In the GitHub App settings use:
-  Callback URL   https://$PROJECT_ID.web.app/api/auth/github/callback
+  Callback URL   ${APP_URL:-https://$PROJECT_ID.web.app}/api/auth/github/callback
   Webhook URL    $API_URL/api/hooks/github
 Then push to main (or re-run the workflow): it tests, builds and deploys everything.
 DONE

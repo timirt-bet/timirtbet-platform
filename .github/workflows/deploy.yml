@@ -108,6 +108,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: Build and deploy the web app
+        env: { APP_URL: "${{ vars.APP_URL }}" }
         run: |
           node web/build.mjs --live
           npx -y firebase-tools@15 deploy --only hosting --project "$PROJECT" --non-interactive
