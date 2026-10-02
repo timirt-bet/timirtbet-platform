@@ -307,7 +307,7 @@ details.starter .codeview{border-top:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){.t-row.run .t-ic{animation-duration:2.4s}.t-row.pass .t-ic,.t-row.fail .t-ic,#testSec.celebrate .task-tests{animation:none}}
 .t-row>div>b{display:block}.t-row>div>code{display:block;margin-top:3px}
 /* people: links to profiles, the profile page, follower lists */
-.who-link{font-weight:600}
+.who-link{font-weight:600;white-space:nowrap}
 .av-link{all:unset;cursor:pointer;display:inline-flex;margin-left:-6px;border-radius:99px}
 .av-link:first-child{margin-left:0}
 .av-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}

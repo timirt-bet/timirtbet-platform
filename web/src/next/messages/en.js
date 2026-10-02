@@ -530,4 +530,6 @@ export default {
   rated_reviews_n: "{n} rated reviews",
   pts_reputation_n: "{n} pts reputation",
   module_progress: "Module {n} · {title}: {done} of {total}",
+  circle_members_lede: "{n} of 8 members. Your submissions go to a member here first; the wider pool steps in only when nobody here who solved the challenge is free.",
+  leave_circle_confirm: "Leave {name}? Your reviews will come from the wider pool.",
 };

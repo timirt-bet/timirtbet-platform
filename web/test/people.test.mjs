@@ -68,5 +68,22 @@ test("a review circle: create, join with the code, open a member's profile", asy
   await friend.locator('tbody [data-act="user"][data-login="pp-eden"]').click(); await friend.waitForTimeout(400);
   assert.equal(new URL(friend.url()).pathname, "/u/pp-eden");
   assert.match(await friend.text(".user-head"), /Circle: Adama coders/i);
+  // Only the owner can make a new code; the old one stops working.
+  assert.equal(await friend.locator('[data-act="rotate"]').count(), 0);
+  await owner.open("/circle");
+  await owner.locator('[data-act="rotate"]').click();
+  await owner.waitForFunction((old) => document.querySelector("#inviteCode")?.textContent?.trim() !== old, code);
+  // A member leaves after confirming, and sees the join forms again.
+  await friend.open("/circle");
+  await friend.locator('[data-act="leave"]').click();
+  await friend.locator('[data-act="live-leave"]').click();
+  await friend.waitForSelector('[data-form="join"]');
+  await friend.fill("#joinCode", code);
+  await friend.locator('[data-form="join"] button[type="submit"]').click();
+  await friend.waitForFunction(() => document.querySelector("#joinErr")?.textContent);
+  // A name that is too short is caught before asking the server.
+  await friend.fill("#cName", "ab");
+  await friend.locator('[data-form="create"] button[type="submit"]').click();
+  assert.match(await friend.text("#createErr"), /at least 3/);
   await owner.close(); await friend.close();
 });

@@ -472,17 +472,7 @@ git push
     catch(e){alertIn("rvBox",e.message);}
   };
 
-  viewCircle=function(){
-    if(!L.me)return signinNeeded("Sign in to join a review circle.");
-    if(!L.circle)return `<p class="eyebrow">Review circle</p><h1 class="pg-h">Find your circle</h1><p class="lede">A circle is up to 8 learners who review each other first. Start one and share the invite code, or join friends with theirs.</p>
-     <div class="two" style="margin-top:20px"><form class="panel" data-form="join"><h2>Join with a code</h2><div class="pad form"><label for="joinCode" class="lbl-sm">Invite code</label><input id="joinCode" class="mono" maxlength="8" autocomplete="off"><div id="joinErr" class="err" role="alert"></div><button class="btn primary" type="submit">Join circle</button></div></form>
-     <form class="panel" data-form="create"><h2>Start a circle</h2><div class="pad form"><label for="cName" class="lbl-sm">Circle name</label><input id="cName" maxlength="40"><label for="cTrack" class="lbl-sm">Language</label><select id="cTrack"><option value="both">JavaScript and Go</option><option value="js">JavaScript</option><option value="go">Go</option></select><div id="createErr" class="err" role="alert"></div><button class="btn primary" type="submit">Create circle</button></div></form></div>`;
-    const c=L.circle;const owner=c.ownerId===L.me.id;const rows=c.members.slice().sort((a,b)=>b.points-a.points);
-    return `<p class="eyebrow">Review circle</p><div class="ex-head"><h1 class="pg-h">${esc(c.name)}</h1><div class="cmd" style="max-width:340px"><span class="muted" style="font-size:12.5px">Invite code</span><code id="inviteCode" class="mono">${esc(c.inviteCode)}</code><button class="btn small" data-act="copy" data-id="inviteCode">Copy</button>${owner?`<button class="btn small" data-act="rotate">New code</button>`:""}</div></div>
-    <p class="lede">${c.members.length} of 8 members. Your submissions go to a member here first; the wider pool steps in only when nobody here who solved the challenge is free.</p>
-    <div class="panel" style="margin-top:20px"><h2>Leaderboard</h2><div class="tbl"><table><thead><tr><th>#</th><th>Learner</th><th>Points</th><th>Solved</th><th>Review score</th><th>Level</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.id===L.me.id?"me":""}"><td class="mono">${i+1}</td><td><span class="lrn">${avatar(x.login,"sm")}${person(x.login)}${x.id===L.me.id?` <span class="muted">(you)</span>`:""}</span></td><td class="mono">${x.points}</td><td class="mono">${x.solved}</td><td class="mono">${x.reviewer.score.toFixed(2)}</td><td>${x.reviewer.probation?`<span class="st act">Probation</span>`:`<span class="lvl lvl${x.reviewer.levelIndex} sm">${x.reviewer.level}</span>`}</td></tr>`).join("")}</tbody></table></div></div>
-    <section class="panel" style="margin-top:16px"><div class="pad">${V.confirm==="leave"?`<p style="margin:0 0 10px;font-size:14px">Leave ${esc(c.name)}? Your reviews will come from the wider pool.</p><div style="display:flex;gap:8px"><button class="btn" data-act="live-leave">Leave circle</button><button class="btn" data-act="confirm-no">Stay</button></div>`:`<button class="linkish" data-act="leave">Leave this circle</button>`}</div></section>`;
-  };
+  // The circle screen is in src/next/screens/circle.js.
   // What a newcomer needs before they can solve anything: a GitHub account, then one sign-in.
   function startSteps(compact){
     return `<ol class="start-steps${compact?" compact":""}">
@@ -521,8 +511,6 @@ git push
       else if(a==="submit-module"){const id=el.dataset.id;el.disabled=true;el.textContent="Submitting…";delete L.modErr[id];
         try{await api("POST",`/api/modules/${id}/submit`);}catch(err){L.modErr[id]=err.message;}
         await loadAll();}
-      else if(a==="rotate"){await api("POST",`/api/circles/${L.circle.id}/invite-code`);await loadAll();}
-      else if(a==="live-leave"){V.confirm=null;await api("POST","/api/circles/leave");await loadAll();}
     }catch(err){alert0(err.message);}
   };
   function alert0(msg){app.insertAdjacentHTML("afterbegin",`<p class="err" role="alert">${esc(msg)}</p>`);}
@@ -535,9 +523,7 @@ git push
   document.addEventListener("submit",async e=>{
     const f=e.target;const kind=f.dataset.form;if(!kind||f.closest("[data-next]"))return;e.preventDefault();
     try{
-      if(kind==="join"){await api("POST","/api/circles/join",{code:document.getElementById("joinCode").value});await loadAll();}
-      else if(kind==="create"){await api("POST","/api/circles",{name:document.getElementById("cName").value,track:document.getElementById("cTrack").value});await loadAll();}
-      else if(kind==="second"){await api("POST",`/api/submissions/${f.dataset.id}/second-opinion`,{text:f.querySelector("textarea").value});await loadAll();}
+      if(kind==="second"){await api("POST",`/api/submissions/${f.dataset.id}/second-opinion`,{text:f.querySelector("textarea").value});await loadAll();}
     }catch(err){const box=f.querySelector(".err")||f;box.textContent=err.message;if(box===f)f.insertAdjacentHTML("beforeend",`<p class="err">${esc(err.message)}</p>`);}
   });
   loadAll();

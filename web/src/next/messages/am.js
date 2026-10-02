@@ -529,4 +529,6 @@ export default {
   rated_reviews_n: "{n} ደረጃ የተሰጣቸው ግምገማዎች",
   pts_reputation_n: "{n} ነጥብ ዝና",
   module_progress: "ሞጁል {n} · {title}፦ ከ{total} {done}",
+  circle_members_lede: "ከ8 አባላት {n}። ያስገቡት መጀመሪያ እዚህ ላለ አባል ይሄዳል፤ ተግዳሮቱን የፈታ ነፃ አባል እዚህ ከሌለ ብቻ ሰፊው ቡድን ይገባል።",
+  leave_circle_confirm: "ከ{name} ይውጡ? ግምገማዎችዎ ከሰፊው ቡድን ይመጣሉ።",
 };

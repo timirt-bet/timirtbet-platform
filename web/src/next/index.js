@@ -10,6 +10,7 @@ import { api } from "./api.js";
 import { state, refresh, bridge } from "./state.js";
 import { ProfileScreen } from "./screens/profile.js";
 import { UserScreen } from "./screens/user.js";
+import { CircleScreen } from "./screens/circle.js";
 
 /** @type {Map<string, import("preact").ComponentType<any>>} */
 const screens = new Map();
@@ -58,4 +59,5 @@ window.TBNext = {
 if (window.TIMIRTBET_MODE === "live") {
   register("profile", ProfileScreen);
   register("user", UserScreen);
+  register("circle", CircleScreen);
 }
