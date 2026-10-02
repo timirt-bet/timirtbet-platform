@@ -24,6 +24,7 @@ The screens are moving from `web/src/app.js` and `web/src/live.js` to Preact com
 
 - Put new screens and components in `web/src/next/` and add `// @ts-check` at the top; `npm run typecheck` checks them.
 - Shared data comes from `web/src/next/state.js` (signals) and API calls go through `web/src/next/api.js`. Assign new values to a signal; changing an object in place does not redraw the screens.
+- A new screen is a component in `web/src/next/screens/`, registered in `web/src/next/index.js`. The old click handlers and the old translator ignore it (`data-next` on the page), so it handles its own clicks and uses `t()`. Anything it still needs from the old `app.js` comes through `web/src/next/legacy.js`.
 - Keep the `id` and `data-act` attributes the browser tests use (`web/test/`), so the tests keep proving nothing changed for learners.
 - `cd web && npm test` builds the page, checks the size budget (100 KB compressed), type-checks, and runs the browser tests against development mode. Flows that need a passing solution are skipped without the reference answers.
 

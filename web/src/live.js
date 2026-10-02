@@ -491,7 +491,7 @@ git push
       <li><b>Accept the invitation</b><span>GitHub emails you an invitation to the Timirtbet organization. Accept it, then pick a challenge and start.</span></li></ol>`;
   }
   viewSignin=function(){
-    if(L.me)return viewProfile();
+    if(L.me){setTimeout(()=>go("profile"));return "";}// signed in: the account page instead
     return `<section class="panel narrow"><div class="pad"><h1 class="pg-h" style="font-size:26px">Get started with GitHub</h1>
       <p class="lede">Timirtbet uses your GitHub account instead of its own sign-up form. You write your solutions in a GitHub repository, then run the tests here when you're ready.</p>
       ${startSteps(false)}
@@ -499,79 +499,8 @@ git push
       <p class="muted" style="font-size:13px;margin:14px 0 0">Timirtbet asks GitHub for no permissions, so all it learns is your public username. Without an account you can still read every challenge and its tests.</p></div></section>`;
   };
 
-  viewProfile=function(){
-    if(!L.me)return viewSignin();const p=prof();
-    return `<div class="ex-head"><div class="lrn big">${avatar(L.me.login,"lg")}<div><p class="eyebrow" style="margin:0">Signed in with GitHub</p><h1 class="pg-h mono">@${esc(L.me.login)}</h1><div class="fol-row"><button class="linkish" data-act="user" data-login="${esc(L.me.login)}">Your public profile →</button></div></div></div></div>
-    <div class="stats"><div class="stat"><div class="v">${L.me.points}</div><div class="l">Points</div></div><div class="stat"><div class="v">${L.me.solved}</div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${p.score.toFixed(2)}</div><div class="l">Review score</div></div><div class="stat"><div class="v">${p.reputation}</div><div class="l">Reputation · ${p.level}</div></div></div>
-    <div class="two"><section class="panel"><h2>Your repository</h2><div class="pad">${L.me.repo?`<div class="cmd"><code id="cloneCmd">git clone https://github.com/${esc(L.me.repo)}.git</code><button class="btn small" data-act="copy" data-id="cloneCmd">Copy</button></div><p class="muted" style="font-size:13px">Accept the invitation to the Timirtbet organization that GitHub emailed you, then push to <code>main</code>.</p>`:`<p class="muted">Your repository is being set up. Sign out and in again if it doesn't appear.</p>`}</div></section>
-     <section class="panel"><h2>People</h2><div class="pad"><p class="muted" style="margin:0 0 10px;font-size:13.5px">Follow classmates to keep up with them. Anyone signed in can see your profile: your points, solved challenges, modules and reviewer level. Never your code.</p>${findForm()}</div></section>
-    </div>
-    <section class="panel data-card"><h2>Your data</h2><div class="pad">
-      <p class="dc-lede">Timirtbet keeps only what it needs to run your lessons, on Google Cloud in the United States. Anyone signed in can see your profile, never your code.</p>
-      <div class="dc-grid">
-        <div><p class="dc-h">What we keep</p><ul class="dc-list">
-          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>GitHub id and username</b><small>To sign you in. No password, no permissions.</small></span></li>
-          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Your code and test results</b><small>The solutions you run tests on, and how they did.</small></span></li>
-          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Reviews and ratings</b><small>Reviews you write and get, and the stars given.</small></span></li>
-          <li><span class="dc-ic ok" aria-hidden="true">✓</span><span><b>Your circle and who you follow</b><small>So reviews and updates reach the right people.</small></span></li></ul></div>
-        <div><p class="dc-h">What we never ask for</p><ul class="dc-never">${["Name","Email","Phone","Age","School","Location","Password"].map(x=>`<li>${x}</li>`).join("")}</ul>
-          <p class="dc-note">No tracking or advertising cookies either.</p></div>
-      </div>
-      <div class="dc-actions"><a class="btn" href="/api/me/export" download="timirtbet-export.json"><span aria-hidden="true">⤓</span> Download my data</a><span class="muted">One JSON file with everything listed here.</span></div>
-    </div></section>
-    <section class="panel acct-card"><h2>Account</h2><div class="pad">
-      <div class="acct-row"><div><b>Sign out</b><p>Signs you out of Timirtbet on every device.</p></div>${V.confirm==="signout"?`<span class="confirm"><button class="btn small" data-act="live-signout">Yes, sign out</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="btn" data-act="signout">Sign out</button>`}</div>
-      <details class="danger"${V.delOpen?" open":""}><summary><span><b>Delete my account</b><span class="danger-sub">Permanently remove your account and repository</span></span></summary>
-        <div class="danger-body"><p>This can't be undone. It will:</p><ul><li>delete your progress, points and solutions here</li><li>delete your repository <span class="mono">${esc(L.me.repo||"")}</span> on GitHub</li><li>remove you from the Timirtbet organization and your circle</li><li>keep reviews you wrote, without your name</li></ul>
-        <form class="form" data-form="delete"><label class="lbl-sm" for="delConfirm">To confirm, type <span class="mono">${esc(L.me.login)}</span></label><input id="delConfirm" class="mono" autocomplete="off" spellcheck="false" data-login="${esc(L.me.login)}"><div id="delErr" class="err" role="alert"></div><button class="btn danger-btn" type="submit" id="delBtn" disabled>Delete my account forever</button></form></div></details>
-    </div></section>`;
-  };
-
-  /* ---------- a learner's profile: /u/<login> ---------- */
-  L.users={};// login (lower case) -> {user} | {loading} | {error}; lists under .followers / .following
-  async function loadUser(login,force){
-    const k=login.toLowerCase();if(L.users[k]&&!force&&!L.users[k].error)return;
-    L.users[k]={...(L.users[k]||{}),loading:!L.users[k]||!L.users[k].user};
-    try{const r=await api("GET","/api/users/"+encodeURIComponent(login));L.users[k]={...L.users[k],user:r.user,loading:false,error:null};}
-    catch(e){L.users[k]={error:e.status===404?"No learner with that GitHub username has signed in to Timirtbet.":e.message};}
-    if(V.view==="user"&&(V.login||"").toLowerCase()===k){
-      const real=L.users[k].user&&L.users[k].user.login;// show the name as the learner spells it
-      if(real&&real!==V.login){V.login=real;if(ROUTED)history.replaceState(null,"",pathOf());}
-      render();}
-  }
-  async function loadPeople(login,tab){
-    const k=login.toLowerCase();
-    try{const r=await api("GET",`/api/users/${encodeURIComponent(login)}/${tab}`);L.users[k][tab]=r.people;}catch(e){L.users[k][tab]={error:e.message};}
-    if(V.view==="user"&&(V.login||"").toLowerCase()===k&&V.utab===tab)render();
-  }
-  function modulesOf(solved){
-    const has=new Set(solved);
-    return ["js","go"].map(lang=>{const ms=MODULES.filter(m=>m.lang===lang);
-      return `<div class="pm-lang"><b>${LANGN[lang]}</b><ul class="pm-list">${ms.map(m=>{const n=m.exercises.filter(id=>has.has(id)).length;
-        return `<li class="${n===m.exercises.length?"done":n?"started":"todo"}" title="Module ${modNum(m)} · ${esc(m.title)}: ${n} of ${m.exercises.length}"><span class="ms-dot" aria-hidden="true"></span><span>${modNum(m)}. ${esc(m.title)}</span><span class="mono muted">${n}/${m.exercises.length}</span></li>`;}).join("")}</ul></div>`;}).join("");
-  }
-  viewUser=function(){
-    if(!L.me)return signinNeeded("Sign in to see other learners' profiles and follow them.");
-    const login=V.login||"",k=login.toLowerCase(),e=L.users[k];
-    if(!e||(!e.user&&!e.error)){loadUser(login);return `<p class="muted" style="padding:40px 0">Loading @${esc(login)}…</p>`;}
-    if(e.error)return `<button class="back" data-act="view" data-v="circle">← Back</button><h1 class="pg-h mono">@${esc(login)}</h1><p class="lede">${esc(e.error)}</p>${findForm()}`;
-    const u=e.user,r=u.reviewer;
-    const follow=u.isMe?`<button class="btn" data-act="view" data-v="profile">Your account</button>`
-      :`<button class="btn${u.isFollowing?"":" primary"}" data-act="follow" data-login="${esc(u.login)}" aria-pressed="${u.isFollowing}">${u.isFollowing?"Following ✓":"Follow"}</button>`;
-    const tab=V.utab,list=tab&&e[tab];
-    const people=!tab?"":!list?`<p class="muted">Loading…</p>`:list.error?`<p class="err">${esc(list.error)}</p>`:list.length?`<ul class="people">${list.map(x=>`<li>${avatar(x.login,"sm")}${person(x.login)}<span class="lvl lvl${x.levelIndex} sm">${esc(x.level)}</span><span class="mono muted">${x.points} pts</span></li>`).join("")}</ul>`
-      :`<p class="muted">${tab==="followers"?(u.isMe?"Nobody follows you yet.":`Nobody follows @${esc(u.login)} yet.`):(u.isMe?"You don't follow anyone yet.":`@${esc(u.login)} doesn't follow anyone yet.`)}</p>`;
-    return `<div class="ex-head user-head"><div class="lrn big">${avatar(u.login,"lg")}<div><p class="eyebrow" style="margin:0">${u.circle?`Circle: ${esc(u.circle)}`:"Learner"}${u.joined?` · joined ${new Date(u.joined).toLocaleDateString(undefined,{month:"short",year:"numeric"})}`:""}</p><h1 class="pg-h mono">@${esc(u.login)}</h1>
-        <div class="fol-row"><button class="linkish" data-act="utab" data-t="followers"${tab==="followers"?' aria-current="true"':""}><b>${u.followers}</b> ${u.followers===1?"follower":"followers"}</button><button class="linkish" data-act="utab" data-t="following"${tab==="following"?' aria-current="true"':""}><b>${u.following}</b> following</button><a class="linkish" href="https://github.com/${esc(u.login)}" target="_blank" rel="noopener">GitHub ↗</a></div></div></div>${follow}</div>
-      ${tab?`<section class="panel"><h2>${tab==="followers"?"Followers":"Following"} <button class="linkish" data-act="utab" data-t="" style="float:right;font-weight:500">Close</button></h2><div class="pad">${people}</div></section>`:""}
-      <div class="stats"><div class="stat"><div class="v">${u.points}</div><div class="l">Points</div></div><div class="stat"><div class="v">${u.solved}<small>/${BANK.length}</small></div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${u.modulesReviewed}</div><div class="l">Modules reviewed</div></div><div class="stat"><div class="v">${u.reviewsGiven}</div><div class="l">Reviews written</div></div></div>
-      <div class="two"><section class="panel"><h2>Modules</h2><div class="pad">${modulesOf(u.solvedIds||[])}</div></section>
-        <section class="panel"><h2>As a reviewer</h2><div class="pad"><div class="prof-top"><div><div class="big">${r.score.toFixed(2)}<small> ★ score</small></div><div class="muted" style="font-size:13px">${r.ratings} rated reviews</div></div><span class="lvl lvl${r.levelIndex}">${esc(r.level)}</span></div><div class="rep-row"><span class="mono">${r.reputation} pts reputation</span></div></div></section></div>`;
-  };
-  function findForm(){return `<form class="form find-form" data-form="find"><label class="lbl-sm" for="findLogin">Find a learner by GitHub username</label><div class="find-row"><input id="findLogin" class="mono" maxlength="39" autocomplete="off" placeholder="username"><button class="btn" type="submit">Open profile</button></div></form>`;}
-
-  document.addEventListener("input",e=>{if(e.target.id==="delConfirm"){const b=document.getElementById("delBtn");if(b)b.disabled=e.target.value.trim()!==e.target.dataset.login;}});
-  document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches("details.danger"))V.delOpen=e.target.open;},true);
+  // The account screen (src/next/screens/profile.js) calls this after signing out or deleting the account.
+  TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}setBell();go("challenges");};
   // Signing in leaves the page for GitHub: remember where the learner was, to come back there.
   document.addEventListener("click",e=>{const a=e.target.closest('a[href="/api/auth/github"]');if(a){try{sessionStorage.setItem("timirtbet.return",location.pathname);}catch(_){}}},true);
   const liveClick=async(e)=>{
@@ -579,12 +508,7 @@ git push
     try{
       if(a==="notice-ok"){await api("POST","/api/me/notice");L.me.noticeSeen=true;render();}
       else if(a==="check"){runTests(el.dataset.id);}
-      else if(a==="user"){const lg=el.dataset.login;go("user",{login:lg,utab:null});if(L.users[lg.toLowerCase()])loadUser(lg,true);}
-      else if(a==="utab"){const t=el.dataset.t||null;V.utab=t;const k=(V.login||"").toLowerCase();if(t&&L.users[k])loadPeople(V.login,t);render();}
-      else if(a==="follow"){const k=el.dataset.login.toLowerCase(),e=L.users[k],on=!e.user.isFollowing;el.disabled=true;
-        await api(on?"POST":"DELETE",`/api/users/${encodeURIComponent(el.dataset.login)}/follow`);
-        e.user.isFollowing=on;e.user.followers+=on?1:-1;delete e.followers;const mine=L.users[L.me.login.toLowerCase()];if(mine)delete mine.following;
-        if(V.utab==="followers")loadPeople(V.login,"followers");render();}
+      else if(a==="user"){go("user",{login:el.dataset.login,utab:null});}
       else if(a==="nudge"){const id=el.dataset.id;el.disabled=true;el.textContent="Sending…";
         let bad=null;try{const r=await api("POST",`/api/submissions/${id}/nudge`);const s=L.subs.find(x=>x.id===id);if(s)s.nudgeAfter=r.nudgeAfter;L.nudged[id]=true;}catch(err){bad=err.message;}
         const pp=document.getElementById("prPanel");if(pp&&V.view==="exercise")pp.innerHTML=peerPanel(EXM[V.ex]);else render();
@@ -599,22 +523,20 @@ git push
         await loadAll();}
       else if(a==="rotate"){await api("POST",`/api/circles/${L.circle.id}/invite-code`);await loadAll();}
       else if(a==="live-leave"){V.confirm=null;await api("POST","/api/circles/leave");await loadAll();}
-      else if(a==="live-signout"){V.confirm=null;await api("POST","/api/auth/logout");L.me=null;useAccount(null);setBell();go("challenges");}
     }catch(err){alert0(err.message);}
   };
   function alert0(msg){app.insertAdjacentHTML("afterbegin",`<p class="err" role="alert">${esc(msg)}</p>`);}
   document.addEventListener("click",e=>{
+    if(e.target.closest("[data-next]"))return;// new (Preact) screens handle their own clicks
     const el=e.target.closest("[data-act]");if(!el)return;
     if(el.dataset.act==="rate"&&el.dataset.sub){e.stopImmediatePropagation();rate(+el.dataset.s,el.dataset.sub);return;}
     liveClick(e);
   },true);
   document.addEventListener("submit",async e=>{
-    const f=e.target;const kind=f.dataset.form;if(!kind)return;e.preventDefault();
+    const f=e.target;const kind=f.dataset.form;if(!kind||f.closest("[data-next]"))return;e.preventDefault();
     try{
       if(kind==="join"){await api("POST","/api/circles/join",{code:document.getElementById("joinCode").value});await loadAll();}
       else if(kind==="create"){await api("POST","/api/circles",{name:document.getElementById("cName").value,track:document.getElementById("cTrack").value});await loadAll();}
-      else if(kind==="delete"){await api("DELETE","/api/me",{confirm:document.getElementById("delConfirm").value.trim()});L.me=null;const was=owner;useAccount(null);try{localStorage.removeItem(ACCT(was));}catch(e){}setBell();go("challenges");}
-      else if(kind==="find"){const v=document.getElementById("findLogin").value.trim().replace(/^@/,"");if(/^[\w-]{1,39}$/.test(v))go("user",{login:v,utab:null});else throw new Error("Type a GitHub username.");}
       else if(kind==="second"){await api("POST",`/api/submissions/${f.dataset.id}/second-opinion`,{text:f.querySelector("textarea").value});await loadAll();}
     }catch(err){const box=f.querySelector(".err")||f;box.textContent=err.message;if(box===f)f.insertAdjacentHTML("beforeend",`<p class="err">${esc(err.message)}</p>`);}
   });

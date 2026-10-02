@@ -245,7 +245,7 @@ function render(){
   const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin,user:viewUser};
   if(CM){CM.destroy();CM=null;}
   // Migration bridge: a screen that has a new (Preact) version is drawn by src/next; the rest as before.
-  if(window.TBNext&&TBNext.has(V.view))TBNext.render(V.view,app);
+  if(window.TBNext&&TBNext.has(V.view))TBNext.render(V.view,app,V);
   else{if(window.TBNext)TBNext.unmount(app);app.innerHTML=(views[V.view]||viewChallenges)();}
   document.title=titleOf();
   upgradeEditor();
@@ -590,6 +590,7 @@ async function openReview(id){
 function code8(){const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<8;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
 
 document.addEventListener("click",e=>{
+  if(e.target.closest("[data-next]"))return;// new (Preact) screens handle their own clicks
   const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
   if(a==="view"){V.confirm=null;go(el.dataset.v);}
   else if(a==="filter"){S[el.dataset.k]=el.dataset.v;save();render();}
@@ -630,6 +631,8 @@ document.addEventListener("keydown",e=>{
 });
 /*__I18N__*/
 if(ROUTED)applyRoute(location.pathname);
+// What the new screens (src/next) still use from this file during the migration. Shrinks as screens move.
+window.TBOld={go,copyBtn,modNum,BANK,MODULES,LANGN,ROUTED};
 /*__LIVE__*/
 render();
 I18N.start();

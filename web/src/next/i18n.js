@@ -25,3 +25,17 @@ export function t(key, params) {
   const text = (lang.value === "am" && /** @type {Record<string, string>} */ (am)[key]) || en[key] || key;
   return params ? text.replace(/\{(\w+)\}/g, (m, p) => (p in params ? String(params[p]) : m)) : text;
 }
+
+/** @type {Map<string, string> | null} */
+let byText = null;
+/**
+ * Translates a piece of English that comes from data rather than code (a module title,
+ * a reviewer level), when the messages have it. Otherwise returns it unchanged.
+ * @param {string} english
+ */
+export function tText(english) {
+  if (lang.value !== "am") return english;
+  if (!byText) { byText = new Map(); for (const k of /** @type {MessageKey[]} */ (Object.keys(en))) byText.set(en[k], k); }
+  const key = byText.get(english);
+  return (key && /** @type {Record<string, string>} */ (am)[key]) || english;
+}
