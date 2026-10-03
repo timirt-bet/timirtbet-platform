@@ -301,7 +301,7 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
       }
       if (req.method === "GET" && p === "/api/reviews/given") {
         const done = (await store.assignedTo(me.id)).filter((s) => s.review);
-        return json(res, 200, { reviews: done.map((s) => ({ id: s.id, exerciseId: s.exerciseId, review: s.review, rating: s.rating || null })) });
+        return json(res, 200, { reviews: done.map((s) => ({ id: s.id, moduleId: s.moduleId || null, exerciseId: s.exerciseId, review: s.review, rating: s.rating || null })) });
       }
       if (req.method === "POST" && (m = p.match(/^\/api\/submissions\/([\w-]+)\/review$/))) {
         const sub = await store.getSubmission(m[1]);

@@ -46,12 +46,24 @@ test("submit, see the reviewer and clock, nudge, review, rate", { skip: NEEDS_AN
   // Write the review: the Send button waits for the rubric and 40 characters.
   assert.equal(await reviewer.locator("#rvSend").isDisabled(), true);
   for (const b of await reviewer.locator('[data-act="rub"][data-v="2"]').all()) await b.click();
+  await reviewer.fill("#rvText", "Clear names in describe");
+  assert.match(await reviewer.text("#rvCount"), /^17 more characters$/);
+  // The draft survives leaving the page; the list offers to continue it.
+  await reviewer.open("/reviews");
+  assert.match(await reviewer.text('.q-row [data-act="review"]'), /Continue review/);
+  await reviewer.locator('.q-row [data-act="review"]').click(); await reviewer.waitForSelector("#rvText");
+  assert.equal(await reviewer.locator("#rvText").inputValue(), "Clear names in describe");
+  assert.equal(await reviewer.locator('[data-act="rub"][aria-pressed="true"]').count(), 3);
   await reviewer.fill("#rvText", "Clear names in describe and greet. In the loop, sum with reduce to make it shorter.");
   await reviewer.waitForTimeout(100);
+  assert.match(await reviewer.text("#rvCount"), /Long enough/);
   assert.equal(await reviewer.locator("#rvSend").isDisabled(), false);
-  await reviewer.locator("#rvSend").click(); await reviewer.waitForTimeout(600);
+  await reviewer.locator("#rvSend").click(); await reviewer.waitForSelector(".rv-flash");
   assert.equal(new URL(reviewer.url()).pathname, "/reviews");
+  assert.match(await reviewer.text(".rv-flash"), /Review sent/);
   assert.equal(await reviewer.locator(".q-row").count(), 0);
+  assert.match(await reviewer.text(".rv-empty"), /all caught up/);
+  assert.match(await reviewer.text(".past .act"), /Waiting for rating/);
 
   // The author sees the review and rates it.
   await author.open("/challenges/js/basic/func");
@@ -62,7 +74,7 @@ test("submit, see the reviewer and clock, nudge, review, rate", { skip: NEEDS_AN
 
   // The reviewer hears about the rating.
   await reviewer.open("/reviews");
-  assert.match(await reviewer.text(".panel .act"), /★★★★☆/);
+  assert.match(await reviewer.text(".past .act"), /Module 1 · .*★★★★☆\s*\+6 pts/);
   await reviewer.close(); await author.close();
 });
 

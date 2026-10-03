@@ -159,10 +159,7 @@ if(LIVE){
     const resave=m.exercises.filter(id=>L.solved.has(id)&&!L.saved.has(id));
     return {passed,total:m.exercises.length,sub,resave,err:L.modErr[m.id],ready:passed===m.exercises.length&&!resave.length&&!open};
   };
-  // A review is for a module (all its solutions together) or, for older submissions, one challenge.
-  const unitOf=s=>{const m=s.moduleId&&MODM[s.moduleId];
-    if(m)return {title:`Module ${modNum(m)} · ${m.title}`,lang:m.lang,sub:`${m.exercises.length} challenges`,items:(s.items||[]).map(i=>({ex:EXM[i.exerciseId],code:i.code,passed:i.passed,total:i.total}))};
-    const e=EXM[s.exerciseId];return {title:e.title,lang:e.lang,sub:`${e.topic} · ${diffOf(e)}`,items:[{ex:e,code:s.code,passed:s.tests.passed,total:s.tests.total}]};};
+  // A module or challenge title, for notifications.
   const unitTitle=id=>MODM[id]?`Module ${modNum(MODM[id])} · ${MODM[id].title}`:(EXM[id]?EXM[id].title:id);
   // A learner's name, linking to their profile.
   const person=(login,cls)=>login?`<button class="linkish mono who-link${cls?" "+cls:""}" data-act="user" data-login="${esc(login)}">@${esc(login)}</button>`:"";
@@ -180,6 +177,7 @@ if(LIVE){
     return `<span class="due ${dueClass(ms)}" data-due="${esc(dueAt)}" role="timer"><span class="due-t">${leftText(ms)}</span><span class="due-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,ms/REVIEW_MS*100))}%"></i></span></span>`;
   }
   setInterval(()=>{document.querySelectorAll("[data-due]").forEach(el=>{
+    if(el.closest("[data-next]"))return;// new screens redraw their own clocks
     const ms=Date.parse(el.dataset.due)-Date.now();el.className="due "+dueClass(ms);
     el.querySelector(".due-t").textContent=leftText(ms);el.querySelector(".due-bar i").style.width=Math.max(0,Math.min(100,ms/REVIEW_MS*100))+"%";
   });},30000);
@@ -445,33 +443,8 @@ git push
   };
   function alertIn(id,msg){const el=document.getElementById(id);if(el)el.insertAdjacentHTML("afterbegin",`<p class="err" role="alert">${esc(msg)}</p>`);}
 
-  viewReviews=function(){
-    if(!L.me)return signinNeeded("Sign in to review other learners' code and build a reviewer reputation.");
-    const p=prof();const nx=LEVELS[p.levelIndex+1];
-    const rows=L.queue.map(s=>{const u=unitOf(s);return `<div class="q-row"><span class="ic mono">${u.lang==="js"?"JS":"Go"}</span><div><div class="t">${esc(u.title)} <span class="muted">· ${esc(u.sub)}</span></div><div class="tch">assigned ${ago(Date.parse(s.assignedAt||s.at))}</div>${clock(s.dueAt)}</div><button class="btn small primary" data-act="review" data-id="${s.id}">Review</button></div>`;}).join("")||`<p class="muted">Nothing waiting for you. Solve more challenges to review more of them.</p>`;
-    const flagged=p.levelIndex>=3?`<h2 class="h2">Second opinions (Mentors)</h2><div class="queue">${L.flagged.map(s=>{const u=unitOf(s);return `<div class="panel"><div class="pad"><b>${esc(u.title)}</b> <span class="muted">· review rated ★1</span><p style="font-size:14px">${esc(s.review.text)}</p>${u.items.map(i=>`<p class="lbl-sm" style="margin:10px 0 4px">${esc(i.ex.title)}</p>${codeBlock(i.code||"")}`).join("")}<form class="form" data-form="second" data-id="${s.id}" style="margin-top:10px"><label class="lbl-sm" for="so-${s.id}">Your second opinion</label><textarea id="so-${s.id}" rows="3"></textarea><button class="btn small" type="submit">Send</button></form></div></div>`;}).join("")||`<p class="muted">No flagged reviews.</p>`}</div>`:"";
-    return `<p class="eyebrow">Reviews</p><h1 class="pg-h">Review code, earn reputation</h1><p class="lede">You review a module only after finishing it yourself. You don't see who wrote the code. The author sees your name and the time left: each review is due within 72 hours.</p>
-    <div class="grid2" style="margin-top:20px"><div><div class="queue">${rows}</div>
-     <h2 class="h2">Ratings your reviews got</h2><div class="panel"><div class="pad">${L.given.slice().reverse().map(g=>`<div class="act"><span><b>${esc(unitTitle(g.exerciseId))}</b><br><span class="muted" style="font-size:12.5px">${esc(g.review.text.slice(0,110))}${g.review.text.length>110?"…":""}</span></span><span class="starsv">${g.rating?stars(g.rating)+` <span class="mono muted" style="font-size:12px">${PTS[g.rating]>0?"+":""}${PTS[g.rating]}</span>`:"not rated yet"}</span></div>`).join("")||`<p class="muted">No reviews yet.</p>`}</div></div>${flagged}</div>
-     <aside class="side"><section class="panel prof"><h2>Your reviewer profile</h2><div class="pad"><div class="prof-top"><div><div class="big">${p.score.toFixed(2)}<small> ★ score</small></div><div class="muted" style="font-size:13px">${p.ratings} rated reviews</div></div><span class="lvl lvl${p.levelIndex}">${p.level}</span></div><div class="rep-row"><span class="mono">${p.reputation} pts</span><span class="muted">${nx?`${nx.min-p.reputation} to ${nx.n}`:"Top level"}</span></div><div class="bar"><i style="width:${nx?Math.round((p.reputation-LEVELS[p.levelIndex].min)/(nx.min-LEVELS[p.levelIndex].min)*100):100}%"></i></div>${p.probation?`<p class="err" style="margin-top:10px">On probation: no new reviews until your score recovers above 3.0.</p>`:""}</div></section>${howRep()}</aside></div>`;
-  };
-  openReview=function(id){go("review",{qid:id,rvDraft:{rub:{c:0,r:0,s:0},text:""},rvAuto:null});};
-  viewReview=function(){
-    const s=L.queue.find(x=>x.id===V.qid);if(!s)return viewReviews();const u=unitOf(s);const d=V.rvDraft;
-    return `<button class="back" data-act="view" data-v="reviews">← Reviews</button><p class="eyebrow">${LANGN[u.lang]} · ${esc(u.sub)}</p><h1 class="pg-h">Review: ${esc(u.title)}</h1>
-    <div class="rv-due"><span class="muted">Due</span>${clock(s.dueAt)}<span class="muted">The author can see this clock too.</span></div>
-    <div class="ex-grid"><div class="side"><div class="panel"><h2>Tasks</h2><div class="pad">${u.items.map(i=>`<details class="task-d"><summary><b>${esc(i.ex.title)}</b></summary><div class="prompt">${mdLite(i.ex.prompt)}</div></details>`).join("")}</div></div><div class="panel"><h2>Automatic tests</h2><div class="pad"><b class="okc">${s.tests.passed} / ${s.tests.total} passed on the grader</b></div></div></div>
-     <div>${u.items.map(i=>`<div class="panel"><h2>${esc(i.ex.title)} <span class="muted mono" style="font-size:12px;font-weight:500">${solutionFile(i.ex)}</span></h2>${codeBlock(i.code||"")}</div>`).join("")}<section class="panel"><h2>Your review</h2><div class="pad rv-form" id="rvBox">
-      ${Object.keys(RUBN).map(k=>`<div class="rub-row"><span>${RUBN[k]}</span><div class="seg" role="group" aria-label="${RUBN[k]}">${[1,2,3].map(v=>`<button data-act="rub" data-k="${k}" data-v="${v}" aria-pressed="${d.rub[k]===v}">${RUBV[v]}</button>`).join("")}</div></div>`).join("")}
-      <label for="rvText" class="lbl-sm">Your comment</label><textarea id="rvText" rows="6" placeholder="Name the challenge and line, say what works, and suggest one change.">${esc(d.text)}</textarea>
-      <div class="rv-foot"><span class="muted mono" id="rvCount" style="font-size:12px">${d.text.trim().length} / 40 characters minimum</span><button class="btn primary" data-act="sendreview" id="rvSend" ${canSend(d)?"":"disabled"}>Send review</button></div></div></section></div></div>`;
-  };
-  sendReview=async function(){
-    const d=V.rvDraft;if(!canSend(d))return;
-    try{await api("POST",`/api/submissions/${V.qid}/review`,{rubric:{correctness:d.rub.c,readability:d.rub.r,style:d.rub.s},text:d.text});await loadAll();go("reviews");}
-    catch(e){alertIn("rvBox",e.message);}
-  };
-
+  // The reviews list and the review page are in src/next/screens/reviews.js.
+  openReview=function(id){go("review",{qid:id});};
   // The circle screen is in src/next/screens/circle.js.
   // What a newcomer needs before they can solve anything: a GitHub account, then one sign-in.
   function startSteps(compact){
@@ -520,11 +493,5 @@ git push
     if(el.dataset.act==="rate"&&el.dataset.sub){e.stopImmediatePropagation();rate(+el.dataset.s,el.dataset.sub);return;}
     liveClick(e);
   },true);
-  document.addEventListener("submit",async e=>{
-    const f=e.target;const kind=f.dataset.form;if(!kind||f.closest("[data-next]"))return;e.preventDefault();
-    try{
-      if(kind==="second"){await api("POST",`/api/submissions/${f.dataset.id}/second-opinion`,{text:f.querySelector("textarea").value});await loadAll();}
-    }catch(err){const box=f.querySelector(".err")||f;box.textContent=err.message;if(box===f)f.insertAdjacentHTML("beforeend",`<p class="err">${esc(err.message)}</p>`);}
-  });
   loadAll();
 }

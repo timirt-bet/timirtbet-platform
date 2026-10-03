@@ -11,6 +11,7 @@ import { state, refresh, bridge } from "./state.js";
 import { ProfileScreen } from "./screens/profile.js";
 import { UserScreen } from "./screens/user.js";
 import { CircleScreen } from "./screens/circle.js";
+import { ReviewsScreen, ReviewScreen } from "./screens/reviews.js";
 
 /** @type {Map<string, import("preact").ComponentType<any>>} */
 const screens = new Map();
@@ -60,4 +61,6 @@ if (window.TIMIRTBET_MODE === "live") {
   register("profile", ProfileScreen);
   register("user", UserScreen);
   register("circle", CircleScreen);
+  register("reviews", ReviewsScreen);
+  register("review", ReviewScreen);
 }

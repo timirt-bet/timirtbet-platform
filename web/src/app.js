@@ -620,6 +620,7 @@ document.addEventListener("submit",e=>{
 });
 let draftT=null;
 document.addEventListener("input",e=>{
+  if(e.target.closest&&e.target.closest("[data-next]"))return;// new screens handle their own input
   if(e.target.id==="editor"){const g=document.getElementById("gut");if(g)g.textContent=gutter(e.target.value);clearTimeout(draftT);const id=V.ex,v=e.target.value;draftT=setTimeout(()=>{S.drafts[id]=v;save();},400);const sb=document.getElementById("subBtn");if(sb)sb.disabled=!canSubmit(EXM[V.ex],v);}
   if(e.target.id==="rvText"){V.rvDraft.text=e.target.value;document.getElementById("rvCount").textContent=e.target.value.trim().length+" / 40 characters minimum";document.getElementById("rvSend").disabled=!canSend(V.rvDraft);}
 });
