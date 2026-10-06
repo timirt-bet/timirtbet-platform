@@ -13,8 +13,8 @@ test("a registered screen is drawn by the new code; old screens still work aroun
   await p.evaluate(() => window.TBNext.register("circle", () => "New circle screen"));
   await p.locator('nav.main [data-v="circle"]').click(); await p.waitForTimeout(200);
   assert.equal(await p.text("#app"), "New circle screen");
-  await p.locator('nav.main [data-v="challenges"]').click(); await p.waitForTimeout(200);
-  assert.ok(await p.locator(".tracks").count() >= 1, "back on an old screen");
+  await p.evaluate(() => window.TBOld.openEx("js-vars")); await p.waitForTimeout(300);
+  assert.ok(await p.locator("#testList").count() >= 1, "back on an old screen (the challenge page)");
   assert.equal(await p.locator("#app[data-next]").count(), 0, "the old screen owns #app again");
   await p.goBack(); await p.waitForTimeout(200);
   assert.equal(await p.text("#app"), "New circle screen", "Back returns to the new screen");

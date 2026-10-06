@@ -242,18 +242,18 @@ function render(){
   document.getElementById("nav").innerHTML=nav.map(([v,l])=>`<button data-act="view" data-v="${v}" ${cur===v?'aria-current="page"':""}>${l}</button>`).join("");
   document.getElementById("who").innerHTML=me()?`<button class="who" data-act="view" data-v="profile">${avatar(me())}<span class="mono">@${esc(me())}</span></button>`:`<button class="btn gh-btn small" data-act="view" data-v="signin">${GH}Sign in</button>`;
   if(V.view!=="exercise"&&V.view!=="review")stopTick();
-  const views={challenges:viewChallenges,track:viewTrack,exercise:viewExercise,reviews:viewReviews,review:viewReview,circle:viewCircle,profile:viewProfile,signin:viewSignin,user:viewUser};
+  // Every other screen is in src/next (see TBNext below).
+  const views={exercise:viewExercise,signin:viewSignin};
   if(CM){CM.destroy();CM=null;}
   // Migration bridge: a screen that has a new (Preact) version is drawn by src/next; the rest as before.
   if(window.TBNext&&TBNext.has(V.view))TBNext.render(V.view,app,V);
-  else{if(window.TBNext)TBNext.unmount(app);app.innerHTML=(views[V.view]||viewChallenges)();}
+  else{if(window.TBNext)TBNext.unmount(app);app.innerHTML=(views[V.view]||(()=>""))();}
   document.title=titleOf();
   upgradeEditor();
   document.getElementById("resetZone").innerHTML=V.confirm==="reset"?`<span class="confirm">Clear everything on this device? <button class="btn small" data-act="reset-yes">Yes, reset</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="linkish" data-act="reset">Reset demo</button>`;
 }
 const GH=`<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>`;
 function go(view,extra){stopTick();Object.assign(V,{view},extra||{});if(ROUTED&&location.pathname!==pathOf())history.pushState(null,"",pathOf());render();window.scrollTo(0,0);}
-function viewUser(){return viewChallenges();}// learners' profiles are on the live site only
 /* ---------- routing (live site): every page has its own address and title ----------
    /                                   the two tracks
    /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
@@ -315,48 +315,6 @@ const TRACKS={
     code:`<i class="k">func</i> <i class="f">greet</i>(name <i class="t">string</i>) <i class="t">string</i> {\n    <i class="k">return</i> <i class="s">"Selam, "</i> + name + <i class="s">"!"</i>\n}\n\n<i class="c">// greet("Abebe") → "Selam, Abebe!"</i>`}
 };
 const TRACK_IMG=/*__TRACKIMG__*/{};
-function trackCard(k){
-  const t=TRACKS[k],all=BANK.filter(e=>e.lang===k),done=all.filter(e=>passedEx(e.id)).length;
-  const basic=all.filter(e=>e.level==="basic").length,pts=all.reduce((a,e)=>a+ptsOf(e),0);
-  const topics=[...new Set(all.map(e=>e.topic))];
-  const cta=done===0?`Start ${LANGN[k]}`:done===all.length?"Review solutions":`Continue · ${done}/${all.length}`;
-  return `<button class="track track-${k}" data-act="track" data-v="${k}" aria-label="${LANGN[k]}: ${all.length} challenges">
-   <span class="track-cover" aria-hidden="true"><span class="track-dots"><i></i><i></i><i></i><span class="mono">${k==="js"?"solution.js":"solution.go"}</span></span><pre class="track-code">${t.code}</pre></span>
-   <span class="track-body">
-    <span class="track-head"><img class="track-logo track-logo-${k}" src="${TRACK_IMG[k]}" alt=""><b>${LANGN[k]}</b><span class="mono muted">${all.length} challenges</span></span>
-    <span class="track-blurb">${t.blurb}</span>
-    <span class="track-topics">${topics.slice(0,6).map(x=>`<span>${esc(x)}</span>`).join("")}${topics.length>6?`<span class="more">+${topics.length-6} more</span>`:""}</span>
-    <span class="track-stats"><span><b>${basic}</b> basic</span><span><b>${all.length-basic}</b> advanced</span><span><b>${pts}</b> points</span></span>
-    <span class="track-foot"><span class="bar"><i style="width:${all.length?done/all.length*100:0}%"></i></span><span class="track-cta">${cta} →</span></span>
-   </span></button>`;
-}
-function viewChallenges(){
-  const solved=BANK.filter(e=>passedEx(e.id)).length;
-  return `<h1 class="sr-only">Choose a track</h1><div class="tracks">${trackCard("js")}${trackCard("go")}</div>
-   <div class="home-side">${progressCard(solved)}${circleMini()}${howCard()}</div>`;
-}
-function viewTrack(){
-  const k=S.track==="go"?"go":"js",all=BANK.filter(e=>e.lang===k);
-  const keep=e=>(S.diff==="all"||diffOf(e)===S.diff)&&(S.statusF==="all"||(S.statusF==="solved"?passedEx(e.id):!passedEx(e.id)));
-  const solved=BANK.filter(e=>passedEx(e.id)).length,done=all.filter(e=>passedEx(e.id)).length;
-  const chip=(key,v,l)=>`<button data-act="filter" data-k="${key}" data-v="${v}" aria-pressed="${S[key]===v}">${l}</button>`;
-  const row=e=>{const st=status(e.id),d=diffOf(e);return `<button class="ch-row" data-act="open" data-id="${e.id}"><span class="ch-main"><b>${esc(e.title)}</b><span class="muted">${esc(e.topic)} · ${e.level==="basic"?"Basic":"Advanced"}</span></span><span class="diff ${d.toLowerCase()}">${d}</span><span class="mono pts">${ptsOf(e)} pts</span><span class="st ${st.k}">${esc(st.l)}</span></button>`;};
-  const filtered=S.diff!=="all"||S.statusF!=="all";const langMods=MODULES.filter(m=>m.lang===k&&(!V.level||EXM[m.exercises[0]].level===V.level));
-  const lvTab=(v,l)=>`<button data-act="level" data-v="${v}" aria-pressed="${(V.level||"")===v}">${l}</button>`;
-  const current=(langMods.find(m=>{const ms=moduleState(m);return !(ms.passed===ms.total&&ms.sub&&ms.sub.status==="rated");})||{}).id;
-  S.modOpen=S.modOpen||{};
-  const mods=langMods.map(m=>{const list=m.exercises.map(id=>EXM[id]).filter(keep);if(!list.length)return "";const ms=moduleState(m);
-    const open=filtered||(S.modOpen[m.id]!=null?S.modOpen[m.id]:m.id===current);
-    return `<details class="mod" data-mod="${m.id}"${open?" open":""}><summary class="mod-h"><span class="mod-chev" aria-hidden="true"></span><span class="mod-t"><span class="mod-n">Module ${modNum(m)}</span><span class="mod-title">${esc(m.title)}</span></span><span class="mod-meta">${modChip(ms)}<span class="mod-bar" aria-hidden="true"><i style="width:${Math.round(ms.passed/ms.total*100)}%"></i></span><span class="mod-prog mono">${ms.passed}/${ms.total} passed</span></span></summary><div class="panel ch-list">${list.map(row).join("")}<div class="mod-foot">${moduleFoot(m,ms)}</div></div></details>`;}).join("")||`<p class="muted" style="padding:16px">No challenges match these filters.</p>`;
-  return `<button class="back" data-act="view" data-v="challenges">← All tracks</button>
-  <header class="track-title track-${k}"><img class="track-logo track-logo-${k} track-logo-lg" src="${TRACK_IMG[k]}" alt=""><div><h1>${LANGN[k]}</h1><p class="muted">${TRACKS[k].blurb}</p></div><span class="mono muted track-count">${done}/${all.length} solved</span></header>
-  <div class="grid2"><div>
-   <div class="seg-tabs lvl-tabs" role="group" aria-label="Level">${lvTab("","All modules")}${lvTab("basic","Basic")}${lvTab("advanced","Advanced")}</div>
-   <div class="toolbar"><div class="chips" role="group" aria-label="Difficulty">${chip("diff","all","All")}${chip("diff","Easy","Easy")}${chip("diff","Medium","Medium")}${chip("diff","Hard","Hard")}</div>
-    <div class="chips" role="group" aria-label="Status">${chip("statusF","all","Any")}${chip("statusF","unsolved","Unsolved")}${chip("statusF","solved","Solved")}</div></div>
-   ${mods}</div>
-   <aside class="side">${progressCard(solved)}${circleMini()}${modHowCard()}</aside></div>`;
-}
 /* Module state and actions. Demo mode has no server grader, so modules can't go to review there; live.js replaces these. */
 function moduleState(m){const passed=m.exercises.filter(id=>passedEx(id)).length;return {passed,total:m.exercises.length,sub:null,ready:false,demo:true};}
 function moduleFoot(m,ms,inline){
@@ -372,28 +330,8 @@ function moduleFoot(m,ms,inline){
   if(ms.ready)return `<span class="okc">All ${ms.total} passed.</span><button class="btn small primary" data-act="submit-module" data-id="${m.id}">Submit module for review</button>${err}`;
   return `<span class="muted">${PUSH_ONLY?`Push all ${ms.total} challenges from your GitHub repository to submit this module for review.`:`Pass all ${ms.total} challenges on the grader to submit this module for review.`}</span>`;
 }
-function modChip(ms){const sub=ms.sub;
-  if(sub&&sub.status==="rated")return `<span class="st done">Reviewed ★${sub.rating}</span>`;
-  if(sub&&sub.status==="reviewed")return `<span class="st act">Rate the review</span>`;
-  if(sub)return `<span class="st wait">In review</span>`;
-  if(ms.ready)return `<span class="st act">Ready to submit</span>`;
-  return "";}
-document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.mod[data-mod]")){S.modOpen=S.modOpen||{};S.modOpen[d.dataset.mod]=d.open;save();}},true);
 function moduleReady(m,ms){return ms.passed===ms.total;}
 function modHowCard(){return `<details class="panel how"><summary>How module review works</summary><div class="pad"><ol class="steps"><li>Commit each challenge to your GitHub repository and run the tests here</li><li>Every pass earns points</li><li>When every challenge in a module passes, submit the module</li><li>Someone who finished that module reviews all of it within 72 hours</li><li>You rate the review ★1–5</li></ol><p class="muted" style="font-size:13px;margin:10px 0 0">Reviewers must have finished the same module. You see who reviews your module; they don't see who wrote it.</p></div></details>`;}
-function progressCard(solved){
-  const pts=myPoints(),max=BANK.reduce((a,e)=>a+ptsOf(e),0);
-  if(!me())return `<section class="panel"><h2>Practising as a guest</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">Every challenge and its tests work without an account; your code stays in this browser. Sign in with GitHub to submit for review and join a circle.</p><button class="btn gh-btn" data-act="view" data-v="signin">${GH}Sign in with GitHub</button></div></section>`;
-  return `<section class="panel"><h2>Your progress</h2><div class="pad"><div class="kpis"><div><div class="k">${pts}</div><div class="muted">points</div></div><div><div class="k">${solved}<small>/${BANK.length}</small></div><div class="muted">solved</div></div><div><div class="k">${scoreOf(myRatings()).toFixed(1)}</div><div class="muted">review score</div></div></div><div class="bar" style="margin-top:12px"><i style="width:${pts/max*100}%"></i></div><div class="muted mono" style="font-size:12px;margin-top:4px">${pts} of ${max} points</div></div></section>`;
-}
-function circleMini(){
-  if(!me())return "";
-  if(!S.circle)return `<section class="panel"><h2>Review circle</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You're not in a circle, so reviews come from the wider pool. Join friends with an invite code, or start your own.</p><button class="btn" data-act="view" data-v="circle">Find a circle</button></div></section>`;
-  const waiting=QUEUE.filter(q=>!S.done.includes(q.id)&&passedEx(q.ex)&&inCircle(q.author)).length;
-  return `<section class="panel"><h2>${esc(S.circle.name)}</h2><div class="pad"><div class="avs">${[me()].concat(S.circle.members).map(m=>avatar(m)).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${S.circle.members.length+1} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${waiting?`<button class="btn primary" data-act="view" data-v="reviews">${waiting} to review</button>`:""}</div></div></section>`;
-}
-function howCard(){return modHowCard();}// reviews are per module
-
 /* ---------- a challenge ---------- */
 /* CodeMirror 6 (web/editor) replaces the plain textarea once its script has loaded; the textarea is the fallback. */
 let CM=null;
@@ -457,65 +395,16 @@ function peerPanel(ex){
 }
 
 /* ---------- reviews ---------- */
-function viewReviews(){
-  if(!me())return signinNeeded("Sign in to review other learners' code and build a reviewer reputation.");
-  const items=QUEUE.map(q=>({...q,e:EXM[q.ex],locked:!passedEx(q.ex),done:S.done.includes(q.id),circle:inCircle(q.author)})).sort((a,b)=>(a.done-b.done)||(b.circle-a.circle)||(a.locked-b.locked));
-  const r=myRatings(),rep=repOf(r),lv=levelOf(rep),nx=LEVELS[lv+1];
-  return `<p class="eyebrow">Reviews</p><h1 class="pg-h">Review code, earn reputation</h1><p class="lede">You can review a challenge once you've solved it. Circle members' code comes first. You don't see who wrote it, and they don't see who reviewed it.</p>
-  <div class="grid2" style="margin-top:20px"><div><div class="queue">${items.map(q=>`<div class="q-row ${q.locked?"locked":""}"><span class="ic mono">${q.e.lang==="js"?"JS":"Go"}</span><div><div class="t">${esc(q.e.title)} <span class="muted">· ${esc(q.e.topic)}</span></div><div class="tch">${q.circle?`<span class="tag">Your circle</span>`:`<span class="tag quiet">Wider pool</span>`} ${diffOf(q.e)}</div></div>${q.done?`<span class="st done">Reviewed</span>`:q.locked?`<button class="btn small" data-act="open" data-id="${q.ex}">Solve it first</button>`:`<button class="btn small primary" data-act="review" data-id="${q.id}">Review</button>`}</div>`).join("")}</div>
-   <h2 class="h2">Ratings your reviews got</h2><div class="panel"><div class="pad">${S.given.slice().reverse().map(g=>{const shown=g.stars&&Date.now()>=g.revealAt;return `<div class="act"><span><b>${esc(EXM[g.ex].title)}</b><br><span class="muted" style="font-size:12.5px">${esc(g.text.slice(0,110))}${g.text.length>110?"…":""}</span></span><span class="starsv">${shown?stars(g.stars)+` <span class="mono muted" style="font-size:12px">${PTS[g.stars]>0?"+":""}${PTS[g.stars]}</span>`:"waiting…"}</span></div>`;}).join("")||`<p class="muted">No rated reviews yet.</p>`}</div></div></div>
-   <aside class="side"><section class="panel prof"><h2>Your reviewer profile</h2><div class="pad"><div class="prof-top"><div><div class="big">${scoreOf(r).toFixed(2)}<small> ★ score</small></div><div class="muted" style="font-size:13px">${r.length} rated reviews</div></div><span class="lvl lvl${lv}">${LEVELS[lv].n}</span></div><div class="rep-row"><span class="mono">${rep} pts</span><span class="muted">${nx?`${nx.min-rep} to ${nx.n}`:"Top level"}</span></div><div class="bar"><i style="width:${nx?Math.round((rep-LEVELS[lv].min)/(nx.min-LEVELS[lv].min)*100):100}%"></i></div></div></section>${howRep()}</aside></div>`;
-}
-function howRep(){return `<details class="panel how"><summary>How scores and reputation work</summary><div class="pad"><p><b>Review score</b> is a weighted average of the stars your reviews get. Everyone starts at 3.5:</p><p class="formula mono">(5 × 3.5 + sum of stars) ÷ (5 + ratings)</p><p><b>Points</b> per rated review: ★5 +10 · ★4 +6 · ★3 +2 · ★2 −3 · ★1 −6.</p><p><b>Levels:</b> New (0) → Helpful (30) → Trusted (100) → Mentor (250). Hard challenges go to Helpful reviewers and above first.</p><p><b>Probation:</b> 4 or more ratings with a score under 3.0 pauses new reviews until it recovers.</p></div></details>`;}
-function viewReview(){
-  const q=QUEUE.find(x=>x.id===V.qid);const ex=EXM[q.ex];const g=S.given.find(x=>x.qid===q.id);const d=V.rvDraft;const a=V.rvAuto;
-  const form=g?reviewResult(g):`<section class="panel"><h2>Your review</h2><div class="pad rv-form">
-    ${Object.keys(RUBN).map(k=>`<div class="rub-row"><span>${RUBN[k]}</span><div class="seg" role="group" aria-label="${RUBN[k]}">${[1,2,3].map(v=>`<button data-act="rub" data-k="${k}" data-v="${v}" aria-pressed="${d.rub[k]===v}">${RUBV[v]}</button>`).join("")}</div></div>`).join("")}
-    <label for="rvText" class="lbl-sm">Your comment</label><textarea id="rvText" rows="6" placeholder="Point to a line, say what works, and suggest one change.">${esc(d.text)}</textarea>
-    <div class="rv-foot"><span class="muted mono" id="rvCount" style="font-size:12px">${d.text.trim().length} / 40 characters minimum</span><button class="btn primary" data-act="sendreview" id="rvSend" ${canSend(d)?"":"disabled"}>Send review</button></div>
-    <ul class="tips"><li>Name a line or identifier, like “line 3” or <code>total</code>.</li><li>Say why, not just what.</li><li>Suggest one change the author can make.</li></ul></div></section>`;
-  return `<button class="back" data-act="view" data-v="reviews">← Reviews</button><p class="eyebrow">${LANGN[ex.lang]} · ${esc(ex.topic)} · ${inCircle(q.author)?"from your circle":"from the wider pool"}</p><h1 class="pg-h">Review: ${esc(ex.title)}</h1>
-  <div class="ex-grid"><div class="side"><div class="panel"><h2>Task</h2><div class="pad prompt">${mdLite(ex.prompt)}</div></div><div class="panel"><h2>Automatic tests</h2><div class="pad" id="rvAuto">${a?`<b class="${a.p===a.t?"okc":"badc"}">${a.p} / ${a.t} ${ex.lang==="js"?"tests":"checks"} passed</b>`:`<span class="muted">Running…</span>`}</div></div></div>
-   <div><div class="panel"><h2>The solution</h2>${codeBlock(q.code)}</div>${form}</div></div>`;
-}
 const canSend=d=>d.text.trim().length>=40&&d.rub.c&&d.rub.r&&d.rub.s;
-function reviewResult(g){
-  if(Date.now()<g.revealAt)return `<section class="panel"><h2>Review sent</h2><div class="pad"><p class="pulse">Waiting for the author to rate your review…</p></div></section>`;
-  const r=myRatings(),rep=repOf(r),lv=levelOf(rep);
-  return `<section class="panel"><h2>The author rated your review</h2><div class="pad"><div class="starsv big-stars">${stars(g.stars)}</div><p style="margin:6px 0 10px">${PTS[g.stars]>0?"+":""}${PTS[g.stars]} reputation · score <b>${scoreOf(r).toFixed(2)}</b> · <b>${rep}</b> pts <span class="lvl lvl${lv} sm">${LEVELS[lv].n}</span></p><p class="muted" style="font-size:13px">What made the difference: ${esc(g.why.length?g.why.join(", "):"nothing specific")}. In this demo the author's rating is simulated from how specific and useful your review is.</p><button class="btn" data-act="view" data-v="reviews" style="margin-top:6px">Back to reviews</button></div></section>`;
-}
 
-/* ---------- circle ---------- */
-function viewCircle(){
-  if(!me())return signinNeeded("Sign in to join a review circle.");
-  if(!S.circle)return `<p class="eyebrow">Review circle</p><h1 class="pg-h">Find your circle</h1><p class="lede">A circle is up to 8 learners who review each other first. Start one and share the invite code, or join friends with theirs.</p>
-   <div class="two" style="margin-top:20px"><form class="panel" id="joinForm"><h2>Join with a code</h2><div class="pad form"><label for="joinCode" class="lbl-sm">Invite code</label><input id="joinCode" class="mono" maxlength="8" placeholder="K7QX2MPA" autocomplete="off"><p class="muted" style="font-size:12.5px;margin:0">Demo: try K7QX2MPA</p><div id="joinErr" class="err" role="alert"></div><button class="btn primary" type="submit">Join circle</button></div></form>
-   <form class="panel" id="createForm"><h2>Start a circle</h2><div class="pad form"><label for="cName" class="lbl-sm">Circle name</label><input id="cName" maxlength="40" placeholder="Bole weekend coders"><label for="cTrack" class="lbl-sm">Language</label><select id="cTrack"><option value="both">JavaScript and Go</option><option value="js">JavaScript</option><option value="go">Go</option></select><div id="createErr" class="err" role="alert"></div><button class="btn primary" type="submit">Create circle</button></div></form></div>`;
-  const c=S.circle;const rows=[me()].concat(c.members).map(m=>{const isMe=m===me();const r=isMe?myRatings():peerRatings(m);const rep=repOf(r),lv=levelOf(rep);const pts=isMe?myPoints():peerPoints(m);const solved=isMe?BANK.filter(e=>passedEx(e.id)).length:PEERS[m].solved.length;return {m,isMe,pts,solved,sc:scoreOf(r),lv,pb:probation(r)};}).sort((a,b)=>b.pts-a.pts);
-  return `<p class="eyebrow">Review circle</p><div class="ex-head"><h1 class="pg-h">${esc(c.name)}</h1><div class="cmd" style="max-width:280px"><span class="muted" style="font-size:12.5px">Invite code</span><code id="inviteCode" class="mono">${esc(c.code)}</code><button class="btn small" data-act="copy" data-id="inviteCode">Copy</button></div></div>
-  <p class="lede">${c.members.length+1} of 8 members. Your submissions go to a member here first; the wider pool steps in only when nobody here who solved the challenge is free.</p>
-  <div class="grid2" style="margin-top:20px"><div><div class="panel"><h2>Leaderboard</h2><div class="tbl"><table><thead><tr><th>#</th><th>Learner</th><th>Points</th><th>Solved</th><th>Review score</th><th>Level</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.isMe?"me":""}"><td class="mono">${i+1}</td><td><span class="lrn">${avatar(x.m,"sm")}<span class="mono">@${esc(x.m)}</span>${x.isMe?` <span class="muted">(you)</span>`:""}</span></td><td class="mono">${x.pts}</td><td class="mono">${x.solved}</td><td class="mono">${x.sc.toFixed(2)}</td><td>${x.pb?`<span class="st act">Probation</span>`:`<span class="lvl lvl${x.lv} sm">${LEVELS[x.lv].n}</span>`}</td></tr>`).join("")}</tbody></table></div></div></div>
-   <aside class="side"><section class="panel"><h2>Activity</h2><div class="pad feed">${S.feed.slice(0,8).map(f=>`<div class="fi">${avatar(f.who,"sm")}<div><span class="mono">@${esc(f.who)}</span> ${esc(f.what)}<div class="muted" style="font-size:12px">${ago(f.at)}</div></div></div>`).join("")}</div></section>
-   <section class="panel"><div class="pad">${V.confirm==="leave"?`<p style="margin:0 0 10px;font-size:14px">Leave ${esc(c.name)}? Your reviews will come from the wider pool.</p><div style="display:flex;gap:8px"><button class="btn" data-act="leave-yes">Leave circle</button><button class="btn" data-act="confirm-no">Stay</button></div>`:`<button class="linkish" data-act="leave">Leave this circle</button>`}</div></section></aside></div>`;
-}
 
 /* ---------- profile & sign-in ---------- */
 function signinNeeded(msg){return `<section class="panel narrow"><div class="pad center"><h1 class="pg-h" style="font-size:24px">Sign in with GitHub</h1><p class="lede" style="margin:8px auto 16px">${esc(msg)}</p><button class="btn gh-btn" data-act="view" data-v="signin">${GH}Sign in with GitHub</button></div></section>`;}
 function viewSignin(){
-  if(me())return viewProfile();
+  if(me()){setTimeout(()=>go("profile"));return "";}
   return `<section class="panel narrow"><div class="pad"><h1 class="pg-h" style="font-size:26px">Sign in with GitHub</h1><p class="lede">No sign-up form. Timirtbet asks GitHub for no permissions, so all it learns is your public username. On your first sign-in you're added to the Timirtbet organization and get your own private repository for pushing solutions.</p>
   <form id="signinForm" class="form" style="margin-top:14px"><label for="ghUser" class="lbl-sm">GitHub username <span class="muted">(prototype: the real app sends you to GitHub instead)</span></label><input id="ghUser" class="mono" maxlength="39" placeholder="your-username" autocomplete="off"><div id="signErr" class="err" role="alert"></div><button class="btn gh-btn" type="submit">${GH}Continue with GitHub</button></form>
   <p class="muted" style="font-size:13px;margin:14px 0 0">Or keep practising as a guest: every challenge and its tests work without an account.</p></div></section>`;
-}
-function viewProfile(){
-  if(!me())return viewSignin();
-  const r=myRatings(),rep=repOf(r),lv=levelOf(rep);const solved=BANK.filter(e=>passedEx(e.id)).length;
-  const pushes=S.pushes.slice(-5).reverse();
-  return `<div class="ex-head"><div class="lrn big">${avatar(me(),"lg")}<div><p class="eyebrow" style="margin:0">${S.me.demo?"Demo account":"Signed in with GitHub"}</p><h1 class="pg-h mono">@${esc(me())}</h1></div></div></div>
-  <div class="stats"><div class="stat"><div class="v">${myPoints()}</div><div class="l">Points</div></div><div class="stat"><div class="v">${solved}</div><div class="l">Challenges solved</div></div><div class="stat"><div class="v">${scoreOf(r).toFixed(2)}</div><div class="l">Review score</div></div><div class="stat"><div class="v">${rep}</div><div class="l">Reputation · ${LEVELS[lv].n}</div></div></div>
-  <div class="two"><section class="panel"><h2>Your repository</h2><div class="pad"><div class="cmd"><code id="cloneCmd">git clone https://github.com/timirtbet/${esc(me())}-code.git</code><button class="btn small" data-act="copy" data-id="cloneCmd">Copy</button></div>${pushes.length?`<ul class="pushes" style="margin-top:12px">${pushes.map(p=>`<li><span class="${p.pass?"okc":"badc"}">${p.pass?"✓":"✗"}</span><span class="mono">${p.sha}</span><span>${esc(p.msg)}</span><span class="muted mono">${p.p}/${p.t}</span></li>`).join("")}</ul>`:""}</div></section>
-   <section class="panel"><h2>What Timirtbet stores about you</h2><div class="pad"><table class="plain"><tbody><tr><td>GitHub id and username</td><td class="okc">stored</td></tr><tr><td>Your code, test results, reviews and ratings</td><td class="okc">stored</td></tr><tr><td>Your circle</td><td class="okc">stored</td></tr><tr><td>Name, email, phone, age, school, location</td><td class="muted">never asked</td></tr><tr><td>Passwords</td><td class="muted">none exist</td></tr></tbody></table>
-   <div style="margin-top:12px">${V.confirm==="signout"?`<span class="confirm">Sign out on every device? <button class="btn small" data-act="signout-yes">Sign out</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="btn" data-act="signout">Sign out</button>`}</div></div></section></div>`;
 }
 
 /* ---------- actions ---------- */
@@ -633,7 +522,7 @@ document.addEventListener("keydown",e=>{
 /*__I18N__*/
 if(ROUTED)applyRoute(location.pathname);
 // What the new screens (src/next) still use from this file during the migration. Shrinks as screens move.
-window.TBOld={go,copyBtn,modNum,BANK,MODULES,LANGN,ROUTED};
+window.TBOld={go,copyBtn,modNum,BANK,MODULES,LANGN,ROUTED,openEx,TRACKS,TRACK_IMG,ptsOf,diffOf,get S(){return S;},save};
 /*__LIVE__*/
 render();
 I18N.start();

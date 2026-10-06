@@ -30,5 +30,13 @@ interface Window {
     MODULES: { id: string; lang: string; title: string; exercises: string[] }[];
     LANGN: Record<string, string>;
     ROUTED: boolean;
+    openEx(id: string): void;
+    TRACKS: Record<string, { tag: string; blurb: string; code: string }>;
+    TRACK_IMG: Record<string, string>;
+    ptsOf(ex: any): number;
+    diffOf(ex: any): string;
+    /** The old app state, kept in this browser: chosen track and track-page filters. */
+    readonly S: { track?: string; diff?: string; statusF?: string; modOpen?: Record<string, boolean>; [k: string]: any };
+    save(): void;
   };
 }

@@ -208,22 +208,13 @@ if(LIVE){
     if(V.view==="exercise"&&V.ex)loadLatest(V.ex);
     if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;if(!L.saved.has(V.ex))s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
     const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
-    if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
+    if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")&&!app.hasAttribute("data-next")){// new screens show it themselves
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
     }
     const waiting=L.queue.length;
     const b=document.querySelector('nav.main [data-v="reviews"]');if(b)b.innerHTML="Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"");
   };
-  progressCard=function(solved){
-    if(!L.me)return `<section class="panel start-card"><h2>Get started</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You need a GitHub account to solve challenges and join a review circle. Anyone can read the challenges without one.</p>${startSteps(true)}<a class="btn gh-btn" href="/api/auth/github" style="margin-top:12px">${GH}Sign in with GitHub</a></div></section>`;
-    const max=BANK.reduce((a,e)=>a+ptsOf(e),0);const p=prof();
-    return `<section class="panel"><h2>Your progress</h2><div class="pad"><div class="kpis"><div><div class="k">${L.me.points}</div><div class="muted">points</div></div><div><div class="k">${L.me.solved}<small>/${BANK.length}</small></div><div class="muted">solved</div></div><div><div class="k">${p.score.toFixed(1)}</div><div class="muted">review score</div></div></div><div class="bar" style="margin-top:12px"><i style="width:${L.me.points/max*100}%"></i></div><div class="muted mono" style="font-size:12px;margin-top:4px">${L.me.points} of ${max} points</div></div></section>`;
-  };
-  circleMini=function(){
-    if(!L.me)return "";
-    if(!L.circle)return `<section class="panel"><h2>Review circle</h2><div class="pad"><p class="muted" style="margin:0 0 12px;font-size:14px">You're not in a circle, so reviews come from the wider pool. Join friends with an invite code, or start your own.</p><button class="btn" data-act="view" data-v="circle">Find a circle</button></div></section>`;
-    return `<section class="panel"><h2>${esc(L.circle.name)}</h2><div class="pad"><div class="avs">${L.circle.members.map(m=>`<button class="av-link" data-act="user" data-login="${esc(m.login)}" title="@${esc(m.login)}">${avatar(m.login)}</button>`).join("")}</div><p class="muted" style="font-size:13.5px;margin:10px 0 12px">${L.circle.members.length} members · reviews go here first</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="view" data-v="circle">Open circle</button>${L.queue.length?`<button class="btn primary" data-act="view" data-v="reviews">${L.queue.length} to review</button>`:""}</div></div></section>`;
-  };
+  // The home and track pages (progress, circle card) are in src/next/screens/home.js.
   // Solved means a push passed the grader. Passes from the old in-browser editor need one push.
   passedEx=id=>L.saved.has(id);
   // A challenge row shows only that challenge's own state. Reviews are per module (shown on the
