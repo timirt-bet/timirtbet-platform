@@ -23,7 +23,7 @@ test("signed-in screens fit a phone, in Amharic", async () => {
   assert.match(await p.text("#pushPanel"), /እንዴት እንደሚያስገቡ/);
   assert.ok(await fitsWidth(p), "challenge page");
   await p.open("/profile");
-  assert.match(await p.text(".data-card"), /የምናስቀምጠው/);
+  assert.match(await p.text(".acct-card"), /ውጣ/);
   assert.ok(await fitsWidth(p), "account page");
   for (const path of ["/reviews", "/circle", "/u/am-kidist"]) { await p.open(path); assert.ok(await fitsWidth(p), path); }
   await p.close();

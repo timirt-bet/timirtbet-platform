@@ -209,7 +209,7 @@ if(LIVE){
     if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;if(!L.saved.has(V.ex))s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
     const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")){
-      app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. You can export or delete it from your profile at any time. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
+      app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
     }
     const waiting=L.queue.length;
     const b=document.querySelector('nav.main [data-v="reviews"]');if(b)b.innerHTML="Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"");
