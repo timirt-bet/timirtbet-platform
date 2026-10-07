@@ -36,7 +36,29 @@ export function HomeScreen() {
     </div>`;
 }
 
-/** "Selam, @login": the next challenge, and anything waiting on the learner. @param {{ me: any }} props */
+/** The first sentence of a task, with `code` shown as code. @param {{ text: string }} props */
+function Lead({ text }) {
+  const first = (text.match(/^.*?[.!?።](\s|$)/) || [text])[0].trim();
+  return html`${first.split(/`([^`]+)`/).map((part, i) => i % 2 ? html`<code>${part}</code>` : part)}`;
+}
+
+/** A slim line of facts about the learner, in the mono "terminal" style of the hero. @param {{ me: any }} props */
+function StatusStrip({ me }) {
+  const k = prefs().track === "go" ? "go" : "js";
+  const all = exercisesOf(k), done = all.filter((e) => solved(e.id)).length;
+  const due = state.queue.value.length;
+  return html`<div class="status-strip" role="note">
+    <span class="ss-l"><i class="ss-dot" aria-hidden="true"></i><span class="mono">${t("ss_track", { lang: old.LANGN[k].toUpperCase(), done, total: all.length })}</span>
+      <span class="ss-sep" aria-hidden="true"></span><span class="ss-am" lang="am">እንኳን ደህና መጡ! ዛሬም አንድ ተግዳሮት እንፍታ።</span></span>
+    <span class="ss-r mono">
+      <span>${t("ss_reviews_due")}: <b class=${due ? "hot" : ""}>${due}</b></span>
+      <span>${t("ss_points")}: <b>${me.points}</b></span>
+      <span class="ss-chip">${t("level")}: ${tText(me.reviewer.level)}</span>
+    </span>
+  </div>`;
+}
+
+/** "Selam, @login": the next challenge, and what is waiting on the learner. @param {{ me: any }} props */
 function UpNext({ me }) {
   const next = nextChallenge(prefs().track) || nextChallenge();
   const queue = state.queue.value;
@@ -52,32 +74,50 @@ function UpNext({ me }) {
     try { await submitModule(id); } catch (e) { setError(/** @type {Error} */ (e).message); }
     setBusy("");
   };
+  const short = (/** @type {Module} */ m) => t("module_n", { n: modNum(m) }) + " · " + tText(m.title).split(/[:፦]/)[0];
+  const sub = (/** @type {Module} */ m) => (tText(m.title).split(/[:፦]/)[1] || "").trim();
+  /** @param {string} key @param {string} icon @param {string} title @param {any} line @param {any} [action] @param {string} [tone] */
+  const item = (key, icon, title, line, action, tone = "") => html`<li key=${key} class=${"todo " + tone}>
+    <span class="todo-ic" aria-hidden="true">${icon}</span>
+    <span class="todo-t"><b>${title}</b><span class="todo-sub mono">${line}</span></span>${action}</li>`;
   const todo = [
-    queue.length > 0 && html`<li key="q" class="todo hot-todo"><span class="todo-ic" aria-hidden="true">✎</span>
-      <span class="todo-t">${t("reviews_waiting_n", { n: queue.length })}<${Clock} dueAt=${firstDue} /></span>
-      <button class="btn small primary" onClick=${() => go("reviews")}>${t("start_review")}</button></li>`,
-    ...toRate.map(({ m }) => html`<li key=${"r" + m.id} class="todo"><span class="todo-ic" aria-hidden="true">★</span>
-      <span class="todo-t">${t("todo_rate", { module: modTitle(m) })}</span>
-      <button class="btn small primary" onClick=${() => openEx(m.exercises[0])}>${t("rate_the_review")}</button></li>`),
-    ...ready.map(({ m }) => html`<li key=${"s" + m.id} class="todo"><span class="todo-ic" aria-hidden="true">↑</span>
-      <span class="todo-t">${t("todo_ready", { module: modTitle(m) })}</span>
-      <button class="btn small primary" data-act="submit-module" data-id=${m.id} disabled=${busy === m.id} onClick=${() => submit(m.id)}>${t("submit_module_for_review")}</button></li>`),
-    ...inReview.map(({ m, s }) => html`<li key=${"w" + m.id} class="todo quiet"><span class="todo-ic" aria-hidden="true">⏳</span>
-      <span class="todo-t">${t("todo_in_review", { module: modTitle(m) })} <${PersonLink} login=${s.sub.reviewer.login} /><${Clock} dueAt=${s.sub.dueAt} /></span></li>`),
+    queue.length > 0 && item("q", "✎", t("reviews_waiting_n", { n: queue.length }), html`<${Clock} dueAt=${firstDue} />`,
+      html`<button class="btn small" onClick=${() => go("reviews")}>${t("start_review")}</button>`, "hot-todo"),
+    ...toRate.map(({ m }) => item("r" + m.id, "★", short(m), t("review_received"),
+      html`<button class="btn small" onClick=${() => openEx(m.exercises[0])}>${t("rate_the_review")}</button>`)),
+    ...ready.map(({ m }) => item("s" + m.id, "↑", short(m), sub(m) + " · " + t("ready_to_submit"),
+      html`<button class="btn small" data-act="submit-module" data-id=${m.id} disabled=${busy === m.id} onClick=${() => submit(m.id)}>${t("submit_module")}</button>`)),
+    ...inReview.map(({ m, s }) => item("w" + m.id, "⏳", short(m), html`${t("in_review")} · <${PersonLink} login=${s.sub.reviewer.login} /> <${Clock} dueAt=${s.sub.dueAt} />`, null, "quiet")),
   ].filter(Boolean);
+  const cur = next && moduleState(next.module);
+  const howItWorks = () => { const d = /** @type {HTMLDetailsElement | null} */ (document.querySelector("details.how")); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "center" }); } };
 
-  return html`<section class="upnext">
+  return html`<${StatusStrip} me=${me} />
+  <section class="upnext">
+    <span class="un-watermark" aria-hidden="true">ትምህርት</span>
     <div class="un-main">
-      <p class="eyebrow">${t("selam_user", { login: me.login })}</p>
+      <p class="un-tags"><span class="un-hello">${t("selam_user", { login: me.login })}</span>
+        <span class="un-am" lang="am">ሰላም፦ ቀጣዩ ተግዳሮትዎ</span>
+        ${next && html`<span class="un-mod mono"><i aria-hidden="true"></i>${t("module_n", { n: modNum(next.module) })}</span>`}</p>
       ${next ? html`
         <h2 class="un-h">${t("up_next")}: ${tText(next.ex.title)}</h2>
-        <p class="un-meta"><span class=${"lang-b sm track-" + next.ex.lang}>${next.ex.lang === "js" ? "JS" : "Go"}</span>
-          ${modTitle(next.module)} · ${tText(next.ex.topic)} · ${t("pts_n", { n: old.ptsOf(next.ex) })}</p>
-        <button class="btn primary un-go" data-act="open" data-id=${next.ex.id} onClick=${() => openEx(next.ex.id)}>${t("open_challenge")} <span aria-hidden="true">→</span></button>`
-      : html`<h2 class="un-h">${t("all_solved_title")}</h2><p class="un-meta">${t("all_solved_text")}</p>
-        <button class="btn primary un-go" onClick=${() => go("reviews")}>${t("reviews")} →</button>`}
+        <p class="un-lead"><${Lead} text=${tText(next.ex.prompt)} /></p>
+        <p class="un-crumb mono"><span class=${"lang-b sm track-" + next.ex.lang}>${next.ex.lang === "js" ? "JS" : "Go"}</span>
+          <b>${t("module_n", { n: modNum(next.module) })}</b><span class="sl">/</span><span>${(tText(next.module.title).split(/[:፦]/).pop() || "").trim()}</span>
+          <span class="sl">/</span><b class="gold">${tText(next.ex.topic)}</b><span class="pts-tag">+${t("pts_n", { n: old.ptsOf(next.ex) })}</span></p>
+        <div class="un-actions">
+          <button class="btn primary un-go" data-act="open" data-id=${next.ex.id} onClick=${() => openEx(next.ex.id)}>${t("open_challenge")} <span aria-hidden="true">→</span></button>
+          <span class="un-note mono">${t(/** @type {any} */ (old.diffOf(next.ex).toLowerCase()))} · ${cur && t("n_passed", { n: cur.passed, total: cur.total })}</span>
+        </div>`
+      : html`<h2 class="un-h">${t("all_solved_title")}</h2><p class="un-lead">${t("all_solved_text")}</p>
+        <div class="un-actions"><button class="btn primary un-go" onClick=${() => go("reviews")}>${t("reviews")} →</button></div>`}
     </div>
-    ${todo.length > 0 && html`<ul class="un-todo">${todo}</ul>`}
+    <aside class="un-queue">
+      <div class="uq-h"><span class="mono">${t("your_queue", { n: todo.length })}</span><span class="uq-am" lang="am">ተግባሮችዎ</span></div>
+      ${todo.length ? html`<ul class="un-todo">${todo}</ul>`
+        : html`<div class="uq-empty"><b>${t("queue_empty")}</b><span>${t("queue_empty_text")}</span></div>`}
+      <div class="uq-foot mono"><span>${t("reviews_due_72")}</span><button class="linkish" onClick=${howItWorks}>${t("how_it_works")} →</button></div>
+    </aside>
     ${error && html`<p class="err" role="alert">${error}</p>`}
   </section>`;
 }

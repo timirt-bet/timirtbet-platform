@@ -40,7 +40,7 @@ test("a finished module shows up as ready to submit, and submitting it from home
   await p.open("/");
   assert.match(await p.text(".un-h"), /^Up next: /);
   assert.doesNotMatch(await p.text(".un-h"), /Greet in three languages/, "the next unsolved one, not a solved one");
-  assert.match(await p.text(".un-todo"), /Module 1 · .* is ready to submit/);
+  assert.match(await p.text(".un-todo"), /Module 1 · Basics 1.*Ready to submit/is);
   await p.locator('.un-todo [data-act="submit-module"]').click();
   await p.waitForFunction(() => !document.querySelector('.un-todo [data-act="submit-module"]'));
   await p.open("/challenges/js");

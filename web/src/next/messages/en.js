@@ -576,4 +576,13 @@ export default {
   ok: "OK",
   main_sections: "Main sections",
   notifications_unread: "Notifications, {n} unread",
+  ss_track: "{lang} track · {done}/{total} solved",
+  ss_reviews_due: "Reviews due",
+  ss_points: "Points",
+  your_queue: "Your queue ({n})",
+  queue_empty: "Nothing waiting on you",
+  queue_empty_text: "Finish every challenge in a module to send it for review.",
+  reviews_due_72: "Reviews are due within 72 h",
+  how_it_works: "How it works",
+  submit_module: "Submit module",
 };
