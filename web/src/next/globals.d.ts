@@ -12,6 +12,8 @@ interface Window {
     has(view: string): boolean;
     render(view: string, el: HTMLElement, route?: Route): void;
     unmount(el: HTMLElement): void;
+    setView(v: string): void;
+    toast(n: any): void;
     /** Set by live.js: clears this browser's session state after signing out or deleting the account. */
     afterSignOut?: (deleted: boolean) => void;
   };
@@ -38,5 +40,6 @@ interface Window {
     /** The old app state, kept in this browser: chosen track and track-page filters. */
     readonly S: { track?: string; diff?: string; statusF?: string; modOpen?: Record<string, boolean>; [k: string]: any };
     save(): void;
+    setLang(lang: string): void;
   };
 }

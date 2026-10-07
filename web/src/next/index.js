@@ -14,6 +14,7 @@ import { CircleScreen } from "./screens/circle.js";
 import { ReviewsScreen, ReviewScreen } from "./screens/reviews.js";
 import { HomeScreen, TrackScreen } from "./screens/home.js";
 import { Notice } from "./components/notice.js";
+import { Header, Dock, view, toastItem } from "./components/header.js";
 
 /**
  * Every new screen, with the one-time welcome notice above it.
@@ -54,6 +55,10 @@ window.TBNext = {
     render(h(Frame, { Screen, route: route || { view } }), el);
     mounted = true;
   },
+  /** Called by app.js after every render: which screen is on show (for the header). @param {string} v */
+  setView(v) { view.value = v; },
+  /** Pops up a new notification for a few seconds. @param {any} n */
+  toast(n) { toastItem.value = n; },
   // Called before the old router writes HTML into the same element.
   unmount(el) {
     if (!mounted) return;
@@ -72,3 +77,9 @@ register("reviews", ReviewsScreen);
 register("review", ReviewScreen);
 register("challenges", HomeScreen);
 register("track", TrackScreen);
+
+// The top bar (and, on phones, the tab bar) is drawn here from the start, on every screen.
+const top = document.getElementById("top");
+if (top) render(h(Header, null), top);
+const dock = document.getElementById("dock");
+if (dock) render(h(Dock, null), dock);

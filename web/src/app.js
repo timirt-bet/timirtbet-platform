@@ -236,11 +236,6 @@ function pickReviewer(exId){
 /* ---------- shell ---------- */
 const app=document.getElementById("app");
 function render(){
-  const waiting=me()?QUEUE.filter(q=>!S.done.includes(q.id)&&passedEx(q.ex)).length:0;
-  const nav=[["challenges","Challenges"],["reviews","Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"")],["circle","Circle"],["profile","Profile"]];
-  const cur=({track:"challenges",exercise:"challenges",review:"reviews",signin:"profile"})[V.view]||V.view;
-  document.getElementById("nav").innerHTML=nav.map(([v,l])=>`<button data-act="view" data-v="${v}" ${cur===v?'aria-current="page"':""}>${l}</button>`).join("");
-  document.getElementById("who").innerHTML=me()?`<button class="who" data-act="view" data-v="profile">${avatar(me())}<span class="mono">@${esc(me())}</span></button>`:`<button class="btn gh-btn small" data-act="view" data-v="signin">${GH}Sign in</button>`;
   if(V.view!=="exercise"&&V.view!=="review")stopTick();
   // Every other screen is in src/next (see TBNext below).
   const views={exercise:viewExercise,signin:viewSignin};
@@ -250,7 +245,7 @@ function render(){
   else{if(window.TBNext)TBNext.unmount(app);app.innerHTML=(views[V.view]||(()=>""))();}
   document.title=titleOf();
   upgradeEditor();
-  document.getElementById("resetZone").innerHTML=V.confirm==="reset"?`<span class="confirm">Clear everything on this device? <button class="btn small" data-act="reset-yes">Yes, reset</button><button class="btn small" data-act="confirm-no">Cancel</button></span>`:`<button class="linkish" data-act="reset">Reset demo</button>`;
+  if(window.TBNext)TBNext.setView(V.view);// the header (src/next/components/header.js) follows the screen
 }
 const GH=`<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>`;
 function go(view,extra){stopTick();Object.assign(V,{view},extra||{});if(ROUTED&&location.pathname!==pathOf())history.pushState(null,"",pathOf());render();window.scrollTo(0,0);}
@@ -522,7 +517,7 @@ document.addEventListener("keydown",e=>{
 /*__I18N__*/
 if(ROUTED)applyRoute(location.pathname);
 // What the new screens (src/next) still use from this file during the migration. Shrinks as screens move.
-window.TBOld={go,copyBtn,modNum,BANK,MODULES,LANGN,ROUTED,openEx,TRACKS,TRACK_IMG,ptsOf,diffOf,get S(){return S;},save};
+window.TBOld={go,copyBtn,modNum,BANK,MODULES,LANGN,ROUTED,openEx,TRACKS,TRACK_IMG,ptsOf,diffOf,get S(){return S;},save,setLang:l=>I18N.set(l)};
 /*__LIVE__*/
 render();
 I18N.start();

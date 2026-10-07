@@ -140,18 +140,9 @@ const I18N = (() => {
     try { localStorage.setItem("timirtbet.lang", lang); } catch (e) {}
     document.documentElement.lang = lang;
     document.title = lang === "am" ? "ትምህርት ቤት | Timirtbet" : "Timirtbet | ትምህርት ቤት";
-    const b = document.getElementById("langBtn");
-    if (b) { b.textContent = lang === "am" ? "EN" : "አማ"; b.setAttribute("aria-label", lang === "am" ? "Switch to English" : "ወደ አማርኛ ቀይር"); }
     apply(document.body);
   }
   function start() {
-    const tools = document.querySelector(".top-in");
-    if (tools && !document.getElementById("langBtn")) {
-      const b = document.createElement("button");
-      b.id = "langBtn"; b.className = "lang-btn"; b.setAttribute("data-i18n-skip", "");
-      b.addEventListener("click", () => set(lang === "am" ? "en" : "am"));
-      tools.insertBefore(b, document.getElementById("who"));
-    }
     new MutationObserver((ms) => { if (lang !== "am") return; for (const m of ms) m.addedNodes.forEach(apply); })
       .observe(document.body, { childList: true, subtree: true });
     set(lang);

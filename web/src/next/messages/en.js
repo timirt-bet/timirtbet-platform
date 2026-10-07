@@ -574,4 +574,6 @@ export default {
   push_all_to_submit: "Push all {n} challenges from your GitHub repository to submit this module for review.",
   welcome_user: "Welcome, @{login}.",
   ok: "OK",
+  main_sections: "Main sections",
+  notifications_unread: "Notifications, {n} unread",
 };

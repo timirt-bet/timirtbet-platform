@@ -12,7 +12,7 @@ if(LIVE){
     try{const back=sessionStorage.getItem("timirtbet.return");sessionStorage.removeItem("timirtbet.return");
       if(L.me&&back&&back!=="/"&&location.pathname==="/"&&ROUTED){history.replaceState(null,"",back);applyRoute(back);}}catch(e){}
     render();
-    if(L.me)pollInbox(true);else setBell();
+    if(L.me)pollInbox(true);
   }
 
   /* ---------- whose work is on screen: each account, and guests, keep their own drafts in this browser ---------- */
@@ -57,68 +57,7 @@ if(LIVE){
   window.addEventListener("pagehide",()=>{flushEditor();save();});
   /* ---------- notifications: the bell, its list, live updates and a short pop-up ---------- */
   L.inbox={items:[],unread:0};
-  const BELL=`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`;
-  function ensureBell(){
-    if(document.getElementById("bellWrap"))return;
-    const w=document.createElement("div");w.id="bellWrap";w.className="bell-wrap";
-    w.innerHTML=`<button class="bell" id="bellBtn" aria-label="Notifications" aria-expanded="false" aria-haspopup="true">${BELL}<span class="bell-n" id="bellN" hidden></span></button><div class="bell-pop" id="bellPop" role="dialog" aria-label="Notifications" hidden></div>`;
-    document.querySelector(".top-in").insertBefore(w,document.getElementById("who"));
-  }
-  const starsTxt=n=>"★".repeat(n)+"☆".repeat(5-n);
-  function notifHTML(n){
-    const u=`<b>${esc(unitTitle(n.unitId))}</b>`;
-    switch(n.kind){
-      case "review_assigned":return `<span>New review to write:</span> ${u}<span class="nt-sub">Due within 72 hours</span>`;
-      case "review_due":return `<span>Reminder: review due within 24 hours:</span> ${u}`;
-      case "review_moved":return `<span>72 hours passed, so this review moved to someone else:</span> ${u}`;
-      case "review_received":return `<span>Your module was reviewed. Rate the review:</span> ${u}`;
-      case "review_rated":return `<span>Your review was rated</span> <span class="starsv">${starsTxt(n.stars)}</span> <span class="mono">${n.points>0?"+":""}${n.points} pts</span><span class="nt-sub">${esc(unitTitle(n.unitId))}</span>`;
-      case "level_up":return `<span>You reached a new reviewer level:</span> <b>${esc(n.level)}</b>`;
-      case "second_opinion":return `<span>A Mentor added a second opinion:</span> ${u}`;
-      case "push_passed":return `<span>Your push passed and is saved:</span> ${u}`;
-      case "push_failed":return `<span>Your push did not pass yet:</span> ${u}<span class="nt-sub">${n.passed} / ${n.total} tests passed</span>`;
-      case "module_ready":return `<span>Module finished. Submit it for review:</span> ${u}`;
-      case "review_nudge":return `<span><b class="mono">@${esc(n.from||"")}</b> is waiting for your review of</span> ${u}${n.dueAt?`<span class="nt-sub">${esc(leftText(Date.parse(n.dueAt)-Date.now()))}</span>`:""}`;
-      case "new_follower":return `<span><b class="mono">@${esc(n.from||"")}</b> started following you</span>`;
-      default:return `<span>Something changed.</span>`;
-    }
-  }
-  function setBell(){
-    const w=document.getElementById("bellWrap");
-    if(!L.me){if(w)w.hidden=true;document.title=document.title.replace(/^\(\d+\) /,"");return;}
-    ensureBell();document.getElementById("bellWrap").hidden=false;
-    const c=L.inbox.unread,b=document.getElementById("bellN");b.hidden=!c;b.textContent=c>9?"9+":String(c);
-    document.getElementById("bellBtn").setAttribute("aria-label",c?`Notifications, ${c} unread`:"Notifications");
-    document.title=(c?`(${c}) `:"")+document.title.replace(/^\(\d+\) /,"");
-    const pop=document.getElementById("bellPop");if(!pop.hidden)pop.innerHTML=popHTML();
-  }
-  function popHTML(){
-    const it=L.inbox.items;
-    return `<div class="bell-h"><b>Notifications</b></div>${it.length?`<ul class="bell-list">${it.map(n=>`<li><button class="nt${n.read?"":" unread"}" data-act="notif" data-id="${n.id}"><span class="nt-dot" aria-hidden="true"></span><span class="nt-body">${notifHTML(n)}<span class="nt-time">${ago(Date.parse(n.at))}</span></span></button></li>`).join("")}</ul>`:`<p class="muted bell-empty">Nothing yet. You'll hear here when you get a review to write, when your module is reviewed and when your reviews are rated.</p>`}<p class="bell-note">You also get these on GitHub, by email or in the GitHub app, following your GitHub notification settings.</p>`;
-  }
-  async function openBell(open){
-    const pop=document.getElementById("bellPop"),btn=document.getElementById("bellBtn");
-    pop.hidden=!open;btn.setAttribute("aria-expanded",String(open));
-    if(!open)return;
-    pop.innerHTML=popHTML();
-    if(L.inbox.unread){try{await api("POST","/api/notifications/read");}catch(e){}L.inbox.unread=0;setBell();pop.innerHTML=popHTML();L.inbox.items=L.inbox.items.map(n=>({...n,read:true}));}
-  }
-  function goNotif(n){
-    openBell(false);
-    if((n.kind==="review_assigned"||n.kind==="review_due"||n.kind==="review_nudge")&&L.queue.some(q=>q.id===n.subId))return openReview(n.subId);
-    if(n.kind==="new_follower"&&n.from)return go("user",{login:n.from,utab:null});
-    if((n.kind==="review_received"||n.kind==="second_opinion")&&n.exerciseId&&EXM[n.exerciseId])return openEx(n.exerciseId);
-    if((n.kind==="push_passed"||n.kind==="push_failed")&&EXM[n.exerciseId])return openEx(n.exerciseId);
-    if(n.kind==="module_ready"&&MODM[n.unitId]){const m=MODM[n.unitId];L.pendingTrack=m.lang;return openEx(m.exercises[m.exercises.length-1]);}
-    go("reviews");
-  }
-  let toastT=null;
-  function toast(n){
-    let t=document.getElementById("toast");
-    if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.appendChild(t);}
-    t.innerHTML=`<button class="toast-in" data-act="notif" data-id="${n.id}">${BELL}<span>${notifHTML(n)}</span></button>`;
-    t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},7000);
-  }
+  // The bell, its list and the pop-up are in src/next/components/header.js; this keeps the inbox fresh.
   let pollT=null,lastTop=null;
   async function pollInbox(first){
     clearTimeout(pollT);
@@ -127,23 +66,14 @@ if(LIVE){
       const box=await api("GET","/api/notifications");
       const top=box.items[0]&&box.items[0].id;
       const fresh=!first&&top&&top!==lastTop&&box.unread>0;
-      L.inbox=box;lastTop=top;setBell();
+      L.inbox=box;lastTop=top;
       if(fresh){const n=box.items[0],was=n.kind==="push_passed"&&!L.saved.has(n.exerciseId);
-        if(!was)toast(n);await loadAll();
+        if(!was)TBNext.toast(n);await loadAll();
         if(was&&L.saved.has(n.exerciseId))celebrate(n.exerciseId);}
     }catch(e){if(e.status===401){checkSession();return;}}
     pollT=setTimeout(()=>pollInbox(false),document.hidden?180000:45000);
   }
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L.me)pollInbox(false);});
-  document.addEventListener("click",e=>{
-    const w=document.getElementById("bellWrap");if(!w||w.hidden)return;
-    if(e.target.closest("#bellBtn")){e.stopImmediatePropagation();openBell(document.getElementById("bellPop").hidden);return;}
-    const it=e.target.closest('[data-act="notif"]');
-    if(it){e.stopImmediatePropagation();const n=L.inbox.items.find(x=>x.id===it.dataset.id);const t=document.getElementById("toast");if(t)t.hidden=true;if(n)goNotif(n);return;}
-    if(!e.target.closest("#bellPop"))openBell(false);
-  },true);
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){const p=document.getElementById("bellPop");if(p&&!p.hidden){openBell(false);document.getElementById("bellBtn").focus();}}});
-  const note=document.querySelector("footer .wrap span");if(note)note.textContent="Timirtbet · learn JavaScript and Go with your review circle";
   S.me=null;
 
   me=()=>L.me&&L.me.login;
@@ -159,8 +89,6 @@ if(LIVE){
     const resave=m.exercises.filter(id=>L.solved.has(id)&&!L.saved.has(id));
     return {passed,total:m.exercises.length,sub,resave,err:L.modErr[m.id],ready:passed===m.exercises.length&&!resave.length&&!open};
   };
-  // A module or challenge title, for notifications.
-  const unitTitle=id=>MODM[id]?`Module ${modNum(MODM[id])} · ${MODM[id].title}`:(EXM[id]?EXM[id].title:id);
   // A learner's name, linking to their profile.
   const person=(login,cls)=>login?`<button class="linkish mono who-link${cls?" "+cls:""}" data-act="user" data-login="${esc(login)}">@${esc(login)}</button>`:"";
   /* ---------- the 72-hour review clock, shown to the author and the reviewer ---------- */
@@ -207,12 +135,9 @@ if(LIVE){
     baseRender();
     if(V.view==="exercise"&&V.ex)loadLatest(V.ex);
     if(V.view==="exercise"&&V.keepRun&&V.keepRun.id===V.ex){const l=document.getElementById("testList"),s=document.getElementById("tSum");if(l&&s){l.innerHTML=V.keepRun.html;if(!L.saved.has(V.ex))s.outerHTML=V.keepRun.sum;if(V.keepRun.ok)document.getElementById("testSec").classList.add("celebrate");}}
-    const rz=document.getElementById("resetZone");if(rz)rz.innerHTML="";// "Reset demo" is for the demo only
     if(L.me&&!L.me.noticeSeen&&!document.getElementById("notice")&&!app.hasAttribute("data-next")){// new screens show it themselves
       app.insertAdjacentHTML("afterbegin",`<section class="panel" id="notice" style="margin-bottom:18px"><div class="pad"><b>Welcome, @${esc(L.me.login)}.</b> Timirtbet stores your GitHub id and username, your repository <span class="mono">${esc(L.me.repo||"")}</span>, the code you submit, your reviews and your circle. Nothing else. It is stored on Google Cloud in the United States. <div style="margin-top:10px"><button class="btn primary small" data-act="notice-ok">OK</button></div></div></section>`);
     }
-    const waiting=L.queue.length;
-    const b=document.querySelector('nav.main [data-v="reviews"]');if(b)b.innerHTML="Reviews"+(waiting?` <span class="badge">${waiting}</span>`:"");
   };
   // The home and track pages (progress, circle card) are in src/next/screens/home.js.
   // Solved means a push passed the grader. Passes from the old in-browser editor need one push.
@@ -454,7 +379,7 @@ git push
   };
 
   // The account screen (src/next/screens/profile.js) calls this after signing out or deleting the account.
-  TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}setBell();go("challenges");};
+  TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}go("challenges");};
   // Signing in leaves the page for GitHub: remember where the learner was, to come back there.
   document.addEventListener("click",e=>{const a=e.target.closest('a[href="/api/auth/github"]');if(a){try{sessionStorage.setItem("timirtbet.return",location.pathname);}catch(_){}}},true);
   const liveClick=async(e)=>{

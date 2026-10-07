@@ -573,4 +573,6 @@ export default {
   push_all_to_submit: "ይህን ሞጁል ለግምገማ ለማስገባት ሁሉንም {n} ተግዳሮቶች ከGitHub ማከማቻዎ ይግፉ።",
   welcome_user: "እንኳን ደህና መጡ፣ @{login}።",
   ok: "እሺ",
+  main_sections: "ዋና ክፍሎች",
+  notifications_unread: "ማሳወቂያዎች፣ {n} ያልተነበቡ",
 };
