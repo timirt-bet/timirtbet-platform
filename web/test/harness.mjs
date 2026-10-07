@@ -43,7 +43,7 @@ export async function startSite() {
     const context = await browser.newContext({ viewport: { width, height } });
     if (lang) await context.addInitScript((l) => { try { localStorage.setItem("timirtbet.lang", l); } catch (e) {} }, lang);
     const page = await context.newPage();
-    page.on("pageerror", (e) => errors.push(`${login || "guest"}: ${e.message}`));
+    page.on("pageerror", (e) => { errors.push(`${login || "guest"}: ${e.message}`); if (process.env.DEBUG_PAGE) console.log("PAGEERROR", e.message); });
     // The app has loaded once the first screen replaced "Loading…".
     page.ready = async () => { await page.waitForFunction(() => { const a = document.getElementById("app"); return a && a.textContent.trim() && !a.textContent.includes("Loading…"); }); await page.waitForTimeout(150); };
     if (login) {

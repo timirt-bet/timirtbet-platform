@@ -20,11 +20,12 @@ node authoring/build.mjs
 
 ## The web app
 
-The screens are moving from `web/src/app.js` and `web/src/live.js` to Preact components in `web/src/next/`, one screen at a time. While that happens:
+Every screen is a Preact component (htm + @preact/signals) in `web/src/next/`. `web/src/app.js` is only the router (addresses, titles, this browser's saved choices) and `web/src/live.js` loads the learner and polls notifications.
 
-- Put new screens and components in `web/src/next/` and add `// @ts-check` at the top; `npm run typecheck` checks them.
+- Put screens in `web/src/next/screens/` and shared pieces in `web/src/next/components/`, with `// @ts-check` at the top; `npm run typecheck` checks them. Register a screen in `web/src/next/index.js` under its router view name.
 - Shared data comes from `web/src/next/state.js` (signals) and API calls go through `web/src/next/api.js`. Assign new values to a signal; changing an object in place does not redraw the screens.
-- A new screen is a component in `web/src/next/screens/`, registered in `web/src/next/index.js`. The old click handlers and the old translator ignore it (`data-next` on the page), so it handles its own clicks and uses `t()`. Anything it still needs from the old `app.js` comes through `web/src/next/legacy.js`.
+- Every visible text is a message: `t("key")`, with the English in `web/src/next/messages/en.js` and the Amharic in `am.js` (a test checks both have every key and the same `{placeholders}`).
+- Navigation, the challenge bank and modules come through `web/src/next/legacy.js` from the router.
 - Keep the `id` and `data-act` attributes the browser tests use (`web/test/`), so the tests keep proving nothing changed for learners.
 - `cd web && npm test` builds the page, checks the size budget (100 KB compressed), type-checks, and runs the browser tests against development mode. Flows that need a passing solution are skipped without the reference answers.
 

@@ -66,7 +66,7 @@ cd ../web && npm test        # builds the site, type-checks the new code, then 2
 
 | Folder | What it is |
 |---|---|
-| `web/` | The web app. `node web/build.mjs --live` builds `web/dist/index.html`, which talks to `/api`. Without `--live` it builds a self-contained demo |
+| `web/` | The web app (Preact). `node web/build.mjs --live` builds `web/dist/index.html`, one self-contained page that talks to `/api` |
 | `platform/` | The API and the grader service (Node 22). Firestore in production, an in-memory store in development |
 | `challenges/` | Tests, graders, `exercises.json` and `modules.json`. Published as its own public repository, which learners' repositories use |
 | `student-template/` | The private repository every learner gets on first sign-in |

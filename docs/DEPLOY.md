@@ -131,8 +131,8 @@ If GitHub Actions is not available to you, deploy from Cloud Shell instead: `bas
 
 1. Sign in with GitHub. You get an invitation email to your organization — accept it.
 2. `github.com/<org>/<your-username>-code` should exist.
-3. Solve a challenge in the web editor.
-4. Push a solution to your repository; the commit gets a `timirtbet/tests` check.
+3. Open a challenge, press "Open solution.js on GitHub", write a solution and commit it to `main`.
+4. Back on the challenge page, press "Run the tests": each test ticks, and a full pass celebrates and counts.
 
 ## Your own domain (optional)
 

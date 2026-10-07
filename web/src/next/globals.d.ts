@@ -1,4 +1,4 @@
-// Globals shared between the new code and the old app.js / live.js during the migration.
+// Globals shared between the screens (src/next) and the router (src/app.js) and loader (src/live.js).
 interface Window {
   TIMIRTBET_MODE?: string;
   TBNext: {
@@ -9,11 +9,10 @@ interface Window {
     state: typeof import("./state.js").state;
     refresh(): Promise<void>;
     bridge<T extends object>(obj: T): T & Record<string, any>;
-    has(view: string): boolean;
     render(view: string, el: HTMLElement, route?: Route): void;
-    unmount(el: HTMLElement): void;
     setView(v: string): void;
     toast(n: any): void;
+    celebrate(id: string): void;
     /** Set by live.js: clears this browser's session state after signing out or deleting the account. */
     afterSignOut?: (deleted: boolean) => void;
   };
@@ -23,7 +22,7 @@ interface Window {
 interface Route { view: string; login?: string; [k: string]: any }
 
 interface Window {
-  /** From app.js during the migration; use it through src/next/legacy.js. */
+  /** From app.js (the router); use it through src/next/legacy.js. */
   TBOld: {
     go(view: string, extra?: Record<string, unknown>): void;
     copyBtn(el: Element, id: string): void;

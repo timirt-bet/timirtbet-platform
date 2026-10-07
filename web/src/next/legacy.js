@@ -1,10 +1,10 @@
 // @ts-check
-// The few things the new screens still take from the old app.js (window.TBOld) during the
-// migration. Each one moves into src/next as the screens that own it move; then this file goes.
+// What the screens take from the router (src/app.js, window.TBOld): navigation, the challenge
+// bank and modules, points and difficulty, and this browser's saved choices.
 
 /** @typedef {{ id: string, lang: string, title: string, exercises: string[] }} Module */
 
-/** Opens a screen through the old router. @param {string} view @param {Record<string, unknown>} [extra] */
+/** Opens a screen through the router. @param {string} view @param {Record<string, unknown>} [extra] */
 export const go = (view, extra) => window.TBOld.go(view, extra);
 /** Copies the text of #id and shows "Copied" on the button. @param {Element} el @param {string} id */
 export const copyBtn = (el, id) => window.TBOld.copyBtn(el, id);

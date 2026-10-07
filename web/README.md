@@ -1,10 +1,12 @@
 # Timirtbet web app
 
-`timirtbet.html` is the built app (page body only, as published). To open it locally:
-`(echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'; cat timirtbet.html) > index.html`
+One self-contained page, `dist/index.html`, built by `node build.mjs --live` and served by Firebase Hosting
+(or by the API in development: `node platform/src/main.mjs dev`). It talks to the API under `/api`.
 
-`src/` holds the sources: `shell.html` + `base.css` + `code.css` + `app.css` + `app.js`. The build inlines the exercise bank,
-the JS test harness and the Go structure checks from `../authoring/`.
+- `src/shell.html`, `base.css`, `code.css`, `app.css`: the page shell and styles (light and dark).
+- `src/app.js`: the router. Addresses, titles, and this browser's saved choices.
+- `src/live.js`: loads the learner from the API, keeps each account's choices apart, polls notifications.
+- `src/next/`: every screen and component (Preact + htm + @preact/signals), messages in English and Amharic.
+- `test/`: browser tests (Playwright) against development mode, plus message checks.
 
-The prototype simulates other learners, circles and ratings in the browser. Wiring it to the API
-(`/api/me`, `/api/circles`, `/api/reviews/queue`, `/api/submissions/...`) is the next step.
+`npm test` builds the page, checks the size budget (100 KB compressed), type-checks and runs the tests.
