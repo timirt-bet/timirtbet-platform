@@ -86,17 +86,29 @@ export function Dock() {
 /** @param {{ me: any }} props */
 function Me({ me }) {
   const [open, setOpen] = useState(false);
-  const ref = useOutside(open, () => setOpen(false));
-  const to = (/** @type {() => void} */ f) => () => { setOpen(false); f(); };
-  const signOut = async () => { setOpen(false); try { await api("POST", "/api/auth/logout"); } finally { window.TBNext.afterSignOut?.(false); } };
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const close = () => { setOpen(false); setConfirming(false); };
+  const ref = useOutside(open, close);
+  const to = (/** @type {() => void} */ f) => () => { close(); f(); };
+  const signOut = async () => { setBusy(true); try { await api("POST", "/api/auth/logout"); } finally { setBusy(false); close(); window.TBNext.afterSignOut?.(false); } };
   return html`<div class="me-wrap" ref=${ref}>
-    <button class="who" aria-haspopup="true" aria-expanded=${String(open)} onClick=${() => setOpen(!open)}>
+    <button class="who" aria-haspopup="true" aria-expanded=${String(open)} onClick=${() => (open ? close() : setOpen(true))}>
       <${Avatar} login=${me.login} size="sm" /><span class="mono">@${me.login}</span><span class="caret" aria-hidden="true"></span></button>
-    ${open && html`<div class="menu" role="menu">
+    ${open && !confirming && html`<div class="menu" role="menu">
       <div class="menu-h"><b class="mono">@${me.login}</b><span class="muted">${t("pts_n", { n: me.points })} · ${tText(me.reviewer.level)}</span></div>
       <button role="menuitem" onClick=${to(() => go("profile"))}><${Icon} d=${I.profile} />${t("your_account")}</button>
       <button role="menuitem" onClick=${to(() => go("user", { login: me.login, utab: null }))}><${Icon} d=${I.circle} />${t("your_public_profile").replace(/\s*→$/, "")}</button>
-      <button role="menuitem" class="danger-item" onClick=${signOut}><${Icon} d=${I.out} />${t("sign_out")}</button>
+      <button role="menuitem" class="danger-item" data-act="menu-signout" onClick=${() => setConfirming(true)}><${Icon} d=${I.out} />${t("sign_out")}</button>
+    </div>`}
+    ${open && confirming && html`<div class="menu confirm-menu" role="alertdialog" aria-labelledby="soH" aria-describedby="soT">
+      <div class="cm-ic" aria-hidden="true"><${Icon} d=${I.out} /></div>
+      <b id="soH">${t("sign_out_q")}</b>
+      <p id="soT">${t("sign_out_warn")}</p>
+      <div class="cm-actions">
+        <button class="btn small" data-act="confirm-no" autofocus onClick=${close}>${t("cancel")}</button>
+        <button class="btn small danger-btn" data-act="live-signout" disabled=${busy} onClick=${signOut}>${t("yes_sign_out")}</button>
+      </div>
     </div>`}
   </div>`;
 }

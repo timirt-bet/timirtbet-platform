@@ -592,3 +592,14 @@ nav.main button[aria-current="page"] svg{opacity:1}
 footer a{color:var(--ink-2);text-decoration:none}
 footer a:hover{color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.menu,.bell-pop,.toast{animation:none}}
+.confirm-menu{width:290px;padding:16px;display:grid;gap:8px}
+.confirm-menu b{font-size:15px}
+.confirm-menu p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.cm-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--clay-soft);color:var(--clay)}
+.cm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.danger-btn{background:var(--clay);border-color:var(--clay);color:#fff;font-weight:600}
+.danger-btn:hover{filter:brightness(1.06);border-color:var(--clay)}
+.menu.confirm-menu .btn{width:auto;display:inline-flex;justify-content:center;padding:8px 14px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:13.5px}
+.menu.confirm-menu .btn:hover{background:var(--surface-2)}
+.menu.confirm-menu .danger-btn{background:var(--clay);border-color:var(--clay);color:#fff;font-weight:600}
+.menu.confirm-menu .danger-btn:hover{background:var(--clay);filter:brightness(1.07)}

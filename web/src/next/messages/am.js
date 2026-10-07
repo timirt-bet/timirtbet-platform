@@ -584,4 +584,6 @@ export default {
   reviews_due_72: "ግምገማዎች በ72 ሰዓት ውስጥ ይጠበቃሉ",
   how_it_works: "እንዴት እንደሚሰራ",
   submit_module: "ሞጁሉን አስገባ",
+  sign_out_q: "ከትምህርት ቤት ይውጡ?",
+  sign_out_warn: "ከሁሉም መሣሪያዎች ይወጣሉ። ኮድዎ በGitHub ማከማቻዎ ውስጥ በደህና ይቆያል፤ ለመመለስ በGitHub ይግቡ።",
 };

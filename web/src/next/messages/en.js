@@ -585,4 +585,6 @@ export default {
   reviews_due_72: "Reviews are due within 72 h",
   how_it_works: "How it works",
   submit_module: "Submit module",
+  sign_out_q: "Sign out of Timirtbet?",
+  sign_out_warn: "You'll be signed out on every device. Your code stays safe in your GitHub repository; sign in with GitHub to come back.",
 };

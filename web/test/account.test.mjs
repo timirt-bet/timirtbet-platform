@@ -30,3 +30,20 @@ test("sign out asks first, then signs out", async () => {
   assert.equal(await p.locator('#who [data-v="signin"]').count(), 1);
   await p.close();
 });
+
+test("signing out from the header menu asks first", async () => {
+  const p = await site.learner("ac-kebede");
+  await p.open("/");
+  await p.locator("#who .who").click();
+  await p.locator('[data-act="menu-signout"]').click();
+  assert.match(await p.text(".confirm-menu"), /Sign out of Timirtbet\?.*every device/s);
+  await p.locator('.confirm-menu [data-act="confirm-no"]').click();
+  assert.equal(await p.locator(".confirm-menu").count(), 0);
+  assert.equal((await p.api("GET", "/api/me")).status, 200, "Cancel keeps you signed in");
+  await p.locator("#who .who").click();
+  await p.locator('[data-act="menu-signout"]').click();
+  await p.locator('.confirm-menu [data-act="live-signout"]').click(); await p.waitForTimeout(600);
+  assert.equal((await p.api("GET", "/api/me")).status, 401);
+  assert.equal(await p.locator('#who [data-v="signin"]').count(), 1);
+  await p.close();
+});
