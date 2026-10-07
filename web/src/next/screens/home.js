@@ -8,7 +8,7 @@ import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
 import { state, refresh } from "../state.js";
 import { Avatar, PersonLink } from "../components/people.js";
-import { Clock } from "../components/clock.js";
+import { Clock, leftText } from "../components/clock.js";
 import { StartSteps, SignInLink } from "../components/start.js";
 import { exercise, solved, moduleState, currentModule, nextChallenge, maxPoints } from "../progress.js";
 
@@ -42,22 +42,6 @@ function Lead({ text }) {
   return html`${first.split(/`([^`]+)`/).map((part, i) => i % 2 ? html`<code>${part}</code>` : part)}`;
 }
 
-/** A slim line of facts about the learner, in the mono "terminal" style of the hero. @param {{ me: any }} props */
-function StatusStrip({ me }) {
-  const k = prefs().track === "go" ? "go" : "js";
-  const all = exercisesOf(k), done = all.filter((e) => solved(e.id)).length;
-  const due = state.queue.value.length;
-  return html`<div class="status-strip" role="note">
-    <span class="ss-l"><i class="ss-dot" aria-hidden="true"></i><span class="mono">${t("ss_track", { lang: old.LANGN[k].toUpperCase(), done, total: all.length })}</span>
-      <span class="ss-sep" aria-hidden="true"></span><span class="ss-am" lang="am">እንኳን ደህና መጡ! ዛሬም አንድ ተግዳሮት እንፍታ።</span></span>
-    <span class="ss-r mono">
-      <span>${t("ss_reviews_due")}: <b class=${due ? "hot" : ""}>${due}</b></span>
-      <span>${t("ss_points")}: <b>${me.points}</b></span>
-      <span class="ss-chip">${t("level")}: ${tText(me.reviewer.level)}</span>
-    </span>
-  </div>`;
-}
-
 /** "Selam, @login": the next challenge, and what is waiting on the learner. @param {{ me: any }} props */
 function UpNext({ me }) {
   const next = nextChallenge(prefs().track) || nextChallenge();
@@ -87,36 +71,32 @@ function UpNext({ me }) {
       html`<button class="btn small" onClick=${() => openEx(m.exercises[0])}>${t("rate_the_review")}</button>`)),
     ...ready.map(({ m }) => item("s" + m.id, "↑", short(m), sub(m) + " · " + t("ready_to_submit"),
       html`<button class="btn small" data-act="submit-module" data-id=${m.id} disabled=${busy === m.id} onClick=${() => submit(m.id)}>${t("submit_module")}</button>`)),
-    ...inReview.map(({ m, s }) => item("w" + m.id, "⏳", short(m), html`${t("in_review")} · <${PersonLink} login=${s.sub.reviewer.login} /> <${Clock} dueAt=${s.sub.dueAt} />`, null, "quiet")),
   ].filter(Boolean);
-  const cur = next && moduleState(next.module);
   const howItWorks = () => { const d = /** @type {HTMLDetailsElement | null} */ (document.querySelector("details.how")); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "center" }); } };
 
-  return html`<${StatusStrip} me=${me} />
-  <section class="upnext">
-    <span class="un-watermark" aria-hidden="true">ትምህርት</span>
+  return html`<section class="upnext">
     <div class="un-main">
-      <p class="un-tags"><span class="un-hello">${t("selam_user", { login: me.login })}</span>
-        <span class="un-am" lang="am">ሰላም፦ ቀጣዩ ተግዳሮትዎ</span>
-        ${next && html`<span class="un-mod mono"><i aria-hidden="true"></i>${t("module_n", { n: modNum(next.module) })}</span>`}</p>
+      <p class="un-tags"><span class="un-hello">${t("selam_user", { login: me.login })}</span></p>
       ${next ? html`
         <h2 class="un-h">${t("up_next")}: ${tText(next.ex.title)}</h2>
         <p class="un-lead"><${Lead} text=${tText(next.ex.prompt)} /></p>
-        <p class="un-crumb mono"><span class=${"lang-b sm track-" + next.ex.lang}>${next.ex.lang === "js" ? "JS" : "Go"}</span>
-          <b>${t("module_n", { n: modNum(next.module) })}</b><span class="sl">/</span><span>${(tText(next.module.title).split(/[:፦]/).pop() || "").trim()}</span>
-          <span class="sl">/</span><b class="gold">${tText(next.ex.topic)}</b><span class="pts-tag">+${t("pts_n", { n: old.ptsOf(next.ex) })}</span></p>
         <div class="un-actions">
           <button class="btn primary un-go" data-act="open" data-id=${next.ex.id} onClick=${() => openEx(next.ex.id)}>${t("open_challenge")} <span aria-hidden="true">→</span></button>
-          <span class="un-note mono">${t(/** @type {any} */ (old.diffOf(next.ex).toLowerCase()))} · ${cur && t("n_passed", { n: cur.passed, total: cur.total })}</span>
+          <span class="un-crumb mono"><span class=${"lang-b sm track-" + next.ex.lang}>${next.ex.lang === "js" ? "JS" : "Go"}</span>
+            ${t("module_n", { n: modNum(next.module) })} · ${tText(next.ex.topic)} · ${t(/** @type {any} */ (old.diffOf(next.ex).toLowerCase()))}
+            <span class="pts-tag">+${t("pts_n", { n: old.ptsOf(next.ex) })}</span></span>
         </div>`
       : html`<h2 class="un-h">${t("all_solved_title")}</h2><p class="un-lead">${t("all_solved_text")}</p>
         <div class="un-actions"><button class="btn primary un-go" onClick=${() => go("reviews")}>${t("reviews")} →</button></div>`}
     </div>
     <aside class="un-queue">
-      <div class="uq-h"><span class="mono">${t("your_queue", { n: todo.length })}</span><span class="uq-am" lang="am">ተግባሮችዎ</span></div>
+      <div class="uq-h"><span class="mono">${todo.length ? t("your_queue", { n: todo.length }) : t("your_queue_plain")}</span>
+        <button class="linkish uq-how" onClick=${howItWorks}>${t("how_it_works")} →</button></div>
       ${todo.length ? html`<ul class="un-todo">${todo}</ul>`
-        : html`<div class="uq-empty"><b>${t("queue_empty")}</b><span>${t("queue_empty_text")}</span></div>`}
-      <div class="uq-foot mono"><span>${t("reviews_due_72")}</span><button class="linkish" onClick=${howItWorks}>${t("how_it_works")} →</button></div>
+        : html`<p class="uq-empty">${t("queue_empty")}</p>`}
+      ${inReview.length > 0 && html`<div class="uq-waiting"><p class="mono">${t("in_review")}</p>
+        <ul>${inReview.map(({ m, s }) => html`<li key=${m.id}><span>${short(m)}</span>
+          <span class="muted"><${PersonLink} login=${s.sub.reviewer.login} /> · ${leftText(Date.parse(s.sub.dueAt) - Date.now())}</span></li>`)}</ul></div>`}
     </aside>
     ${error && html`<p class="err" role="alert">${error}</p>`}
   </section>`;

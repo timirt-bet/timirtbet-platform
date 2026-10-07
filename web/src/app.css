@@ -414,25 +414,11 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .acct-card{margin-top:16px}
 
 /* ---------- home and track pages (src/next/screens/home.js) ---------- */
-/* status strip + Up next hero (terminal style, after the design reference) */
-.status-strip{display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap;margin:0 0 12px;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:12px}
-.status-strip .mono{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
-.ss-l{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
-.ss-dot{width:8px;height:8px;border-radius:2px;background:var(--sun)}
-.ss-sep{width:1px;height:14px;background:var(--line)}
-.ss-am{font-family:"Noto Sans Ethiopic",sans-serif;font-weight:600;font-size:13px;color:var(--ink)}
-.ss-r{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.ss-r b{color:var(--accent);font-weight:600}.ss-r b.hot{color:var(--clay)}
-.ss-chip{padding:3px 8px;border-radius:5px;background:var(--surface-2);color:var(--ink)!important}
 .upnext{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px 34px;align-items:start;padding:28px 28px 26px;margin:0 0 24px;border-radius:6px;
   background:#0f2a21;color:#e6efe9;border:1px solid #1d4335;box-shadow:var(--shadow)}
-.un-watermark{position:absolute;right:-10px;top:-34px;font:700 120px/1 "Noto Sans Ethiopic",sans-serif;color:rgba(255,255,255,.035);pointer-events:none;white-space:nowrap}
 .un-main,.un-queue{position:relative}
 .un-tags{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
 .un-hello{font:700 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:3px;background:#f5c95c;color:#1c1500}
-.un-am{font:600 13px/1.2 "Noto Sans Ethiopic",sans-serif;color:#c9d8cf}
-.un-mod{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#c9d8cf}
-.un-mod i{width:7px;height:7px;background:#f5c95c;border-radius:1px}
 .un-h{font:800 clamp(24px,3vw,32px)/1.12 var(--display);letter-spacing:-.015em;color:#fff;margin:0}
 .un-lead{margin:10px 0 16px;max-width:60ch;color:#b7c9bf;font-size:15px;line-height:1.55}
 .un-lead code{font-family:var(--mono);font-size:.88em;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:#f5d77a}
@@ -444,11 +430,9 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .un-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .upnext .un-go{background:#f5b83d;border-color:#f5b83d;color:#1c1500;font-weight:700;padding:12px 20px;border-radius:4px;font-size:15px}
 .upnext .un-go:hover{filter:brightness(1.06)}
-.un-note{font-size:12px;color:#9fb5a9}
 .un-queue{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.12);border-radius:5px;padding:14px}
 .uq-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px}
 .uq-h .mono{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#c9d8cf}
-.uq-am{font:600 13px/1 "Noto Sans Ethiopic",sans-serif;color:#f5c95c}
 .un-todo{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .todo{display:flex;align-items:center;gap:12px;padding:12px;border-radius:4px;background:#183a2e;border:1px solid rgba(255,255,255,.06);font-size:14px}
 .todo-ic{width:30px;height:30px;border-radius:4px;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#9fd8bf;flex:none;font-size:14px}
@@ -462,12 +446,9 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .todo .due-bar{background:rgba(255,255,255,.12)}.todo .due.ok .due-bar i{background:#f5c95c}
 .todo .who-link{color:#fff}
 .todo.quiet{opacity:.8}
-.uq-empty{display:grid;gap:4px;padding:14px;border:1px dashed rgba(255,255,255,.14);border-radius:4px;font-size:13.5px;color:#9fb5a9}.uq-empty b{color:#fff}
-.uq-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9fb5a9}
-.uq-foot .linkish{color:#f5c95c;font:inherit;letter-spacing:inherit;text-transform:inherit;text-decoration:none}
 .upnext .err{grid-column:1/-1;color:#ffb39b}
-@media (max-width:860px){.upnext{grid-template-columns:minmax(0,1fr);padding:20px 18px}.un-watermark{font-size:80px}}
-@media (max-width:520px){.ss-r{gap:10px}.ss-sep{display:none}.todo{flex-wrap:wrap}.todo-t{flex-basis:calc(100% - 44px)}.todo .btn{margin-left:42px}}
+@media (max-width:860px){.upnext{grid-template-columns:minmax(0,1fr);padding:20px 18px}}
+@media (max-width:520px){.todo{flex-wrap:wrap}.todo-t{flex-basis:calc(100% - 44px)}.todo .btn{margin-left:42px}}
 .track-count{display:flex;flex-direction:column;align-items:flex-end;line-height:1.1}
 .tc-n{font-family:var(--display);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
 .tc-n small{font-size:15px;color:var(--ink-3)}
@@ -614,3 +595,26 @@ footer a:hover{color:var(--accent)}
 }
 @media (prefers-reduced-motion:reduce){.spinner{animation-duration:2.4s}}
 @media (max-width:760px){body:has(.run-dock){padding-bottom:150px}}
+
+/* Up next, calmer: fewer labels, the queue holds only what needs the learner */
+.upnext{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px 40px;padding:30px 32px;align-items:stretch}
+.un-tags{margin:0 0 12px}
+.un-lead{margin:10px 0 22px;font-size:15.5px}
+.un-actions{gap:18px}
+.un-crumb{margin:0;padding:0;border:0;background:none;font-size:12.5px;gap:8px}
+.un-queue{background:none;border:0;border-left:1px solid rgba(255,255,255,.08);border-radius:0;padding:0 0 0 28px}
+.uq-how{font:600 12px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:#f5c95c!important;text-decoration:none}
+.uq-empty{margin:0;padding:14px 0;color:#9fb5a9;font-size:14px}
+.uq-waiting{margin-top:16px}
+.uq-waiting>p{margin:0 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7f998c}
+.uq-waiting ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.uq-waiting li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13.5px;color:#e6efe9}
+.uq-waiting .muted{color:#9fb5a9;font-size:12.5px}
+.uq-waiting .who-link{color:#c9d8cf;font-weight:500}
+@media (max-width:860px){.un-queue{border-left:0;border-top:1px solid rgba(255,255,255,.08);padding:18px 0 0}}
+/* track cards: shorter code covers */
+.track-cover{min-height:0;padding:12px 18px 14px}
+.track-dots{margin-bottom:8px}
+.track-code{font-size:clamp(11.5px,1.2vw,13px);line-height:1.55}
+@media (max-width:860px){.upnext{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:20px}}
+@media (max-width:520px){.un-actions{flex-direction:column;align-items:stretch}.un-go{justify-content:center}.un-crumb{flex-wrap:wrap}}
