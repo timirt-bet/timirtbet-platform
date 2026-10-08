@@ -21,11 +21,13 @@ export const MODULE_1 = ["js-vars", "js-cond", "js-loops", "js-func"];
 
 const freePort = () => new Promise((resolve) => { const s = net.createServer(); s.listen(0, () => { const { port } = s.address(); s.close(() => resolve(port)); }); });
 
-export async function startSite() {
+/** @param {{ env?: Record<string, string> }} [opts] extra environment for the server */
+export async function startSite({ env: extraEnv = {} } = {}) {
   if (!fs.existsSync(path.join(ROOT, "web/dist/index.html"))) throw new Error("Build the site first: node web/build.mjs --live");
   const port = await freePort();
   const env = { ...process.env, PORT: String(port) };
-  for (const k of ["GITHUB_TOKEN", "GITHUB_APP_ID", "GOOGLE_CLOUD_PROJECT", "FIRESTORE_EMULATOR_HOST", "APP_URL"]) delete env[k];
+  for (const k of ["GITHUB_TOKEN", "GITHUB_APP_ID", "GOOGLE_CLOUD_PROJECT", "FIRESTORE_EMULATOR_HOST", "APP_URL", "HIDDEN_TESTS_FILE"]) delete env[k];
+  Object.assign(env, extraEnv);
   const server = spawn(process.execPath, ["src/main.mjs", "dev"], { cwd: path.join(ROOT, "platform"), env, stdio: ["ignore", "pipe", "pipe"] });
   let log = "";
   await new Promise((resolve, reject) => {

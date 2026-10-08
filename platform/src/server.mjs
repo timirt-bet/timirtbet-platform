@@ -232,8 +232,8 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         const results = (await grader.grade([{ exerciseId: ex.id, code: got.text }])).map((r) => ({ ...r, code: got.text }));
         await recordPush({ store, bank, modules, learner: me, results, ref: got.sha, notify });
         const r = results[0];
-        return json(res, 200, { passed: r.passed, passedCount: r.passedCount ?? 0, total: r.total ?? 0, commit: got.sha.slice(0, 7),
-          tests: (r.tests || []).map((x) => ({ name: x.name, pass: x.pass, message: x.message || null })), error: r.error || null });
+        return json(res, 200, { passed: r.passed, passedCount: r.passedCount ?? 0, total: r.total ?? 0, hiddenPassed: r.hiddenPassed ?? 0, hiddenTotal: r.hiddenTotal ?? 0,
+          commit: got.sha.slice(0, 7), tests: (r.tests || []).map((x) => ({ name: x.name, pass: x.pass, message: x.message || null, ...(x.hidden ? { hidden: true } : {}) })), error: r.error || null });
       }
       // Development only: put a file on main in the signed-in learner's (in-memory) repository, like a commit on GitHub.
       if (config.devLogin && req.method === "POST" && p === "/api/dev/commit" && gh.devCommit) {

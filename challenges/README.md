@@ -4,7 +4,7 @@ The tests for [Timirtbet](https://github.com/timirt-bet/timirtbet-platform)'s Ja
 
 - `exercises.json`: every exercise: id, language, level, topic, task text, starter code, JavaScript tests, Go test file and in-browser structure checks.
 - `modules.json`: how the challenges are grouped into modules for peer review.
-- `js/`: the JavaScript test harness (`harness.js`) and grader (`grade.mjs`).
+- `js/`: the JavaScript grader (`grade.mjs`). Each test runs in a locked-down realm in its own worker; see the comment at the top of the file.
 - `go/<exercise>/`: the real `_test.go` file and the starter for each Go exercise; `go/grade.sh` grades one file.
 
 This repository is generated: edit the sources in the platform repository's `authoring/` folder and run `node authoring/build.mjs`.

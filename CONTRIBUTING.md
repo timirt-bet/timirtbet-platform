@@ -41,8 +41,9 @@ The answers to the challenges are kept out of this public repository so learners
 
 1. Add an entry to `authoring/ex_js.mjs` or `authoring/ex_go.mjs`: `id`, `level`, `topic`, `title`, `prompt`, `starter`, and the tests (Go also needs `checks`, the in-browser structure checks).
 2. Write your answer in `solutions/js/<id>.js` or `solutions/go/<id>.go`.
-3. Run `node authoring/build.mjs`. It refuses to finish unless your answer passes and the starter fails.
-4. Add the id to a module in `challenges/modules.json`.
+3. Write a few extra checks that learners won't see: other inputs and edge cases the prompt covers, so an answer that only handles the examples fails. JS: `solutions/hidden/<id>.json`, a list of `{ "t": "..." }` tests. Go: `solutions/hidden/<id>_test.go`, with test functions named `TestHidden...`. Test only what the prompt promises.
+4. Run `node authoring/build.mjs`. It refuses to finish unless your answer passes the tests and the extra checks, and the starter fails them.
+5. Add the id to a module in `challenges/modules.json`.
 
 ## Pull requests
 

@@ -50,7 +50,7 @@ export async function jobFromEvent({ event, payload, gh, bank, defaultBranch = "
 
 export function feedbackComment(results, bank) {
   const lines = ["### Timirtbet test results", "", "| Challenge | Result |", "|---|---|"];
-  for (const r of results) lines.push(`| ${bank[r.exerciseId].title} (\`${r.exerciseId}\`) | ${r.passed ? "✅ passed" : r.error ? "❌ " + r.error.split("\n")[0] : `❌ ${r.passedCount}/${r.total} tests`} |`);
+  for (const r of results) lines.push(`| ${bank[r.exerciseId].title} (\`${r.exerciseId}\`) | ${r.passed ? "✅ passed" : r.error ? "❌ " + r.error.split("\n")[0] : r.passedCount === r.total && r.hiddenTotal ? `❌ ${r.hiddenPassed}/${r.hiddenTotal} extra checks` : `❌ ${r.passedCount}/${r.total} tests`} |`);
   const failed = results.filter((r) => !r.passed);
   if (failed.length) {
     lines.push("", "#### What to fix");
@@ -119,7 +119,8 @@ export async function submitModule({ store, bank, modules, learnerId, moduleId, 
 // Records graded results. A pass keeps its code for the module submission; it is not reviewed on its own.
 async function record({ store, bank, modules, learner, results, ref, source, notify }) {
   for (const r of results) {
-    await store.addResult({ learnerId: learner.id, exerciseId: r.exerciseId, ref, source, passed: r.passed, passedCount: r.passedCount ?? 0, total: r.total ?? 0, tests: r.tests || [], error: r.error || null, ...(r.passed && typeof r.code === "string" ? { code: r.code } : {}) });
+    await store.addResult({ learnerId: learner.id, exerciseId: r.exerciseId, ref, source, passed: r.passed, passedCount: r.passedCount ?? 0, total: r.total ?? 0,
+      hiddenPassed: r.hiddenPassed ?? 0, hiddenTotal: r.hiddenTotal ?? 0, graderVersion: r.graderVersion ?? null, tests: r.tests || [], error: r.error || null, ...(r.passed && typeof r.code === "string" ? { code: r.code } : {}) });
   }
   // A new pass can make this learner a reviewer for module submissions that were waiting.
   if (results.some((r) => r.passed)) await assignWaiting({ store, bank, modules, notify });

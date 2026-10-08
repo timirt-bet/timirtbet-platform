@@ -249,6 +249,8 @@ details.starter .codeview{border-top:1px solid var(--line)}
 .t-row.fail{border-color:color-mix(in srgb,var(--clay) 45%,transparent);background:var(--clay-soft)}
 .t-row.fail .t-ic{background:var(--clay);border-color:var(--clay);animation:tick .35s cubic-bezier(.2,1.6,.4,1)}
 .t-row.fail .t-ic::after{content:"✗"}
+.t-row .t-about{display:block;font-size:13px;margin-top:2px;line-height:1.45}
+.t-row.extra{border-style:dashed}
 .t-msg{font-size:12px;color:var(--clay);margin-top:4px;white-space:pre-wrap;word-break:break-word}
 @keyframes tick{from{transform:scale(.3)}to{transform:scale(1)}}
 #testSec.celebrate .task-tests{animation:glow 1.2s ease-out}

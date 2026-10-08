@@ -155,6 +155,7 @@ Sign-in cookies belong to one address, so everyone is moved to the main one befo
 ## Before real students
 
 - Block the grader's internet access (VPC with a deny-all egress rule).
+- Add the extra checks (hidden tests), so a solution that only handles the visible examples does not pass. With your answers in `solutions/` (including `solutions/hidden/`), run `node authoring/build.mjs`, then `bash deploy/upload-hidden-tests.sh` in Cloud Shell. Run it again whenever the extra checks change.
 - Run `npm run test:firestore` once.
 
 ## Answers for your challenges

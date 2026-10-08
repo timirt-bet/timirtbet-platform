@@ -19,7 +19,7 @@ import { exercise, solved, moduleState } from "../progress.js";
 
 /** @typedef {import("../legacy.js").Module} Module */
 /** @typedef {{ status: "" | "run" | "pass" | "fail", msg: string }} Row */
-/** @typedef {{ rows: Record<string, Row>, sum: string, tone: "" | "ok" | "bad" }} Run */
+/** @typedef {{ rows: Record<string, Row>, sum: string, tone: "" | "ok" | "bad", extra?: { passed: number, total: number } }} Run */
 
 const pause = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
 const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -101,10 +101,15 @@ export function ChallengeScreen({ route }) {
         r.rows[n.name] = { status: ok ? "pass" : "fail", msg: ok ? "" : bad ? bad.message : got.length ? "" : (res.error || t("did_not_run")) };
         show(r);
       }
+      if (res.hiddenTotal > 0) {
+        await pause(calm() ? 0 : 260);
+        r.extra = { passed: res.hiddenPassed, total: res.hiddenTotal }; show(r);
+      }
       await pause(200);
-      r.sum = res.passed ? t("all_n_passed_check", { n: res.total }) : t("n_of_total_passed", { n: res.passedCount, total: res.total });
+      const onlyExtra = !res.passed && res.passedCount === res.total && res.hiddenTotal > 0;
+      r.sum = res.passed ? t("all_n_passed_check", { n: res.total }) : onlyExtra ? t("tests_passed_extra_failed", { n: res.total }) : t("n_of_total_passed", { n: res.passedCount, total: res.total });
       r.tone = res.passed ? "ok" : "bad"; show(r);
-      latest.set(ex.id, { ...lt, result: { passed: res.passed, passedCount: res.passedCount, total: res.total } });
+      latest.set(ex.id, { ...lt, result: { passed: res.passed, passedCount: res.passedCount, total: res.total, hiddenPassed: res.hiddenPassed, hiddenTotal: res.hiddenTotal } });
       await refresh(); // progress, the module and points catch up
       if (firstTime && res.passed && state.saved.value.has(ex.id)) celebrate(ex.id);
     }
@@ -116,7 +121,8 @@ export function ChallengeScreen({ route }) {
   const summary = run && run.sum && !(isSolved && run.tone === "ok") ? { text: run.sum, tone: run.tone }
     : !me ? null
     : isSolved ? { text: t("solved_check"), tone: "ok" }
-    : lt.result && !lt.result.passed ? { text: t("last_run_n_of", { n: lt.result.passedCount, total: lt.result.total }), tone: "" }
+    : lt.result && !lt.result.passed ? { text: lt.result.passedCount === lt.result.total && lt.result.hiddenTotal > 0
+      ? t("tests_passed_extra_failed", { n: lt.result.total }) : t("last_run_n_of", { n: lt.result.passedCount, total: lt.result.total }), tone: "" }
     : { text: "", tone: "" };
 
   return html`
@@ -143,7 +149,10 @@ export function ChallengeScreen({ route }) {
             return html`<li key=${n.name} class=${"t-row" + (row.status ? " " + row.status : "")} data-name=${n.name}>
               <span class="t-ic" aria-hidden="true"></span>
               <div><b>${n.label}</b>${n.code && html`<code>${n.code}</code>`}${row.msg && html`<div class="t-msg mono">${row.msg}</div>`}</div></li>`;
-          })}</ol>
+          })}${run?.extra && html`<li key="extra" class=${"t-row extra " + (run.extra.passed === run.extra.total ? "pass" : "fail")} data-name="extra">
+              <span class="t-ic" aria-hidden="true"></span>
+              <div><b>${t("extra_checks")} <span class="muted">${run.extra.passed}/${run.extra.total}</span></b><span class="t-about muted">${t("extra_checks_about")}</span>
+                ${run.extra.passed !== run.extra.total && html`<div class="t-msg">${t("extra_n_of_total", { n: run.extra.passed, total: run.extra.total })}</div>`}</div></li>`}</ol>
           ${ex.lang === "go" && html`<details class="gofile"><summary>${ex.id.replace(/-/g, "_")}_test.go</summary><${CodeBlock} code=${ex.test} /></details>`}
           ${canRun && html`<div class="run-dock">
             <button class="btn primary run-btn" data-act="check" data-id=${ex.id} disabled=${running} onClick=${runTests}>

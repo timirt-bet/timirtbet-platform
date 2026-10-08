@@ -21,6 +21,8 @@ sh ../challenges/go/grade.sh go-loops go/go_loops/solution.go
 
 You need Node.js 22 and Go 1.22 or newer.
 
+On Timirtbet, your code also runs a few **extra checks** you can't see: other inputs and edge cases from the task. Make sure your solution works in general, not only for the examples in the tests.
+
 ## Exercises
 
 JavaScript: `js/` · Go: `go/` (one package per folder; `go/go_packages` is the package `mathx`).

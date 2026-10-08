@@ -3,15 +3,18 @@
 // answer passes. Then writes challenges/ (tests, graders, exercises.json) and student-template/ (starters).
 // The answers are not part of this public repository: they live in a private repository, cloned to
 // ./solutions (or set SOLUTIONS_DIR). Layout: solutions/js/<id>.js and solutions/go/<id>.go.
+// Extra (hidden) checks live there too: solutions/hidden/<id>.json (a list of { "t": "..." } JS tests)
+// and solutions/hidden/<id>_test.go (Go tests named TestHidden*). The build checks every answer passes
+// them and every starter fails them, then bundles them into solutions/hidden-tests.json for
+// deploy/upload-hidden-tests.sh. They are never written to challenges/ or the web app.
 // gocheck.js holds the in-browser Go structure checks used by the web app.
 import { JS } from "./ex_js.mjs";
 import { GO } from "./ex_go.mjs";
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
+import os from "node:os";
 
-const HARNESS = fs.readFileSync(new URL("./harness.js", import.meta.url), "utf8");
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const REPO = path.resolve(HERE, "../challenges");
 const SOL_DIR = path.resolve(process.env.SOLUTIONS_DIR || path.join(HERE, "../solutions"));
@@ -19,30 +22,16 @@ for (const ex of [...JS, ...GO]) {
   const f = path.join(SOL_DIR, ex.lang, ex.id + (ex.lang === "js" ? ".js" : ".go"));
   ex.solution = fs.existsSync(f) ? fs.readFileSync(f, "utf8") : null;
 }
+const HIDDEN_DIR = path.join(SOL_DIR, "hidden");
+const HIDDEN = {};
+for (const ex of [...JS, ...GO]) {
+  const f = path.join(HIDDEN_DIR, ex.id + (ex.lang === "js" ? ".json" : "_test.go"));
+  if (fs.existsSync(f)) HIDDEN[ex.id] = ex.lang === "js" ? JSON.parse(fs.readFileSync(f, "utf8")) : fs.readFileSync(f, "utf8");
+}
 const HAVE = [...JS, ...GO].filter((e) => e.solution != null).length;
 console.log(HAVE ? `Reference answers: ${HAVE} of ${JS.length + GO.length} from ${SOL_DIR}` : `No reference answers in ${SOL_DIR}: checking starters only.`);
 
-async function runJS(code, tests) {
-  const out = [];
-  for (const t of tests) {
-    try {
-      await new AsyncFunction(HARNESS + "\n" + code + "\n;" + t.t)();
-      out.push({ n: t.n, pass: true });
-    } catch (e) { out.push({ n: t.n, pass: false, msg: String(e && e.message || e) }); }
-  }
-  return out;
-}
-
 let problems = 0;
-for (const ex of JS) {
-  if (ex.solution != null) {
-    const bad = (await runJS(ex.solution, ex.tests)).filter((r) => !r.pass);
-    if (bad.length) { problems++; console.log("JS SOLUTION FAIL", ex.id, bad); }
-  }
-  const st = await runJS(ex.starter, ex.tests);
-  if (st.every((r) => r.pass)) { problems++; console.log("JS STARTER PASSES", ex.id); }
-}
-console.log(`JS: ${JS.length} exercises checked`);
 
 // Go repo
 for (const d of ["go", "js"]) fs.rmSync(path.join(REPO, d), { recursive: true, force: true });
@@ -64,6 +53,7 @@ if (withSol.length) {
     const d = path.join(chk, ex.id.replace(/-/g, "_")); fs.mkdirSync(d);
     fs.writeFileSync(path.join(d, "solution.go"), ex.solution);
     fs.writeFileSync(path.join(d, "x_test.go"), ex.test);
+    if (HIDDEN[ex.id]) fs.writeFileSync(path.join(d, "zz_hidden_test.go"), HIDDEN[ex.id]);
   }
   try { console.log(execSync("go vet ./... && go test ./...", { cwd: chk, encoding: "utf8" })); }
   catch (e) { problems++; console.log("GO SOLUTIONS FAIL\n", e.stdout, e.stderr); }
@@ -78,6 +68,14 @@ for (const ex of GO) {
   fs.writeFileSync(path.join(tmp, "go.mod"), "module starter\n\ngo 1.22\n");
   fs.writeFileSync(path.join(tmp, "starter.go"), ex.starter);
   fs.writeFileSync(path.join(tmp, "x_test.go"), ex.test);
+  if (HIDDEN[ex.id]) {
+    // Each hidden test must fail on the starter, or it checks nothing.
+    fs.writeFileSync(path.join(tmp, "zz_hidden_test.go"), HIDDEN[ex.id]);
+    let hout = "";
+    try { hout = execSync("go test -timeout 20s -run '^TestHidden' ./... 2>&1", { cwd: tmp, encoding: "utf8" }); } catch (e) { hout = e.stdout || ""; }
+    if (!/build failed|setup failed/.test(hout) && !/FAIL/.test(hout)) { problems++; console.log("GO HIDDEN TESTS PASS ON STARTER", ex.id); }
+    fs.rmSync(path.join(tmp, "zz_hidden_test.go"));
+  }
   let out = "";
   try { out = execSync("go test -timeout 20s ./... 2>&1", { cwd: tmp, encoding: "utf8" }); } catch (e) { out = e.stdout || ""; }
   const status = /build failed|setup failed/.test(out) ? "BUILD FAILED" : /FAIL/.test(out) ? "fails tests (good)" : "PASSES?!";
@@ -92,28 +90,8 @@ console.log(`Go: ${GO.length} exercises checked`);
 // JS part of repo
 const jsDir = path.join(REPO, "js");
 fs.mkdirSync(jsDir, { recursive: true });
-fs.writeFileSync(path.join(jsDir, "harness.js"), HARNESS);
-fs.writeFileSync(path.join(jsDir, "grade.mjs"), `// Usage: node js/grade.mjs <exercise-id> <submission.js>
-// Runs the exercise's tests against a submission and prints JSON results.
-// Production note: run each submission in an isolated worker/container with a time limit.
-import fs from "node:fs";
-const [id, file] = process.argv.slice(2);
-if (!id || !file) { console.error("Usage: node js/grade.mjs <exercise-id> <submission.js>"); process.exit(2); }
-const bank = JSON.parse(fs.readFileSync(new URL("../exercises.json", import.meta.url)));
-const ex = bank.find((e) => e.id === id && e.lang === "js");
-if (!ex) { console.error("Unknown JS exercise: " + id); process.exit(2); }
-const HARNESS = fs.readFileSync(new URL("./harness.js", import.meta.url), "utf8");
-const code = fs.readFileSync(file, "utf8");
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-const results = [];
-for (const t of ex.tests) {
-  try { await new AsyncFunction(HARNESS + "\\n" + code + "\\n;" + t.t)(); results.push({ test: t.n, pass: true }); }
-  catch (e) { results.push({ test: t.n, pass: false, message: String((e && e.message) || e) }); }
-}
-const passed = results.filter((r) => r.pass).length;
-console.log(JSON.stringify({ exercise: id, passed, total: results.length, results }, null, 2));
-process.exit(passed === results.length ? 0 : 1);
-`);
+// The JS grader is kept as a normal file (authoring/grade.mjs) and copied in.
+fs.copyFileSync(path.join(HERE, "grade.mjs"), path.join(jsDir, "grade.mjs"));
 fs.writeFileSync(path.join(REPO, "test_all.mjs"), `// Checks reference answers against the tests: SOLUTIONS_DIR=/path/to/solutions node test_all.mjs
 // The answers are kept in a separate private repository (solutions/js/<id>.js, solutions/go/<id>.go).
 import { execFileSync } from "node:child_process";
@@ -158,6 +136,34 @@ fs.chmodSync(path.join(goDir, "grade.sh"), 0o755);
 const bank = [...JS, ...GO].map(({ solution, ...rest }) => rest);
 fs.writeFileSync(path.join(REPO, "exercises.json"), JSON.stringify(bank, null, 2));
 fs.writeFileSync(path.join(HERE, "bank.json"), JSON.stringify(bank)); // embedded in the web app
+
+// JS: checked with the real grader, so answers pass and starters fail exactly as they will for learners.
+/** @returns {{passed: number, total: number, results: {test: string, pass: boolean, message?: string}[]}} */
+function gradeJS(id, code) {
+  const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "jscheck-")), "solution.js");
+  fs.writeFileSync(f, code);
+  const h = path.join(path.dirname(f), "hidden.json");
+  fs.writeFileSync(h, JSON.stringify(HIDDEN));
+  let out;
+  try { out = execFileSync("node", [path.join(jsDir, "grade.mjs"), id, f, h], { encoding: "utf8" }); }
+  catch (e) { out = e.stdout; }
+  fs.rmSync(path.dirname(f), { recursive: true, force: true });
+  return JSON.parse(out);
+}
+for (const ex of JS) {
+  if (ex.solution != null) {
+    const r = gradeJS(ex.id, ex.solution);
+    if (r.passed !== r.total || r.hiddenPassed !== r.hiddenTotal) { problems++; console.log("JS SOLUTION FAIL", ex.id, r.results.filter((x) => !x.pass)); }
+  }
+  const st = gradeJS(ex.id, ex.starter);
+  if (st.passed === st.total) { problems++; console.log("JS STARTER PASSES", ex.id); }
+  if (st.hiddenPassed > 0) { problems++; console.log("JS HIDDEN TESTS PASS ON STARTER", ex.id, st.results.filter((x) => x.hidden && x.pass).map((x) => x.test)); }
+}
+console.log(`JS: ${JS.length} exercises checked`);
+if (Object.keys(HIDDEN).length) {
+  fs.writeFileSync(path.join(SOL_DIR, "hidden-tests.json"), JSON.stringify(HIDDEN));
+  console.log(`Extra checks: ${Object.keys(HIDDEN).length} exercises, bundled in ${path.join(SOL_DIR, "hidden-tests.json")}`);
+}
 console.log(problems ? `PROBLEMS: ${problems}` : "ALL GOOD");
 
 // ---- student template repo ----

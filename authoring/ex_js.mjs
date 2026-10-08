@@ -1,4 +1,4 @@
-// JavaScript exercise bank. Tests are JS statements run with the harness helpers:
+// JavaScript exercise bank. Tests are JS statements run by authoring/grade.mjs with these checks:
 // eq(actual, expected), near(actual, expected), ok(cond, msg), throws(fn, ErrorType), sleep(ms)
 export const JS = [
 {
