@@ -56,7 +56,8 @@ function copyBtn(btn,id){const txt=document.getElementById(id).textContent;const
    /                                   the two tracks
    /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
    /challenges/js/basic/vars           a challenge (its id without the js-/go- prefix)
-   /reviews  /reviews/<id>  /circle  /profile  /signin  /u/<github-login> (a learner's profile)                                       */
+   /reviews  /reviews/<id>  /circle  /profile  /signin  /u/<github-login> (a learner's profile)
+   /teach  /teach/<class-id>  /teach/<class-id>/<learner-id>        a teacher's classes                                       */
 const ROUTED=typeof history!=="undefined"&&/^https?:$/.test(location.protocol);
 const TRACK_LEVELS=["basic","advanced"],slugOf=id=>id.replace(/^(js|go)-/,"");
 function pathOf(){
@@ -67,6 +68,7 @@ function pathOf(){
     case "review":return `/reviews/${encodeURIComponent(V.qid||"")}`;
     case "circle":case "profile":case "signin":return "/"+V.view;
     case "user":return `/u/${encodeURIComponent(V.login||"")}`;
+    case "teach":return "/teach"+(V.cid?`/${encodeURIComponent(V.cid)}`+(V.lid?`/${encodeURIComponent(V.lid)}`:""):"");
     default:return "/";
   }
 }
@@ -81,6 +83,7 @@ function titleOf(){
     case "profile":return `Profile · ${T}`;
     case "signin":return `Get started · ${T}`;
     case "user":return `@${V.login} · ${T}`;
+    case "teach":return `${V.cid?"Class":"Teach"} · ${T}`;
     default:return `${T} | ትምህርት ቤት`;
   }
 }
@@ -94,12 +97,13 @@ function routeFrom(path){
   if(p[0]==="reviews")return p[1]?{view:"review",qid:p[1]}:{view:"reviews"};
   if(["circle","profile","signin"].includes(p[0]))return {view:p[0]};
   if(p[0]==="u"&&/^[\w-]{1,39}$/.test(p[1]||""))return {view:"user",login:p[1]};
+  if(p[0]==="teach"){const ok=x=>/^[\w-]{1,60}$/.test(x||"");return {view:"teach",cid:ok(p[1])?p[1]:null,lid:ok(p[1])&&ok(p[2])?p[2]:null};}
   return {view:"challenges"};
 }
 function applyRoute(path){
   const r=routeFrom(path);
   if(r.track){S.track=r.track;}
-  Object.assign(V,{view:r.view,level:r.level||null,confirm:null},r.ex?{ex:r.ex}:{},r.login?{login:r.login,utab:null}:{},r.qid?{qid:r.qid}:{});
+  Object.assign(V,{view:r.view,level:r.level||null,confirm:null,cid:r.cid||null,lid:r.lid||null},r.ex?{ex:r.ex}:{},r.login?{login:r.login,utab:null}:{},r.qid?{qid:r.qid}:{});
   if(ROUTED&&location.pathname!==pathOf())history.replaceState(null,"",pathOf());// tidy unknown or partial addresses
 }
 if(ROUTED)window.addEventListener("popstate",()=>{applyRoute(location.pathname);render();});

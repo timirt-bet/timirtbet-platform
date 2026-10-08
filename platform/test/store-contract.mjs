@@ -31,6 +31,18 @@ export function storeContract(test, makeStore) {
     assert.deepEqual((await s.getLearner("gh_2")).following, []);
   });
 
+  test("classes: create, find by code and teacher, update, delete", async () => {
+    const s = await makeStore();
+    const a = await s.createClass({ name: "Grade 10 A", teacherId: "gh_t", code: "CLASSAAA", members: [] });
+    await s.createClass({ name: "Grade 10 B", teacherId: "gh_t", code: "CLASSBBB", members: [] });
+    await s.createClass({ name: "Other", teacherId: "gh_x", code: "CLASSCCC", members: [] });
+    assert.equal((await s.classByCode("CLASSAAA")).id, a.id);
+    assert.deepEqual((await s.classesOf("gh_t")).map((c) => c.name), ["Grade 10 A", "Grade 10 B"]);
+    assert.deepEqual((await s.updateClass(a.id, { members: ["gh_1"] })).members, ["gh_1"]);
+    await s.deleteClass(a.id);
+    assert.equal(await s.getClass(a.id), null);
+  });
+
   test("circles: create, find by code, update, delete", async () => {
     const s = await makeStore();
     const c = await s.createCircle({ name: "Addis", track: "js", ownerId: "gh_1", inviteCode: "ABCDEFGH", members: ["gh_1"] });

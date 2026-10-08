@@ -11,6 +11,7 @@ const NUDGE_EVERY_MS = 12 * 3600 * 1000; // a submitter can nudge their reviewer
 import { createNotifier } from "./notify.mjs";
 import { authorizeUrl, signSession, verifySession, parseCookies, cookie } from "./auth.mjs";
 import { createCircle, joinCircle, leaveCircle, newInviteCode, CircleError } from "./circles.mjs";
+import { createClass, ownClass, joinClass, leaveClass, removeFromClass, deleteClass, newClassCode, classReport, learnerDetail, classCSV, ClassError } from "./classes.mjs";
 import { pointsFor } from "./exercises.mjs";
 import { jobFromPush } from "./queue.mjs";
 
@@ -138,10 +139,15 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
       }
       if (req.method === "GET" && p === "/api/me") {
         const circle = me.circleId ? await store.getCircle(me.circleId) : null;
+        const cls = me.classId ? await store.getClass(me.classId) : null;
+        const [teacher, teaching] = await Promise.all([cls ? store.getLearner(cls.teacherId) : null, store.classesOf(me.id)]);
         const [people, passes] = await Promise.all([publicLearners([me.id, ...(circle?.members || [])]), store.passesOf(me.id)]);
         return json(res, 200, {
           me: { ...people[me.id], repo: me.repo || null, repoError: me.repo ? null : me.onboardError || null, noticeSeen: !!me.noticeSeenAt, solvedIds: passes.map((x) => x.exerciseId), savedIds: passes.filter((x) => x.fromGit).map((x) => x.exerciseId), submitVia: "github" },
           circle: circle && { id: circle.id, name: circle.name, track: circle.track, inviteCode: circle.inviteCode, ownerId: circle.ownerId, members: circle.members.map((id) => people[id]).filter(Boolean) },
+          // The class this learner is in (their teacher sees their progress), and how many classes they teach.
+          class: cls && { id: cls.id, name: cls.name, teacher: teacher?.githubUsername || null },
+          teaching: teaching.length,
         });
       }
       // Creates the learner's repository if sign-in could not (the org invitation, template or permissions failed).
@@ -213,6 +219,39 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         if (req.method === "POST" && p === "/api/circles/leave") { await leaveCircle(store, me.id); return json(res, 200, { ok: true }); }
         if (req.method === "POST" && (m = p.match(/^\/api\/circles\/([\w-]+)\/invite-code$/))) return json(res, 200, { circle: await newInviteCode(store, { circleId: m[1], learnerId: me.id }) });
       } catch (e) { if (e instanceof CircleError) return json(res, e.status, { error: e.message }); throw e; }
+
+      // ---- classes: a teacher sees the progress of learners who joined with the class code ----
+      try {
+        const classInfo = (c) => ({ id: c.id, name: c.name, code: c.code, members: c.members.length, createdAt: c.createdAt });
+        if (req.method === "GET" && p === "/api/classes") return json(res, 200, { classes: (await store.classesOf(me.id)).map(classInfo) });
+        if (req.method === "POST" && p === "/api/classes") return json(res, 201, { class: classInfo(await createClass(store, { name: body().name, teacherId: me.id })) });
+        if (req.method === "POST" && p === "/api/classes/join") {
+          const c = await joinClass(store, { code: body().code, learnerId: me.id });
+          const t = await store.getLearner(c.teacherId);
+          return json(res, 200, { class: { id: c.id, name: c.name, teacher: t?.githubUsername || null } });
+        }
+        if (req.method === "POST" && p === "/api/classes/leave") { await leaveClass(store, me.id); return json(res, 200, { ok: true }); }
+        if ((m = p.match(/^\/api\/classes\/([\w-]+)(\/.*)?$/))) {
+          const [, classId, rest = ""] = m;
+          const c = await ownClass(store, { classId, teacherId: me.id });
+          if (req.method === "GET" && rest === "") return json(res, 200, { class: classInfo(c), report: await classReport(store, { cls: c, bank, modules }) });
+          if (req.method === "GET" && rest === "/export.csv") {
+            const csv = classCSV(c, await classReport(store, { cls: c, bank, modules }));
+            const file = c.name.replace(/[^\w-]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "class";
+            res.writeHead(200, { "content-type": "text/csv; charset=utf-8", "cache-control": "no-store", "content-disposition": `attachment; filename="timirtbet-${file}.csv"` });
+            return res.end("\uFEFF" + csv); // the BOM lets Excel read Amharic names correctly
+          }
+          let lm;
+          if (req.method === "GET" && (lm = rest.match(/^\/learners\/([\w-]+)$/))) {
+            if (!c.members.includes(lm[1])) return json(res, 404, { error: "This learner is not in the class" });
+            return json(res, 200, { class: classInfo(c), learner: { id: lm[1], ...(await learnerDetail(store, { learnerId: lm[1], bank, modules })) } });
+          }
+          if (req.method === "POST" && rest === "/code") return json(res, 200, { class: classInfo(await newClassCode(store, { classId, teacherId: me.id })) });
+          if (req.method === "POST" && rest === "/remove") return json(res, 200, { class: classInfo(await removeFromClass(store, { classId, teacherId: me.id, learnerId: String(body().learnerId || "") })) });
+          if (req.method === "DELETE" && rest === "") { await deleteClass(store, { classId, teacherId: me.id }); return json(res, 200, { ok: true }); }
+          return json(res, 404, { error: "not found" });
+        }
+      } catch (e) { if (e instanceof ClassError) return json(res, e.status, { error: e.message }); throw e; }
 
       // ---- web editor submissions ----
       // "Run the tests": grade the solution file as it is now on main in the learner's own repository.

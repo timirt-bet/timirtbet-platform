@@ -13,6 +13,10 @@ export const state = {
   me: signal(null),
   /** @type {import("@preact/signals").Signal<any>} */
   circle: signal(null),
+  /** @type {import("@preact/signals").Signal<any>} the class this learner is in ({ id, name, teacher }), or null */
+  cls: signal(null),
+  /** @type {import("@preact/signals").Signal<number>} how many classes this learner teaches */
+  teaching: signal(0),
   /** @type {import("@preact/signals").Signal<any[]>} the learner's module submissions */
   subs: signal([]),
   /** @type {import("@preact/signals").Signal<any[]>} reviews this learner has to write */
@@ -40,6 +44,8 @@ export async function refresh() {
     batch(() => {
       state.me.value = r.me;
       state.circle.value = r.circle;
+      state.cls.value = r.class || null;
+      state.teaching.value = r.teaching || 0;
       state.solved.value = new Set(r.me.solvedIds || []);
       state.saved.value = new Set(r.me.savedIds || r.me.solvedIds || []);
       state.subs.value = subs.submissions;

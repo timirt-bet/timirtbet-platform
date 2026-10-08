@@ -436,3 +436,46 @@ test("pull requests get a comment; other branches, unknown repos and bad signatu
     assert.equal(t.gh.calls.filter((x) => x.name === "setStatus").length, before);
   } finally { t.close(); }
 });
+
+test("classes: a teacher sees only their class, its grid, a learner's detail and a CSV", async () => {
+  const t = await setup();
+  try {
+  const { hana } = await t.signIn();
+  const { class: c } = await (await t.post("/api/classes", { name: "Grade 10 A" }, hana)).json();
+  assert.equal(c.members, 0);
+  assert.equal((await t.post("/api/classes/join", { code: c.code }, await t.as("gh_2"))).status, 200);
+  const joined = await (await t.post("/api/classes/join", { code: c.code }, await t.as("gh_3"))).json();
+  assert.equal(joined.class.teacher, "hana-t");
+  const me2 = await (await t.get("/api/me", await t.as("gh_2"))).json();
+  assert.deepEqual(me2.class, { id: c.id, name: "Grade 10 A", teacher: "hana-t" });
+  assert.equal((await (await t.get("/api/me", hana)).json()).teaching, 1);
+
+  const { report } = await (await t.get(`/api/classes/${c.id}`, hana)).json();
+  assert.deepEqual(report.learners.map((l) => l.login), ["dawit-b", "liya-g"]);
+  assert.equal(report.learners[0].status["js-vars"], "passed");
+  assert.equal(report.challenges[0], "js-vars");
+
+  // Another learner, even a classmate, cannot see the class or anyone's detail.
+  assert.equal((await t.get(`/api/classes/${c.id}`, await t.as("gh_2"))).status, 404);
+  assert.equal((await t.get(`/api/classes/${c.id}/learners/gh_3`, await t.as("gh_2"))).status, 404);
+  // The teacher sees members only.
+  assert.equal((await t.get(`/api/classes/${c.id}/learners/gh_4`, hana)).status, 404);
+  const d = await (await t.get(`/api/classes/${c.id}/learners/gh_2`, hana)).json();
+  assert.equal(d.learner.login, "dawit-b");
+  assert.ok(d.learner.challenges.find((x) => x.exerciseId === "js-vars").passed);
+
+  const csv = await t.get(`/api/classes/${c.id}/export.csv`, hana);
+  assert.match(csv.headers.get("content-type"), /text\/csv/);
+  assert.match(csv.headers.get("content-disposition"), /timirtbet-grade-10-a\.csv/);
+  const bytes = Buffer.from(await csv.arrayBuffer());
+  assert.deepEqual([...bytes.subarray(0, 3)], [0xef, 0xbb, 0xbf], "starts with a BOM so Excel reads Amharic");
+  const text = bytes.toString("utf8");
+  assert.match(text, /^\uFEFFlearner,passed,/);
+  assert.match(text, /\r\ndawit-b,6,/);
+
+  await t.post(`/api/classes/${c.id}/remove`, { learnerId: "gh_3" }, hana);
+  assert.equal((await (await t.get("/api/me", await t.as("gh_3"))).json()).class, null);
+  assert.equal((await t.send("DELETE", `/api/classes/${c.id}`, undefined, hana)).status, 200);
+  assert.equal((await (await t.get("/api/me", await t.as("gh_2"))).json()).class, null);
+  } finally { t.close(); }
+});

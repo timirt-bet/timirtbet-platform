@@ -1,5 +1,5 @@
 // Firestore store for production (Cloud Run). Same async interface as MemoryStore.
-// Collections: learners, circles, results, passes, submissions, reviewers, jobs, inbox.
+// Collections: learners, circles, classes, results, passes, submissions, reviewers, jobs, inbox.
 import crypto from "node:crypto";
 import { Firestore, FieldValue } from "@google-cloud/firestore";
 import { emptyStats, addRating, STAR_POINTS } from "../reviews.mjs";
@@ -13,7 +13,7 @@ export class FirestoreStore {
   constructor(options = {}) {
     this.db = options.db || new Firestore({ ignoreUndefinedProperties: true, ...options });
     const c = (n) => this.db.collection(n);
-    this.c = { learners: c("learners"), circles: c("circles"), results: c("results"), passes: c("passes"), submissions: c("submissions"), reviewers: c("reviewers"), jobs: c("jobs"), inbox: c("inbox") };
+    this.c = { learners: c("learners"), circles: c("circles"), classes: c("classes"), results: c("results"), passes: c("passes"), submissions: c("submissions"), reviewers: c("reviewers"), jobs: c("jobs"), inbox: c("inbox") };
   }
 
   async getLearner(id) { return data(await this.c.learners.doc(id).get()); }
@@ -38,6 +38,13 @@ export class FirestoreStore {
   async circleByCode(code) { return (await all(this.c.circles.where("inviteCode", "==", code).limit(1)))[0] || null; }
   async updateCircle(id, patch) { await this.c.circles.doc(id).set(patch, { merge: true }); return this.getCircle(id); }
   async deleteCircle(id) { await this.c.circles.doc(id).delete(); }
+
+  async createClass(c) { const rec = { id: newId("cls"), createdAt: new Date().toISOString(), ...c }; await this.c.classes.doc(rec.id).set(rec); return rec; }
+  async getClass(id) { return data(await this.c.classes.doc(id).get()); }
+  async classByCode(code) { return (await all(this.c.classes.where("code", "==", code).limit(1)))[0] || null; }
+  async classesOf(teacherId) { return (await all(this.c.classes.where("teacherId", "==", teacherId))).sort((a, b) => a.createdAt.localeCompare(b.createdAt)); }
+  async updateClass(id, patch) { await this.c.classes.doc(id).set(patch, { merge: true }); return this.getClass(id); }
+  async deleteClass(id) { await this.c.classes.doc(id).delete(); }
 
   // A pass keeps the latest passing code, which a module submission sends for review.
   async addResult({ code, ...r }) {
@@ -128,6 +135,8 @@ export class FirestoreStore {
     await batchDelete(this.c.passes.where("learnerId", "==", id));
     await batchDelete(this.c.submissions.where("studentId", "==", id));
     await batchDelete(this.c.jobs.where("learnerId", "==", id));
+    await batchDelete(this.c.classes.where("teacherId", "==", id));
+    for (const d of (await this.c.classes.where("members", "array-contains", id).get()).docs) await d.ref.update({ members: FieldValue.arrayRemove(id) });
     for (const d of (await this.c.submissions.where("reviewerId", "==", id).get()).docs) await d.ref.update({ reviewerId: "deleted" });
     await this.c.reviewers.doc(id).delete();
     await this.c.inbox.doc(id).delete();

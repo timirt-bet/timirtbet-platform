@@ -7,6 +7,7 @@ import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
 import { state } from "../state.js";
 import { Avatar, FindForm, SignInNeeded } from "../components/people.js";
+import { ClassCard } from "./teach.js";
 
 export function ProfileScreen() {
   const me = state.me.value;
@@ -32,6 +33,7 @@ export function ProfileScreen() {
         <${FindForm} />
       </div></section>
     </div>
+    <div class="two" style="margin-top:16px"><${ClassCard} /></div>
     <${AccountCard} />`;
 }
 

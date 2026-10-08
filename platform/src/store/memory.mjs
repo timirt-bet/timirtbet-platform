@@ -1,5 +1,5 @@
 // In-memory store for development and tests. Same async interface as FirestoreStore.
-// A learner record holds only: githubId, githubUsername, repo, circleId, sessionVersion, onboardedAt, noticeSeenAt.
+// A learner record holds only: githubId, githubUsername, repo, circleId, classId, sessionVersion, onboardedAt, noticeSeenAt.
 import crypto from "node:crypto";
 import { emptyStats, addRating, STAR_POINTS } from "../reviews.mjs";
 
@@ -8,7 +8,7 @@ export const INBOX_SIZE = 30;
 export const newId = (prefix) => `${prefix}_${crypto.randomBytes(8).toString("hex")}`;
 
 export class MemoryStore {
-  constructor() { this.t = { learners: new Map(), circles: new Map(), results: new Map(), passes: new Map(), submissions: new Map(), reviewers: new Map(), jobs: new Map(), inbox: new Map() }; }
+  constructor() { this.t = { learners: new Map(), circles: new Map(), classes: new Map(), results: new Map(), passes: new Map(), submissions: new Map(), reviewers: new Map(), jobs: new Map(), inbox: new Map() }; }
 
   // learners
   async getLearner(id) { return clone(this.t.learners.get(id)) || null; }
@@ -30,6 +30,14 @@ export class MemoryStore {
   async circleByCode(code) { for (const c of this.t.circles.values()) if (c.inviteCode === code) return clone(c); return null; }
   async updateCircle(id, patch) { const next = { ...this.t.circles.get(id), ...patch }; this.t.circles.set(id, next); return clone(next); }
   async deleteCircle(id) { this.t.circles.delete(id); }
+
+  // classes (teacher views)
+  async createClass(c) { const rec = { id: newId("cls"), createdAt: new Date().toISOString(), ...c }; this.t.classes.set(rec.id, rec); return clone(rec); }
+  async getClass(id) { return clone(this.t.classes.get(id)) || null; }
+  async classByCode(code) { for (const c of this.t.classes.values()) if (c.code === code) return clone(c); return null; }
+  async classesOf(teacherId) { return clone([...this.t.classes.values()].filter((c) => c.teacherId === teacherId).sort((a, b) => a.createdAt.localeCompare(b.createdAt))); }
+  async updateClass(id, patch) { const next = { ...this.t.classes.get(id), ...patch }; this.t.classes.set(id, next); return clone(next); }
+  async deleteClass(id) { this.t.classes.delete(id); }
 
   // results and passes
   // A pass keeps the latest passing code, which a module submission sends for review.
@@ -103,5 +111,9 @@ export class MemoryStore {
       else if (s.reviewerId === id) this.t.submissions.set(k, { ...s, reviewerId: "deleted" });
     }
     for (const [k, j] of this.t.jobs) if (j.learnerId === id) this.t.jobs.delete(k);
+    for (const [k, c] of this.t.classes) {
+      if (c.teacherId === id) this.t.classes.delete(k);
+      else if (c.members.includes(id)) this.t.classes.set(k, { ...c, members: c.members.filter((x) => x !== id) });
+    }
   }
 }

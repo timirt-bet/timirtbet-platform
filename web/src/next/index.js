@@ -14,6 +14,7 @@ import { HomeScreen, TrackScreen } from "./screens/home.js";
 import { Notice } from "./components/notice.js";
 import { Header, Dock, view, toastItem } from "./components/header.js";
 import { ChallengeScreen } from "./screens/challenge.js";
+import { TeachScreen } from "./screens/teach.js";
 import { SigninScreen } from "./components/start.js";
 import { celebrate } from "./components/hooray.js";
 
@@ -66,6 +67,7 @@ register("challenges", HomeScreen);
 register("track", TrackScreen);
 register("exercise", ChallengeScreen);
 register("signin", SigninScreen);
+register("teach", TeachScreen);
 
 // The top bar (and, on phones, the tab bar) is drawn here from the start, on every screen.
 const top = document.getElementById("top");

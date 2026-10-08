@@ -43,7 +43,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 | Stored | Never collected |
 |---|---|
 | GitHub id and username | Name, email, phone number |
-| Repository name, circle | Birth date, school, location |
+| Repository name, circle, class | Birth date, school, location |
 | Code you submit, test results | Passwords (there are none) |
 | Reviews written, ratings given | Tracking or analytics cookies |
 | Who you follow | |
@@ -52,6 +52,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 - **Export:** `GET /api/me/export`.
 - **Delete:** `DELETE /api/me` removes the learner's records and their repository, and takes them out of the organization. Reviews they wrote stay, unsigned.
 - **Profiles:** any signed-in learner can open another's profile at `/u/{login}`: points, solved challenges, module progress, reviewer level and score, number of reviews, circle name, followers and following. Never their code.
+- **Teachers:** a learner's teacher sees their progress only after the learner joins the class with its code (Profile → Your class). The teacher sees which challenges they passed or tried, how many test runs, last activity and module reviews; never their code. The learner can leave at any time, and the teacher can remove them.
 - **Guests:** anyone can read every challenge and its tests without signing in.
 - **Age:** GitHub accounts require age 13+.
 
@@ -71,6 +72,14 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 | Membership | One circle at a time |
 | Owner | Can rotate the invite code. Leaving passes ownership to the next member; an empty circle is deleted |
 | Assignment | Circle members who solved the challenge come first; the wider pool is used only when none of them is eligible |
+
+## Classes (teacher views, `platform/src/classes.mjs`)
+
+- Anyone signed in can create a class (`/teach`, or Teach a class in the account menu). A class has a name and an 8-letter code; a teacher can have up to 20 classes of up to 80 learners.
+- A learner joins one class at a time by entering the code under Profile → Your class. Classes are separate from review circles.
+- `/teach/{class}` shows the class: learners, active this week, average passed, modules reviewed, and a grid of learners × challenges (passed, tried, not started) grouped by module, with how many passed each challenge. It downloads as CSV (UTF-8 with a BOM, so Excel shows Amharic names).
+- `/teach/{class}/{learner}` shows one learner: each challenge's status, number of runs, best score, last run and the first line of the last error; modules with no activity collapse to one row; and their module reviews.
+- Only the class's teacher can read it; to anyone else a class id answers 404.
 
 ## Grading
 
@@ -151,6 +160,7 @@ The web app is one page, but every screen has its own address and browser-tab ti
 | `/reviews`, `/reviews/{submission}` | Reviews to write, and one review |
 | `/circle`, `/profile`, `/signin` | Circle, your account, getting started |
 | `/u/{github-login}` | A learner's profile |
+| `/teach`, `/teach/{class}`, `/teach/{class}/{learner}` | A teacher's classes, one class, one learner |
 
 After signing in with GitHub, the learner returns to the page they were on.
 
@@ -161,6 +171,8 @@ After signing in with GitHub, the learner returns to the page they were on.
 | `GET /api/auth/github`, `/callback`; `POST /api/auth/logout` | anyone / you |
 | `GET /api/me`, `POST /api/me/notice`, `GET /api/me/export`, `DELETE /api/me` | you |
 | `POST /api/circles`, `/join`, `/leave`, `/{id}/invite-code` | you (owner for the code) |
+| `GET`/`POST /api/classes`; `POST /api/classes/join`, `/leave` | you |
+| `GET /api/classes/{id}`, `/{id}/export.csv`, `/{id}/learners/{learnerId}`; `POST /{id}/code`, `/{id}/remove`; `DELETE /api/classes/{id}` | the class's teacher |
 | `GET /api/results/{exerciseId}` (your latest push's test results), `GET /api/passes/{exerciseId}` (your saved solution) | you |
 | `POST /api/modules/{id}/submit` (send a finished module for review) | you |
 | `GET /api/notifications`, `POST /api/notifications/read` | you |

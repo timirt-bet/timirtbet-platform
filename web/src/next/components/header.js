@@ -30,6 +30,7 @@ const I = {
   circle: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5"/>',
   profile: '<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  teach: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8"/><path d="M12 16v4"/><path d="m7 9 3 2-3 2"/><path d="M12 13h4"/>',
   out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
 };
 
@@ -99,6 +100,7 @@ function Me({ me }) {
       <div class="menu-h"><b class="mono">@${me.login}</b><span class="muted">${t("pts_n", { n: me.points })} · ${tText(me.reviewer.level)}</span></div>
       <button role="menuitem" onClick=${to(() => go("profile"))}><${Icon} d=${I.profile} />${t("your_account")}</button>
       <button role="menuitem" onClick=${to(() => go("user", { login: me.login, utab: null }))}><${Icon} d=${I.circle} />${t("your_public_profile").replace(/\s*→$/, "")}</button>
+      <button role="menuitem" data-act="menu-teach" onClick=${to(() => go("teach", { cid: null, lid: null }))}><${Icon} d=${I.teach} />${state.teaching.value ? t("your_classes") : t("teach_a_class")}</button>
       <button role="menuitem" class="danger-item" data-act="menu-signout" onClick=${() => setConfirming(true)}><${Icon} d=${I.out} />${t("sign_out")}</button>
     </div>`}
     ${open && confirming && html`<div class="menu confirm-menu" role="alertdialog" aria-labelledby="soH" aria-describedby="soT">
