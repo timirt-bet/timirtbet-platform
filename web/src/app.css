@@ -467,11 +467,12 @@ details.mod.complete .mod-bar i{background:var(--accent)}
 @media (max-width:600px){.track-title .track-count{flex-direction:row;align-items:baseline;gap:6px;margin-left:0;width:100%}}
 
 /* ---------- header, tab bar, menus, toast (src/next/components/header.js) ---------- */
-/* A thin tibeb band (the woven border of Ethiopian cloth) under the bar */
+/* A tibeb band under the bar: the woven border of a netela, stepped diamonds in gold thread.
+   Drawn as a mask so it follows --sun in light and dark mode. */
 header.top{border-bottom:0;box-shadow:0 1px 0 var(--line)}
-header.top::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:4px;pointer-events:none;
-  background:repeating-linear-gradient(90deg,var(--accent) 0 14px,var(--sun) 14px 18px,var(--clay) 18px 22px,var(--sun) 22px 26px,var(--accent) 26px 40px);
-  -webkit-mask:repeating-linear-gradient(90deg,#000 0 10px,transparent 10px 12px);mask:repeating-linear-gradient(90deg,#000 0 10px,transparent 10px 12px);opacity:.85}
+header.top::after{content:"";position:absolute;left:0;right:0;bottom:-13px;height:12px;pointer-events:none;background:var(--sun);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' shape-rendering='crispEdges'%3E%3Crect width='24' height='1'/%3E%3Crect y='11' width='24' height='1'/%3E%3Crect x='10' y='3' width='4' height='1'/%3E%3Crect x='8' y='4' width='8' height='1'/%3E%3Crect x='6' y='5' width='4' height='2'/%3E%3Crect x='14' y='5' width='4' height='2'/%3E%3Crect x='8' y='7' width='8' height='1'/%3E%3Crect x='10' y='8' width='4' height='1'/%3E%3Crect x='11' y='5' width='2' height='2'/%3E%3Crect x='0' y='5' width='2' height='2'/%3E%3Crect x='22' y='5' width='2' height='2'/%3E%3C/svg%3E") repeat-x 0 0/24px 12px;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' shape-rendering='crispEdges'%3E%3Crect width='24' height='1'/%3E%3Crect y='11' width='24' height='1'/%3E%3Crect x='10' y='3' width='4' height='1'/%3E%3Crect x='8' y='4' width='8' height='1'/%3E%3Crect x='6' y='5' width='4' height='2'/%3E%3Crect x='14' y='5' width='4' height='2'/%3E%3Crect x='8' y='7' width='8' height='1'/%3E%3Crect x='10' y='8' width='4' height='1'/%3E%3Crect x='11' y='5' width='2' height='2'/%3E%3Crect x='0' y='5' width='2' height='2'/%3E%3Crect x='22' y='5' width='2' height='2'/%3E%3C/svg%3E") repeat-x 0 0/24px 12px}
 .top-in{gap:22px;padding-block:10px;flex-wrap:nowrap}
 nav.main{gap:2px;align-items:center}
 nav.main button{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;font-size:14.5px;transition:background .15s,color .15s}
