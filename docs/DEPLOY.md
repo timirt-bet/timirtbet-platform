@@ -154,7 +154,19 @@ Sign-in cookies belong to one address, so everyone is moved to the main one befo
 
 ## Before real students
 
-- Block the grader's internet access (VPC with a deny-all egress rule).
+- Block the grader's internet access: a private network whose only rule denies all outgoing traffic, and the grader sending everything through it. In Cloud Shell:
+    ```sh
+    source deploy/config.env && gcloud config set project "$PROJECT_ID"
+    gcloud services enable compute.googleapis.com
+    gcloud compute networks create grader-net --subnet-mode=custom
+    gcloud compute networks subnets create grader-subnet --network=grader-net --region="$REGION" --range=10.8.0.0/26
+    gcloud compute firewall-rules create grader-deny-all-egress --network=grader-net \
+      --direction=EGRESS --action=DENY --rules=all --destination-ranges=0.0.0.0/0 --priority=100
+    gcloud run services update timirtbet-grader --region="$REGION" --network=grader-net --subnet=grader-subnet --vpc-egress=all-traffic
+    gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+      --member="serviceAccount:timirtbet-deploy@$PROJECT_ID.iam.gserviceaccount.com" --role=roles/compute.networkUser --condition=None
+    ```
+    Later deploys keep it. Check: `gcloud run services describe timirtbet-grader --region="$REGION"` lists `grader-net` and `all-traffic`; Run the tests still works.
 - Add the extra checks (hidden tests), so a solution that only handles the visible examples does not pass. With your answers in `solutions/` (including `solutions/hidden/`), run `node authoring/build.mjs`, then `bash deploy/upload-hidden-tests.sh` in Cloud Shell. Run it again whenever the extra checks change.
 - Run `npm run test:firestore` once.
 

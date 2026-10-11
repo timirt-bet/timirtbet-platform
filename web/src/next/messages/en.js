@@ -659,4 +659,6 @@ export default {
   leave_class: "Leave class",
   join_class_lede: "Got a code from your teacher? Join their class. Your teacher will see which challenges you pass and your module reviews.",
   join_class: "Join class",
+  setting_up_your_repository: "Setting up your GitHub repository…",
+  setting_up_your_repository_lede: "It takes a few seconds. You can read the challenges while you wait.",
 };

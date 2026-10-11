@@ -49,6 +49,7 @@ function RepoCard({ repo }) {
       <div class="cmd"><code id="cloneCmd">git clone https://github.com/${repo}.git</code>
         <button class="btn small" data-act="copy" data-id="cloneCmd" onClick=${(/** @type {any} */ e) => copyBtn(e.currentTarget, "cloneCmd")}>${t("copy")}</button></div>
       <p class="muted" style="font-size:13px">${t("accept_the_invitation_to_the_timirtbet")} <code>main</code>.</p>`
+    : state.repoSetup.value ? html`<p class="muted"><span class="spinner" aria-hidden="true"></span> ${t("setting_up_your_repository")}</p>`
     : html`<p class="muted">${t("your_repository_is_being_set_up")}</p>`}
   </div></section>`;
 }

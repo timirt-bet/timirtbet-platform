@@ -80,7 +80,7 @@ jobs:
           GRADER_URL=$(gcloud run services describe timirtbet-grader --region "$REGION" --format='value(status.url)')
           gcloud run deploy timirtbet-api --image "$IMAGES/api:$GITHUB_SHA" --region "$REGION" \
             --service-account "timirtbet-api@$PROJECT.iam.gserviceaccount.com" \
-            --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 \
+            --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 --cpu-boost \
             --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GRADER_URL=$GRADER_URL,TASKS_AUDIENCE=$API_URL/api/tasks,TASKS_INVOKER_EMAIL=tasks-invoker@$PROJECT.iam.gserviceaccount.com,GITHUB_ORG=${{ vars.TIMIRTBET_GITHUB_ORG }},GITHUB_APP_ID=${{ vars.TIMIRTBET_APP_ID }},GITHUB_APP_INSTALLATION_ID=${{ vars.TIMIRTBET_APP_INSTALLATION_ID }},GITHUB_CLIENT_ID=${{ vars.TIMIRTBET_CLIENT_ID }},APP_URL=${{ vars.APP_URL }}" \
             --set-secrets "GITHUB_APP_PRIVATE_KEY=github-app-key:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest,SESSION_SECRET=session-secret:latest" \
             --quiet
@@ -105,6 +105,14 @@ jobs:
             gcloud scheduler jobs update http reassign-stale-reviews "${SARGS[@]}"
           else
             gcloud scheduler jobs create http reassign-stale-reviews "${SARGS[@]}"
+          fi
+          # Keeps one API instance awake during the Ethiopian day (Cloud Run stops an idle one after
+          # about 15 minutes), so learners don't wait for it to start. A health check costs next to nothing.
+          WARGS=(--location="$REGION" --schedule="*/10 7-22 * * *" --time-zone="Africa/Addis_Ababa" --uri="$API_URL/api/health" --http-method=GET)
+          if gcloud scheduler jobs describe keep-api-warm --location="$REGION" >/dev/null 2>&1; then
+            gcloud scheduler jobs update http keep-api-warm "${WARGS[@]}"
+          else
+            gcloud scheduler jobs create http keep-api-warm "${WARGS[@]}"
           fi
       - uses: actions/setup-node@v4
         with: { node-version: 22 }

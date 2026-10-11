@@ -33,13 +33,15 @@ export const state = {
   inbox: signal({ items: [], unread: 0 }),
   /** true once the first refresh() finished */
   loaded: signal(false),
+  /** true while the learner's GitHub repository is being set up after their first sign-in */
+  repoSetup: signal(false),
 };
 
 /** Reloads the learner and everything about them. A guest (401) ends with me = null. */
 export async function refresh() {
   try {
-    const r = await api("GET", "/api/me");
-    const [subs, queue, given] = await Promise.all([api("GET", "/api/submissions/mine"), api("GET", "/api/reviews/queue"), api("GET", "/api/reviews/given")]);
+    // All four at once: each is a round trip to the server, so asking in parallel saves one whole trip.
+    const [r, subs, queue, given] = await Promise.all([api("GET", "/api/me"), api("GET", "/api/submissions/mine"), api("GET", "/api/reviews/queue"), api("GET", "/api/reviews/given")]);
     const flagged = r.me.reviewer.levelIndex >= 3 ? (await api("GET", "/api/reviews/flagged")).flagged : [];
     batch(() => {
       state.me.value = r.me;
@@ -58,6 +60,19 @@ export async function refresh() {
     state.me.value = null;
   }
   state.loaded.value = true;
+  setUpRepo();
+}
+
+let setupTried = false;
+/** A first sign-in returns at once; the learner's GitHub repository is set up here, in the background. */
+async function setUpRepo() {
+  const me = state.me.value;
+  if (!me || me.repo || me.repoError || setupTried) return;
+  setupTried = true;
+  state.repoSetup.value = true;
+  try { await api("POST", "/api/me/repo"); } catch { /* the error is saved on the learner and shown by refresh() */ }
+  state.repoSetup.value = false;
+  await refresh();
 }
 
 /**

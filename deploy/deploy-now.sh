@@ -34,7 +34,7 @@ GRADER_URL=$(gcloud run services describe timirtbet-grader --region "$REGION" --
 step "API"
 gcloud run deploy timirtbet-api --image "$IMAGES/api:$TAG" --region "$REGION" \
   --service-account "timirtbet-api@$PROJECT_ID.iam.gserviceaccount.com" \
-  --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 \
+  --allow-unauthenticated --concurrency 80 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 3 --timeout 300 --cpu-boost \
   --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GRADER_URL=$GRADER_URL,TASKS_AUDIENCE=$API_URL/api/tasks,TASKS_INVOKER_EMAIL=tasks-invoker@$PROJECT_ID.iam.gserviceaccount.com,GITHUB_ORG=$GITHUB_ORG,GITHUB_APP_ID=$GITHUB_APP_ID,GITHUB_APP_INSTALLATION_ID=$GITHUB_APP_INSTALLATION_ID,GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID,APP_URL=$APP_URL" \
   --set-secrets "GITHUB_APP_PRIVATE_KEY=github-app-key:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest,SESSION_SECRET=session-secret:latest" \
   --quiet

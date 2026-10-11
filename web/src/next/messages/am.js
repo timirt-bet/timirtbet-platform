@@ -658,4 +658,6 @@ export default {
   leave_class: "ከክፍሉ ውጣ",
   join_class_lede: "ከመምህርዎ ኮድ አግኝተዋል? ክፍላቸውን ይቀላቀሉ። መምህርዎ የሚያልፏቸውን ፈተናዎችና የሞጁል ግምገማዎችዎን ያያሉ።",
   join_class: "ክፍሉን ተቀላቀል",
+  setting_up_your_repository: "የGitHub ማከማቻዎ እየተዘጋጀ ነው…",
+  setting_up_your_repository_lede: "ጥቂት ሰከንዶች ይወስዳል። እስከዚያው ፈተናዎቹን ማንበብ ይችላሉ።",
 };

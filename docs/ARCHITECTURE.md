@@ -218,6 +218,8 @@ The main limits are:
 
 That covers roughly 2,500 learners active on the same day; Firestore's limits run out first. There is no SMS and no file hosting, so nothing is paid by default. A budget alert fires at $1.
 
+Speed: the API starts with extra CPU (`--cpu-boost`), and the Cloud Scheduler job `keep-api-warm` calls `/api/health` every 10 minutes from 7:00 to 22:59 Addis Ababa time, so an instance is usually already running when a learner arrives. A first sign-in returns at once; the page then sets up the learner's repository in the background (`POST /api/me/repo`). The page loads the learner, submissions and reviews in one parallel round of requests.
+
 ## Before opening to everyone
 
 - Route the grader's outbound traffic through a VPC with a deny-all firewall rule, so learners' code cannot reach the internet.

@@ -49,7 +49,10 @@ async function setup({ prFiles, verifyTask, autoGrade = true } = {}) {
     const state = new URL(start.headers.get("location")).searchParams.get("state");
     const pending = start.headers.getSetCookie().find((c) => c.startsWith("__session=")).split(";")[0];
     const cb = await get(`/api/auth/github/callback?code=good&state=${state}`, { cookie: pending });
-    return { start, cb, pending, hana: { cookie: cb.headers.getSetCookie().find((c) => c.startsWith("__session=")).split(";")[0] } };
+    const hana = { cookie: cb.headers.getSetCookie().find((c) => c.startsWith("__session=")).split(";")[0] };
+    const signedIn = gh.calls.length;
+    await post("/api/me/repo", {}, hana); // what the page does right after a first sign-in
+    return { start, cb, pending, hana, signedIn };
   };
   const circle = async (hana) => {
     const { circle } = await (await post("/api/circles", { name: "Addis coders", track: "both" }, hana)).json();
@@ -62,11 +65,12 @@ async function setup({ prFiles, verifyTask, autoGrade = true } = {}) {
 test("sign in, circle, push, circle review, rating", { skip: NEEDS_ANSWERS }, async () => {
   const t = await setup();
   try {
-    const { start, cb, pending, hana } = await t.signIn();
+    const { start, cb, pending, hana, signedIn } = await t.signIn();
     assert.equal((await t.get("/api/me", { cookie: pending })).status, 401, "a pending sign-in is not a session");
     assert.equal(start.status, 302);
     assert.match(start.headers.get("location"), /^https:\/\/github\.com\/login\/oauth\/authorize\?client_id=Iv1\.test/);
     assert.equal(cb.headers.get("location"), `${APP}/`);
+    assert.equal(signedIn, 0, "sign-in itself makes no GitHub calls, so it returns at once");
     assert.deepEqual(t.gh.calls.map((c) => c.name), ["addToTeam", "createFromTemplate", "addCollaborator"]);
     assert.deepEqual(Object.keys(await t.store.getLearner("gh_1001")).sort(), ["githubId", "githubUsername", "id", "onboardedAt", "repo"]);
     assert.equal((await t.get("/api/auth/github/callback?code=good&state=forged", { cookie: pending })).status, 400);

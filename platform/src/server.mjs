@@ -80,11 +80,11 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         if (!expected || url.searchParams.get("state") !== expected) return json(res, 400, { error: "Sign-in expired or was started elsewhere. Please try again." });
         const user = await oauth.user(await oauth.exchange(url.searchParams.get("code"), redirectUri)); // the token is not kept
         const id = `gh_${user.id}`;
+        // Sign-in returns at once: a new learner's repository (team invite, template copy, access: several
+        // seconds on GitHub) is set up by the page right after, through POST /api/me/repo.
         let learner = await store.getLearner(id);
-        if (!learner?.repo) {
-          try { learner = await onboardStudent({ gh, store, config, student: { id, githubUsername: user.login, githubId: user.id }, log }); }
-          catch (e) { log(`onboarding ${user.login} failed, retrying next sign-in: ${e.message}`); learner = await store.upsertLearner(id, { githubUsername: user.login, githubId: user.id, onboardError: String(e.message || e).slice(0, 300) }); }
-        } else if (learner.githubUsername !== user.login) learner = await store.upsertLearner(id, { githubUsername: user.login });
+        if (!learner) learner = await store.upsertLearner(id, { githubUsername: user.login, githubId: user.id });
+        else if (learner.githubUsername !== user.login) learner = await store.upsertLearner(id, { githubUsername: user.login });
         const value = signSession(config.sessionSecret, { sid: id, v: learner.sessionVersion || 0, exp: Date.now() + SESSION_DAYS * 864e5 });
         return redirect(res, `${config.appUrl}/`, [cookie(COOKIE, value, { maxAge: SESSION_DAYS * 86400, secure })]);
       }
@@ -155,7 +155,7 @@ export function createApp({ store, gh, bank, modules = {}, config, queue, grader
         if (me.repo) return json(res, 200, { repo: me.repo });
         try {
           const l = await onboardStudent({ gh, store, config, student: { id: me.id, githubUsername: me.githubUsername, githubId: me.githubId }, log });
-          await store.upsertLearner(me.id, { onboardError: null });
+          if (me.onboardError) await store.upsertLearner(me.id, { onboardError: null });
           return json(res, 200, { repo: l.repo });
         } catch (e) {
           const msg = String(e.message || e).slice(0, 300);

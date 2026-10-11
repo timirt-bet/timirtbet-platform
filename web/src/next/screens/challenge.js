@@ -205,6 +205,8 @@ function NoRepo() {
   const [error, setError] = useState("");
   const setup = async () => { setBusy(true); setError(""); try { await api("POST", "/api/me/repo"); await refresh(); } catch (e) { setError(/** @type {Error} */ (e).message); } setBusy(false); };
   const err = error || me.repoError;
+  if (state.repoSetup.value) return html`<div class="st-card" id="repoSetup"><span class="spinner" aria-hidden="true"></span><div><b>${t("setting_up_your_repository")}</b>
+    <p>${t("setting_up_your_repository_lede")}</p></div></div>`;
   return html`<div class="st-card warn"><span class="st-ic" aria-hidden="true">!</span><div><b>${t("your_repository_isnt_ready_yet")}</b>
     <p>${t("you_need_your_own_repository_in")}</p>
     <ol class="fix-list"><li>${t("check_your_email_for_an_invitation")}</li><li>${t("then_press_the_button")}</li></ol>
