@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import { go, openEx, old } from "../legacy.js";
 import { t, tText, lang } from "../i18n.js";
 import { api } from "../api.js";
-import { state } from "../state.js";
+import { state, expectingLearner } from "../state.js";
 import { Avatar } from "./people.js";
 import { GH } from "./start.js";
 import { leftText } from "./clock.js";
@@ -65,6 +65,7 @@ export function Header() {
           onClick=${() => window.TBOld.setLang(lang.value === "am" ? "en" : "am")}>${lang.value === "am" ? "EN" : "አማ"}</button>
         ${me && html`<${Bell} />`}
         <div id="who">${me ? html`<${Me} me=${me} />`
+          : expectingLearner() ? html`<span class="who ghost" aria-busy="true"><${Avatar} login=${state.hint.value} size="sm" /><span class="mono">@${state.hint.value}</span></span>`
           : html`<button class="btn gh-btn small" data-act="view" data-v="signin" onClick=${() => go("signin")}>${GH}${t("sign_in")}</button>`}</div>
       </div>
     </div>`;

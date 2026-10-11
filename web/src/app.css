@@ -660,3 +660,14 @@ footer a:hover{color:var(--accent)}
 .ldetail .mod-row.quiet .st{margin-left:10px}
 .grid-head a.btn{text-decoration:none;color:var(--ink)}
 @media (max-width:600px){.cgrid .cg-who{min-width:120px}.grid-head .btn{margin-left:0}}
+
+/* ---------- while the first answer loads, for someone who was signed in here before ---------- */
+.sk{display:block;height:12px;margin:0 0 12px;border-radius:6px;background:color-mix(in srgb,var(--ink-3) 22%,transparent);animation:sk 1.4s ease-in-out infinite}
+.sk.tall{height:30px;margin-bottom:16px}.sk.sk-btn{height:40px;margin:18px 0 0;border-radius:4px}
+.sk.w30{width:30%}.sk.w40{width:40%}.sk.w70{width:70%}.sk.w90{width:90%}
+.upnext.skel{display:block;min-height:210px}
+.upnext.skel .sk{background:rgba(255,255,255,.14)}
+.who.ghost{opacity:.6;pointer-events:none}
+@keyframes sk{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+

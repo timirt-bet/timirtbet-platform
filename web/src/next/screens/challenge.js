@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import { go, openEx, modNum, old, prefs, savePrefs, copyBtn } from "../legacy.js";
 import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
-import { state, refresh } from "../state.js";
+import { state, refresh, expectingLearner } from "../state.js";
 import { Avatar, PersonLink } from "../components/people.js";
 import { Clock, now } from "../components/clock.js";
 import { CodeBlock } from "../components/code.js";
@@ -160,7 +160,7 @@ export function ChallengeScreen({ route }) {
             <span class="run-hint muted">${t("runs_what_is_on_main")}</span></div>`}
           ${isSolved && lt.code && html`<details class="gh-local"><summary>${t("your_saved_solution")}</summary><${CodeBlock} code=${lt.code} /></details>`}
         </section>
-        ${!me && html`<section class="panel ch-sec task-start"><h2>${t("submit_your_solution")}</h2><div class="pad">
+        ${!me && !expectingLearner() && html`<section class="panel ch-sec task-start"><h2>${t("submit_your_solution")}</h2><div class="pad">
           <p class="task-start-lede">${t("you_need_a_github_account_to")}</p>
           <${StartSteps} />
           <div style="margin-top:14px"><${SignInLink} /></div></div></section>`}

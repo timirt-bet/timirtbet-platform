@@ -6,7 +6,7 @@ import { useState, useReducer } from "preact/hooks";
 import { go, openEx, modNum, old, prefs, savePrefs } from "../legacy.js";
 import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
-import { state, refresh } from "../state.js";
+import { state, refresh, expectingLearner } from "../state.js";
 import { Avatar, PersonLink } from "../components/people.js";
 import { Clock, leftText } from "../components/clock.js";
 import { StartSteps, SignInLink } from "../components/start.js";
@@ -25,6 +25,11 @@ async function submitModule(id) { await api("POST", `/api/modules/${id}/submit`)
 
 export function HomeScreen() {
   const me = state.me.value;
+  if (!me && expectingLearner()) return html`
+    <h1 class="sr-only">${t("loading")}</h1>
+    <section class="upnext skel" aria-busy="true"><div><i class="sk w30"></i><i class="sk w70 tall"></i><i class="sk w90"></i><i class="sk w40 sk-btn"></i></div></section>
+    <div class="tracks">${["js", "go"].map((k) => html`<${TrackCard} key=${k} k=${k} />`)}</div>
+    <div class="home-side"><section class="panel skel" aria-busy="true"><div class="pad"><i class="sk w40"></i><i class="sk w90"></i><i class="sk w70"></i></div></section><${HowModules} /></div>`;
   return html`
     <h1 class="sr-only">${t("choose_a_track")}</h1>
     ${me && html`<${UpNext} me=${me} />`}

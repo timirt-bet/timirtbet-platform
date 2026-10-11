@@ -68,11 +68,14 @@
   }
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&L.me)pollInbox(false);});
 
-  // Every screen is drawn by src/next; until the first answer from the API, say so.
-  const baseRender=render;
+  // Every screen is drawn by src/next, straight away: guests see the page at once, and someone who
+  // was signed in here before sees their own layout with placeholders (state.hint) on the home,
+  // track and challenge pages. Only their personal pages (reviews, circle, profile...) wait for the
+  // first answer, behind "Loading…", until something has been drawn.
+  const baseRender=render;let drawnOnce=false;
   render=function(){
-    if(!L.loaded){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
-    baseRender();
+    if(!L.loaded&&!drawnOnce&&TBNext.state.hint.value&&!["challenges","track","exercise"].includes(V.view)){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
+    drawnOnce=true;baseRender();
   };
   // The account menu and page call this after signing out.
   TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}go("challenges");};

@@ -35,7 +35,15 @@ export const state = {
   loaded: signal(false),
   /** true while the learner's GitHub repository is being set up after their first sign-in */
   repoSetup: signal(false),
+  /** Who was signed in last in this browser (live.js keeps it; cleared on sign-out). Until the first
+   *  answer from the server, screens show that person's layout with placeholders, not the guest page. */
+  hint: signal(lastLogin()),
 };
+
+function lastLogin() { try { return localStorage.getItem("timirtbet.who") || ""; } catch { return ""; } }
+
+/** Still waiting for the first answer, and someone was signed in here before: show their layout. */
+export const expectingLearner = () => !state.loaded.value && !!state.hint.value;
 
 /** Reloads the learner and everything about them. A guest (401) ends with me = null. */
 export async function refresh() {
