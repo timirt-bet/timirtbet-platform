@@ -124,7 +124,7 @@ function ModuleProgress({ solved }) {
   return ["js", "go"].map((lang) => html`<div class="pm-lang" key=${lang}><b>${old.LANGN[lang]}</b><ul class="pm-list">
     ${old.MODULES.filter((m) => m.lang === lang).map((m) => {
       const n = m.exercises.filter((id) => has.has(id)).length, total = m.exercises.length;
-      return html`<li key=${m.id} class=${n === total ? "done" : n ? "started" : "todo"}
+      return html`<li key=${m.id} class=${n === total ? "done" : n ? "started" : "not"}
           title=${t("module_progress", { n: modNum(m), title: tText(m.title), done: n, total })}>
         <span class="ms-dot" aria-hidden="true"></span><span>${modNum(m)}. ${tText(m.title)}</span>
         <span class="mono muted">${n}/${total}</span></li>`;
