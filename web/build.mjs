@@ -25,7 +25,7 @@ const next = (await build({
   target: "es2020", charset: "utf8", write: false, legalComments: "none", logLevel: "warning",
 })).outputFiles[0].text;
 if (/<\/script/i.test(next)) throw new Error("the bundle contains </script>");
-const js = next + "\n" + src("app.js")
+const legacy = src("app.js")
   .replace("/*__BANK__*/[]", JSON.stringify(JSON.parse(bank)))
   .replace("/*__MODULES__*/[]", JSON.stringify(JSON.parse(modules)))
   .replace("/*__TRACKIMG__*/{}", JSON.stringify({
@@ -33,7 +33,10 @@ const js = next + "\n" + src("app.js")
     js: "data:image/svg+xml," + encodeURIComponent(fs.readFileSync(path.join(here, "src", "img", "js.svg"), "utf8").trim()),
   }))
   .replace("/*__LIVE__*/", src("live.js"));
-for (const marker of ["__BANK__", "__MODULES__", "__TRACKIMG__", "__LIVE__"]) if (js.includes(marker)) throw new Error(`${marker} not replaced`);
+for (const marker of ["__BANK__", "__MODULES__", "__TRACKIMG__", "__LIVE__"]) if (legacy.includes(marker)) throw new Error(`${marker} not replaced`);
+// The router (app.js + live.js) is minified too: learners on slow connections download every byte.
+const js = next + "\n" + (await transform(legacy, { loader: "js", minify: true, target: "es2020", legalComments: "none", logLevel: "warning" })).code;
+if (/<\/script/i.test(js)) throw new Error("the page script contains </script>");
 
 let page = src("shell.html");
 page = page.replace("/*__CSS__*/", () => cssMin).replace("/*__JS__*/", () => js);

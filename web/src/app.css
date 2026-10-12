@@ -779,3 +779,13 @@ footer a:hover{color:var(--accent)}
 .app-strip .mark{width:44px;height:44px}
 .app-strip div{display:grid;gap:2px;flex:1;min-width:200px;font-size:14px;color:var(--ink-2)}
 .app-strip b{font-size:16px;color:var(--ink)}
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,18,14,.45);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.sheet{width:min(440px,100%);background:var(--surface);border-radius:16px;padding:18px 20px 20px;box-shadow:0 12px 40px rgba(0,0,0,.25);margin-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:761px){.sheet-bg{align-items:center}}
+.sheet-h{display:flex;align-items:center;gap:12px}.sheet-h b{flex:1;font-size:17px}
+.sheet-steps{margin:16px 0 12px;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px}
+.sheet-steps li{counter-increment:s;display:grid;grid-template-columns:26px minmax(0,1fr);gap:12px;align-items:center;font-size:15px;line-height:1.45}
+.sheet-steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px}
+.sheet-steps .ico{display:inline-block;vertical-align:-6px;width:24px;height:24px;margin-left:2px;color:#0A84FF;fill:currentColor}
+.sheet-steps .ico path,.sheet-steps .ico rect{fill:none}
+.sheet-note{font-size:13px;margin:0}
