@@ -9,6 +9,7 @@ import { api } from "../api.js";
 import { state, refresh, expectingLearner } from "../state.js";
 import { NewsBox } from "../components/news.js";
 import { CapyScene, CapyMark } from "../components/capy.js";
+import { AppStrip } from "../components/install.js";
 import { Avatar, PersonLink } from "../components/people.js";
 import { Clock, leftText } from "../components/clock.js";
 import { StartSteps, SignInLink } from "../components/start.js";
@@ -41,6 +42,7 @@ export function HomeScreen() {
         <div class="h-tracks">${["js", "go"].map((k) => html`<${TrackRow} key=${k} k=${k} />`)}</div></div></section>
     <${NewsBox} />
     <${ForTeachers} />
+    <${AppStrip} />
   </div>`;
 }
 

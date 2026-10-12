@@ -712,4 +712,6 @@ export default {
   install_text: "Opens full screen, like an app.",
   install_ios: "Tap Share, then “Add to Home Screen”.",
   install: "Install",
+  install_menu: "Open your browser menu and choose “Install app” or “Add to Home screen”.",
+  get_the_app: "Get the app",
 };

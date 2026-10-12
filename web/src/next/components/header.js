@@ -3,7 +3,7 @@
 // learner's menu; on phones the sections move to a tab bar at the bottom. Also the short
 // pop-up that announces a new notification.
 import { CapyMark } from "./capy.js";
-import { InstallCard } from "./install.js";
+import { InstallCard, openInstall, installed } from "./install.js";
 import { html } from "htm/preact";
 import { signal } from "@preact/signals";
 import { useState, useEffect, useRef } from "preact/hooks";
@@ -27,6 +27,7 @@ const SECTION = /** @type {Record<string, string>} */ ({ track: "challenges", ex
 /** @param {{ d: string }} props */
 const Icon = ({ d }) => html`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" dangerouslySetInnerHTML=${{ __html: d }}></svg>`;
 const I = {
+  phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>',
   home: '<path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9h4.5v-5h3v5H18v-9"/>',
   challenges: '<path d="m8 9-3 3 3 3"/><path d="m16 9 3 3-3 3"/><path d="m13.5 6-3 12"/>',
   reviews: '<path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12Z"/><path d="m9 12 2 2 4-4"/>',
@@ -106,6 +107,7 @@ function Me({ me }) {
       <button role="menuitem" onClick=${to(() => go("profile"))}><${Icon} d=${I.profile} />${t("your_account")}</button>
       <button role="menuitem" onClick=${to(() => go("user", { login: me.login, utab: null }))}><${Icon} d=${I.circle} />${t("your_public_profile").replace(/\s*→$/, "")}</button>
       <button role="menuitem" data-act="menu-teach" onClick=${to(() => go("teach", { cid: null, lid: null }))}><${Icon} d=${I.teach} />${state.teaching.value ? t("your_classes") : t("teach_a_class")}</button>
+      ${!installed() && html`<button role="menuitem" data-act="menu-app" onClick=${to(openInstall)}><${Icon} d=${I.phone} />${t("get_the_app")}</button>`}
       <button role="menuitem" class="danger-item" data-act="menu-signout" onClick=${() => setConfirming(true)}><${Icon} d=${I.out} />${t("sign_out")}</button>
     </div>`}
     ${open && confirming && html`<div class="menu confirm-menu" role="alertdialog" aria-labelledby="soH" aria-describedby="soT">

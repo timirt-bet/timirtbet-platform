@@ -711,4 +711,6 @@ export default {
   install_text: "እንደ መተግበሪያ ሙሉ ገጽ ይከፈታል።",
   install_ios: "Share ይንኩ፣ ከዚያ “Add to Home Screen” ይምረጡ።",
   install: "ጫን",
+  install_menu: "የአሳሽዎን ምናሌ ይክፈቱና “Install app” ወይም “Add to Home screen” ይምረጡ።",
+  get_the_app: "መተግበሪያውን ያግኙ",
 };

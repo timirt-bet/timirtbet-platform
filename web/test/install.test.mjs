@@ -1,5 +1,6 @@
-// Installing the site as an app: the manifest and icons are served, and the install card offers the
-// browser's install prompt, then stays closed once dismissed.
+// Installing the site as an app: the manifest, icons and service worker are served; the install card
+// offers the browser's install prompt, stays closed for the visit once dismissed, and "Get the app"
+// brings it back.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { startSite } from "./harness.mjs";
@@ -20,9 +21,12 @@ test("the manifest describes a standalone app with its icons", async () => {
   const html = await (await fetch(site.base + "/")).text();
   assert.match(html, /rel="manifest" href="\/manifest.webmanifest"/);
   assert.match(html, /rel="apple-touch-icon"/);
+  const sw = await fetch(site.base + "/sw.js");
+  assert.equal(sw.status, 200);
+  assert.match(sw.headers.get("content-type"), /javascript/);
 });
 
-test("the install card asks the browser, and stays closed once dismissed", async () => {
+test("the install card asks the browser, and stays closed for the visit once dismissed", async () => {
   const p = await site.learner(null, { width: 390, height: 800 });
   await p.open("/");
   assert.equal(await p.locator("#install").count(), 0, "no card until the browser offers");
@@ -40,5 +44,15 @@ test("the install card asks the browser, and stays closed once dismissed", async
   await p.evaluate(() => dispatchEvent(Object.assign(new Event("beforeinstallprompt"), { prompt() {}, userChoice: new Promise(() => {}) })));
   await p.waitForTimeout(200);
   assert.equal(await p.locator("#install").count(), 0);
+  // "Get the app" on the home page opens it again, with the browser's prompt.
+  await p.locator('#appStrip [data-act="get-app"]').click();
+  await p.waitForSelector('#install [data-act="install"]');
   await p.close();
+  // Where the browser offers no prompt, the card says how to do it from the menu.
+  const q = await site.learner(null, { width: 390, height: 800 });
+  await q.open("/");
+  await q.locator('#appStrip [data-act="get-app"]').click();
+  await q.waitForSelector("#install");
+  assert.match(await q.text("#install"), /browser menu/);
+  await q.close();
 });

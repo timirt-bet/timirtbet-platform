@@ -775,3 +775,7 @@ footer a:hover{color:var(--accent)}
 .install-t b{font-size:14px;color:var(--ink)}
 .install-x{background:none;border:0;font-size:22px;line-height:1;color:var(--ink-3);padding:2px 4px;align-self:flex-start}
 @media (max-width:760px){.install{left:12px;right:12px;width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
+.app-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:8px 0 12px;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.app-strip .mark{width:44px;height:44px}
+.app-strip div{display:grid;gap:2px;flex:1;min-width:200px;font-size:14px;color:var(--ink-2)}
+.app-strip b{font-size:16px;color:var(--ink)}

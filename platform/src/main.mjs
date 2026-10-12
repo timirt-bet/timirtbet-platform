@@ -81,10 +81,10 @@ if (mode === "grader") {
   const webIndex = new URL("../../web/dist/index.html", import.meta.url).pathname;
   const handler = dev ? (req, res) => {
     // Files next to the page (news.json, the app manifest and icons), like Firebase Hosting.
-    const file = /^\/([\w-]+\.(json|webmanifest|png))$/.exec(req.url.split("?")[0]);
+    const file = /^\/([\w-]+\.(json|webmanifest|png|js))$/.exec(req.url.split("?")[0]);
     if (req.method === "GET" && file) {
       const f = new URL("../../web/dist/" + file[1], import.meta.url).pathname;
-      const type = { json: "application/json", webmanifest: "application/manifest+json", png: "image/png" }[file[2]];
+      const type = { json: "application/json", webmanifest: "application/manifest+json", png: "image/png", js: "text/javascript" }[file[2]];
       if (fs.existsSync(f)) { res.writeHead(200, { "content-type": type }); return res.end(fs.readFileSync(f)); }
       if (file[1] === "news.json") { res.writeHead(200, { "content-type": type }); return res.end("[]"); }
       res.writeHead(404); return res.end();
