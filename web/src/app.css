@@ -686,7 +686,7 @@ footer a:hover{color:var(--accent)}
 .home{margin-top:-8px}
 .hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:48px 64px;align-items:center;padding:40px 0 60px}
 .hero-kick{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0;font:500 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.hero-kick .am{font:600 14px/1 "Noto Sans Ethiopic",sans-serif;letter-spacing:0;text-transform:none;color:var(--accent);padding-right:12px;border-right:1px solid var(--line)}
+.hero-kick .am{font:400 17px/1 "Abyssinica SIL","Noto Sans Ethiopic",serif;letter-spacing:0;text-transform:none;color:var(--accent);padding-right:12px;border-right:1px solid var(--line)}
 .hero-h{font-size:clamp(38px,6vw,70px);line-height:1.04;letter-spacing:-.035em;font-weight:700;max-width:12ch;margin:22px 0 24px}
 .hero-lede{margin:0;max-width:54ch;font-size:18px;line-height:1.6;color:var(--ink-2)}
 .hero-cta{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:34px}

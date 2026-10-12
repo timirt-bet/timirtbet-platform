@@ -41,9 +41,10 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .top-in{display:flex;align-items:center;gap:18px;padding-block:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0}
 .mark{width:38px;height:38px;flex:none}.mark svg,.capy svg{display:block;width:100%;height:100%}
-.brand b{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.01em}
-.brand-am{font-family:"Noto Sans Ethiopic",sans-serif;font-size:14px;font-weight:600;color:var(--accent);padding-left:10px;border-left:1px solid var(--line)}
-@media (max-width:480px){.brand-am{display:none}}
+/* The name in Amharic first, in a classic Ethiopic hand (Abyssinica SIL); "Timirtbet" small beneath it. */
+.brand-t{display:grid;justify-items:start;line-height:1}
+.brand-am{font-family:"Abyssinica SIL","Noto Serif Ethiopic","Noto Sans Ethiopic",serif;font-size:27px;font-weight:400;color:var(--ink);letter-spacing:.01em;line-height:1.05;-webkit-text-stroke:.45px currentColor}
+.brand-en{margin-top:3px;font:700 10px/1 var(--display);letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
 nav.main{display:flex;gap:4px;flex:1;min-width:0}
 nav.main button{background:none;border:0;padding:8px 12px;border-radius:8px;color:var(--ink-2);font-weight:500}
 nav.main button[aria-current="page"]{background:var(--surface-2);color:var(--ink)}
@@ -54,7 +55,7 @@ nav.main button:hover{color:var(--ink)}
   .tools{margin-left:auto}
   
   .top-in{gap:10px}
-  .brand b{font-size:17px}
+  .brand-am{font-size:24px}
 }
 
 main{padding-block:28px 60px}
