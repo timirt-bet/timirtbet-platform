@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
-import { build } from "esbuild";
+import { build, transform } from "esbuild";
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const root = path.resolve(here, "..");
@@ -16,6 +16,8 @@ const css = ["base.css", "code.css", "app.css"].map(src).join("\n")
   .replace("--chalk:#EEF3E8; --chalk-2:#F5D77A;", "--chalk:#EEF3E8; --chalk-2:#F5D77A; --code-bg:#F7F9F7;")
   .replaceAll("--board:#122A21; --board-2:#18342A;", "--board:#122A21; --board-2:#18342A; --code-bg:#0F1714;");
 if ((css.match(/--code-bg:/g) || []).length !== 3) throw new Error("theme tokens not found in base.css");
+// Minified: learners on slow connections download every byte.
+const cssMin = (await transform(css, { loader: "css", minify: true, logLevel: "warning" })).code.trim();
 // The new front end (src/next, Preact + htm + signals), bundled into one script that runs before app.js.
 // Install it once with: cd web && npm ci
 const next = (await build({
@@ -34,7 +36,7 @@ const js = next + "\n" + src("app.js")
 for (const marker of ["__BANK__", "__MODULES__", "__TRACKIMG__", "__LIVE__"]) if (js.includes(marker)) throw new Error(`${marker} not replaced`);
 
 let page = src("shell.html");
-page = page.replace("/*__CSS__*/", css).replace("/*__JS__*/", () => js);
+page = page.replace("/*__CSS__*/", () => cssMin).replace("/*__JS__*/", () => js);
 page = page.replace("<script>", '<script>window.TIMIRTBET_MODE="live";</script>\n<script>');
 // With a custom domain (APP_URL), visitors who arrive on the default Firebase address are sent
 // there before anything loads, so sign-in cookies and the GitHub callback all use one address.

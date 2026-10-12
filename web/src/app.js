@@ -28,7 +28,7 @@ function seed(){return {track:"js",diff:"all",statusF:"all"};}
 let S;
 try{const r=localStorage.getItem(KEY);S=r?JSON.parse(r):seed();}catch(e){S=seed();}
 let save=function(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
-const V={view:"challenges",ex:null,qid:null,confirm:null};
+const V={view:"home",ex:null,qid:null,confirm:null};
 
 /* ---------- language: English or Amharic (the texts are in src/next/messages) ---------- */
 let lang="en";
@@ -53,7 +53,8 @@ function selectText(id){const el=document.getElementById(id);const r=document.cr
 function copyBtn(btn,id){const txt=document.getElementById(id).textContent;const label=btn.textContent;const done=()=>{btn.textContent=lang==="am"?"ተቀድቷል":"Copied";setTimeout(()=>{btn.textContent=label;},1500);};try{navigator.clipboard.writeText(txt).then(done,()=>selectText(id));}catch(_){selectText(id);}}
 
 /* ---------- addresses: every page has its own address and title ----------
-   /                                   the two tracks
+   /                                   home: what Timirtbet is, a developer's day, news, for teachers
+   /challenges                         the two tracks
    /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
    /challenges/js/basic/vars           a challenge (its id without the js-/go- prefix)
    /reviews  /reviews/<id>  /circle  /profile  /signin  /u/<github-login> (a learner's profile)
@@ -67,7 +68,7 @@ function pathOf(){
     case "exercise":{const e=EXM[V.ex];return e?`/challenges/${e.lang}/${e.level}/${slugOf(e.id)}`:"/";}
     case "reviews":return "/reviews";
     case "review":return `/reviews/${encodeURIComponent(V.qid||"")}`;
-    case "circle":case "profile":case "signin":case "news":return "/"+V.view;
+    case "circle":case "profile":case "signin":case "news":case "challenges":return "/"+V.view;
     case "user":return `/u/${encodeURIComponent(V.login||"")}`;
     case "teach":return "/teach"+(V.cid?`/${encodeURIComponent(V.cid)}`+(V.lid?`/${encodeURIComponent(V.lid)}`:""):"");
     default:return "/";
@@ -86,6 +87,7 @@ function titleOf(){
     case "user":return `@${V.login} · ${T}`;
     case "teach":return `${V.cid?"Class":"Teach"} · ${T}`;
     case "news":return `Schools in Ethiopia · ${T}`;
+    case "challenges":return `Challenges · ${T}`;
     default:return `${T} | ትምህርት ቤት`;
   }
 }
@@ -97,10 +99,10 @@ function routeFrom(path){
     return {view:"track",track:lang,level};
   }
   if(p[0]==="reviews")return p[1]?{view:"review",qid:p[1]}:{view:"reviews"};
-  if(["circle","profile","signin","news"].includes(p[0]))return {view:p[0]};
+  if(["circle","profile","signin","news","challenges"].includes(p[0]))return {view:p[0]};
   if(p[0]==="u"&&/^[\w-]{1,39}$/.test(p[1]||""))return {view:"user",login:p[1]};
   if(p[0]==="teach"){const ok=x=>/^[\w-]{1,60}$/.test(x||"");return {view:"teach",cid:ok(p[1])?p[1]:null,lid:ok(p[1])&&ok(p[2])?p[2]:null};}
-  return {view:"challenges"};
+  return {view:"home"};
 }
 function applyRoute(path){
   const r=routeFrom(path);

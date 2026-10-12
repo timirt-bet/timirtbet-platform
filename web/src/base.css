@@ -1,11 +1,11 @@
 :root{
-  --bg:#F2F5F2; --surface:#FFFFFF; --surface-2:#E7ECE7; --ink:#14201B; --ink-2:#4A5952; --ink-3:#7A8881;
-  --line:#D3DBD5; --accent:#1B6A4E; --accent-ink:#FFFFFF; --accent-soft:#DAEBE2;
+  --bg:#F7F7F4; --surface:#FFFFFF; --surface-2:#EDEFEA; --ink:#14201B; --ink-2:#4A5952; --ink-3:#7A8881;
+  --line:#E0E3DD; --accent:#1B6A4E; --accent-ink:#FFFFFF; --accent-soft:#DAEBE2;
   --sun:#C98A12; --sun-soft:#F6EACB; --clay:#B4512D; --clay-soft:#F5DFD6;
   --board:#1D3A2F; --board-2:#244638; --chalk:#EEF3E8; --chalk-2:#F5D77A;
-  --shadow:0 1px 2px rgba(20,32,27,.06),0 6px 20px rgba(20,32,27,.06);
-  --display:"Bricolage Grotesque","Noto Sans Ethiopic",system-ui,sans-serif;
-  --body:"Noto Sans","Noto Sans Ethiopic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow:0 1px 2px rgba(20,32,27,.04),0 4px 14px rgba(20,32,27,.04);
+  --display:"Inter Tight","Inter","Noto Sans Ethiopic",system-ui,sans-serif;
+  --body:"Inter","Noto Sans Ethiopic",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
   --hand:"Kalam","Noto Sans Ethiopic","Comic Sans MS",cursive;
 }
@@ -28,11 +28,11 @@
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h1,h2,h3{font-family:var(--display);line-height:1.15;letter-spacing:-.02em;text-wrap:balance;margin:0}
 .wrap{max-width:1180px;margin:0 auto;padding-inline:20px}
 @media (max-width:480px){.wrap{padding-inline:16px}}
 
@@ -40,7 +40,7 @@ h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .top-in{display:flex;align-items:center;gap:18px;padding-block:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0}
-.mark{width:36px;height:36px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:"Noto Sans Ethiopic",sans-serif;font-weight:700;font-size:20px}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:"Noto Sans Ethiopic",sans-serif;font-weight:700;font-size:20px}
 .brand b{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.01em}
 .brand-am{font-family:"Noto Sans Ethiopic",sans-serif;font-size:14px;font-weight:600;color:var(--accent);padding-left:10px;border-left:1px solid var(--line)}
 @media (max-width:480px){.brand-am{display:none}}
@@ -62,11 +62,11 @@ main{padding-block:28px 60px}
 .lede{color:var(--ink-2);margin:6px 0 0;max-width:60ch}
 .muted{color:var(--ink-3)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:500;font-size:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:9px 14px;font-weight:500;font-size:14px}
 .btn:hover{border-color:var(--ink-3)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.07)}
-.btn.small{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.small{padding:6px 10px;font-size:13px;border-radius:6px}
 .back{background:none;border:0;color:var(--ink-2);padding:0;margin-bottom:14px;font-size:14px}
 .back:hover{color:var(--ink)}
 
@@ -79,12 +79,12 @@ main{padding-block:28px 60px}
 .chip{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
 
 .chip.new{background:transparent;border:1px dashed var(--line);color:var(--ink-3)}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px}
 .panel h2{font-size:16px;font-weight:700;padding:14px 16px;border-bottom:1px solid var(--line)}
 .side{display:grid;gap:16px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 26px}
 @media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .stat .v{font-family:var(--display);font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
 .stat .l{font-size:13px;color:var(--ink-2)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}

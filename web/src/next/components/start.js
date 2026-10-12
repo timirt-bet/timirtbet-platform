@@ -25,7 +25,7 @@ export function StartSteps({ compact }) {
 
 /** /signin: how to get started. Already signed in, it goes to the home page. */
 export function SigninScreen() {
-  if (state.me.value) { setTimeout(() => go("challenges")); return null; }
+  if (state.me.value) { setTimeout(() => go("home")); return null; }
   return html`<section class="panel narrow"><div class="pad">
     <h1 class="pg-h" style="font-size:26px">${t("get_started_with_github")}</h1>
     <p class="lede">${t("timirtbet_uses_your_github_account_instead")}</p>
