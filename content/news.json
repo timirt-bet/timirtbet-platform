@@ -1,1 +1,82 @@
-[]
+[
+  {
+    "id": "university-registration-october-2019-ec",
+    "date": "2026-10-10",
+    "added": "2026-10-12",
+    "topic": "higher-education",
+    "importance": 4,
+    "title": {
+      "en": "Universities set first-year registration dates for October",
+      "am": "ዩኒቨርሲቲዎች የአንደኛ ዓመት ተማሪዎች ምዝገባ ቀናትን በጥቅምት ወር ወሰኑ"
+    },
+    "summary": {
+      "en": "Students placed by the Ministry should check their university's dates: for example Kotebe on 15-16 October, Mekdela Amba on 19-20 October and Wollo on 24-25 October. Kebri Dehar extended remedial registration to 23 October.",
+      "am": "በሚኒስቴሩ የተመደቡ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ማየት አለባቸው፦ ለምሳሌ ቆቤ ጥቅምት 5-6፣ መቅደላ አምባ ጥቅምት 9-10፣ ወሎ ጥቅምት 14-15። ቀብሪ ደሃር የአቅም ማሻሻያ (ሬሜዲያል) ምዝገባን እስከ ጥቅምት 13 አራዝሟል።"
+    },
+    "source": { "name": "Temari", "url": "https://temari.et/news" }
+  },
+  {
+    "id": "university-placement-2018-ec",
+    "date": "2026-09-16",
+    "added": "2026-10-12",
+    "topic": "higher-education",
+    "importance": 4,
+    "title": {
+      "en": "University placement results released for 2018 E.C. Grade 12 students",
+      "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ተማሪዎች የዩኒቨርሲቲ ምደባ ውጤት ይፋ ሆነ"
+    },
+    "summary": {
+      "en": "Students who passed check their university on the Ministry's portal, student.ethernet.edu.et. Of 550,210 students who sat the exam, 70,544 scored 50 percent or more; remedial placement is announced separately.",
+      "am": "ያለፉ ተማሪዎች ዩኒቨርሲቲያቸውን በሚኒስቴሩ ድረ-ገጽ student.ethernet.edu.et ላይ ማየት ይችላሉ። ፈተና ከወሰዱ 550,210 ተማሪዎች 70,544ቱ 50 በመቶና ከዚያ በላይ አምጥተዋል፤ የሬሜዲያል ምደባ ለብቻው ይገለጻል።"
+    },
+    "source": { "name": "Kulu Media", "url": "https://kulu-media.com/ethiopia-university-placement-results/" }
+  },
+  {
+    "id": "school-year-2019-ec-opens",
+    "date": "2026-09-15",
+    "added": "2026-10-12",
+    "topic": "school-calendar",
+    "importance": 3,
+    "title": {
+      "en": "The 2019 E.C. school year opens for more than 30 million students",
+      "am": "የ2019 ዓ.ም. የትምህርት ዘመን ከ30 ሚሊዮን በላይ ተማሪዎች ተከፈተ"
+    },
+    "summary": {
+      "en": "The Ministry of Education says more than 30 million students are expected in class this year, and schools that had not yet opened would start in the following days. School feeding, which reached about 8.9 million students last year, will expand.",
+      "am": "ትምህርት ሚኒስቴር በዚህ ዓመት ከ30 ሚሊዮን በላይ ተማሪዎች ይጠበቃሉ ብሏል፤ ገና ያልከፈቱ ትምህርት ቤቶች በቀጣዮቹ ቀናት ይጀምራሉ። ባለፈው ዓመት ወደ 8.9 ሚሊዮን ተማሪዎችን የደረሰው የትምህርት ቤት ምገባ ይስፋፋል።"
+    },
+    "source": { "name": "Fana", "url": "https://www.fanamc.com/english/ethiopia-opens-2019-academic-year-as-more-than-30-million-students-prepare-for-school/" }
+  },
+  {
+    "id": "ai-in-core-curriculum",
+    "date": "2026-09-04",
+    "added": "2026-10-12",
+    "topic": "curriculum",
+    "importance": 3,
+    "title": {
+      "en": "Ethiopia prepares to bring artificial intelligence into the core curriculum",
+      "am": "ኢትዮጵያ ሰው ሰራሽ አስተውሎትን (AI) በዋናው ሥርዓተ ትምህርት ውስጥ ለማካተት እየተዘጋጀች ነው"
+    },
+    "summary": {
+      "en": "Schools are adding AI step by step under the Digital Ethiopia 2030 programme, building on the computer labs and internet that secondary schools received under Digital Ethiopia 2025. No grades or dates have been announced yet.",
+      "am": "ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2030 ፕሮግራም AIን በደረጃ እያካተቱ ነው፤ ይህም ሁለተኛ ደረጃ ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2025 ባገኟቸው የኮምፒውተር ቤተ ሙከራዎችና ኢንተርኔት ላይ የተመሠረተ ነው። የክፍል ደረጃዎችና ቀናት ገና አልተገለጹም።"
+    },
+    "source": { "name": "TV BRICS", "url": "https://tvbrics.com/en/news/ethiopia-prepares-to-integrate-artificial-intelligence-into-core-curriculum/" }
+  },
+  {
+    "id": "arsi-students-ai-chatbots-study",
+    "date": "2026-10-09",
+    "added": "2026-10-12",
+    "topic": "digital-skills",
+    "importance": 2,
+    "title": {
+      "en": "Study: most surveyed Arsi University students use AI chatbots for health advice",
+      "am": "ጥናት፦ በአርሲ ዩኒቨርሲቲ ከተጠየቁ ተማሪዎች አብዛኞቹ ለጤና ምክር AI ቻትቦቶችን ይጠቀማሉ"
+    },
+    "summary": {
+      "en": "In a survey of 414 undergraduates at Arsi University, about 70 percent had used generative AI for medical self-care. The study covers one university, so it is not a national figure.",
+      "am": "በአርሲ ዩኒቨርሲቲ 414 የመጀመሪያ ዲግሪ ተማሪዎች ላይ በተደረገ ጥናት፣ 70 በመቶ ያህሉ ለራስ ሕክምና ጀነሬቲቭ AI ተጠቅመዋል። ጥናቱ አንድ ዩኒቨርሲቲን ብቻ ስለሚሸፍን የሀገር አቀፍ አሃዝ አይደለም።"
+    },
+    "source": { "name": "Temari", "url": "https://temari.et/news/ethiopian-students-ai-chatbot-self-care-study" }
+  }
+]
