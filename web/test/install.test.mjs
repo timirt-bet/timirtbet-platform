@@ -1,6 +1,6 @@
 // Installing the site as an app: the manifest, icons and service worker are served; the install card
-// offers the browser's install prompt, stays closed for the visit once dismissed, and "Get the app"
-// brings it back.
+// offers the browser's install prompt, comes back a while after it is closed (and on every visit), and
+// "Get the app" opens it any time.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { startSite } from "./harness.mjs";
@@ -26,7 +26,7 @@ test("the manifest describes a standalone app with its icons", async () => {
   assert.match(sw.headers.get("content-type"), /javascript/);
 });
 
-test("the install card asks the browser, and stays closed for the visit once dismissed", async () => {
+test("the install card asks the browser, and comes back a while after it is closed", async () => {
   const p = await site.learner(null, { width: 390, height: 800 });
   await p.open("/");
   assert.equal(await p.locator("#install").count(), 0, "no card until the browser offers");
@@ -40,11 +40,12 @@ test("the install card asks the browser, and stays closed for the visit once dis
   assert.equal(await p.evaluate(() => window.prompted), true);
   await p.evaluate(() => { window.prompted = false; });
   await p.evaluate(() => dispatchEvent(Object.assign(new Event("beforeinstallprompt"), { prompt() {}, userChoice: new Promise(() => {}) })));
+  await p.evaluate(() => { window.TB_INSTALL_AGAIN_MS = 600; });
   await p.locator("#install .install-x").click();
-  await p.reload(); await p.ready();
   await p.evaluate(() => dispatchEvent(Object.assign(new Event("beforeinstallprompt"), { prompt() { window.prompted = true; }, userChoice: new Promise(() => {}) })));
-  await p.waitForTimeout(200);
-  assert.equal(await p.locator("#install").count(), 0);
+  await p.waitForTimeout(150);
+  assert.equal(await p.locator("#install").count(), 0, "hidden right after closing");
+  await p.waitForSelector("#install", { timeout: 3000 });
   // "Get the app" on the home page opens it again, with the browser's prompt.
   await p.locator('#appStrip [data-act="get-app"]').click();
   assert.equal(await p.evaluate(() => window.prompted), true);

@@ -4,7 +4,8 @@
 // - iPhone and iPad: browsers there cannot be asked from a page, so a sheet shows the steps (Share,
 //   then Add to Home Screen), with the Share icon drawn as the browser shows it.
 // - Apps' built-in browsers (Telegram, Instagram, Facebook): open the page in the real browser first.
-// The small card shows itself when installing is possible (closing it hides it for the visit);
+// The small card shows itself when installing is possible; closing it only hides it for a while
+// (AGAIN_MS), and it comes back on every visit until the app is installed.
 // "Get the app" (home page, account menu) opens the steps any time. sw.js keeps the last page so the
 // installed app opens without a connection.
 import { html } from "htm/preact";
@@ -12,18 +13,18 @@ import { signal } from "@preact/signals";
 import { t } from "../i18n.js";
 import { CapyMark } from "./capy.js";
 
-const KEY = "timirtbet.install";
+/** After the card is closed, it comes back this much later (and on every visit) until installed. */
+export const AGAIN_MS = 10 * 60 * 1000;
 /** @type {import("@preact/signals").Signal<any>} */
 const ask = signal(null);
 const card = signal(false), sheet = signal(false);
-const closed = (() => { try { return !!sessionStorage.getItem(KEY); } catch (e) { return false; } })();
 export const installed = () => matchMedia("(display-mode: standalone)").matches || /** @type {any} */ (navigator).standalone === true;
 const ua = navigator.userAgent;
 const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const inApp = /Telegram|Instagram|FBAN|FBAV|FB_IAB|Line\/|; wv\)/i.test(ua);
 const iosOther = ios && /CriOS|FxiOS|EdgiOS/.test(ua);
-if (ios && !closed && !installed()) card.value = true;
-addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ask.value = e; if (!closed) card.value = true; });
+if (ios && !installed()) card.value = true;
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ask.value = e; if (!again) card.value = true; });
 addEventListener("appinstalled", () => { ask.value = null; card.value = sheet.value = false; });
 if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
 
@@ -34,7 +35,12 @@ export async function openInstall() {
   ask.value = null; e.prompt();
   if ((await e.userChoice).outcome === "accepted") card.value = false;
 }
-function close() { card.value = false; try { sessionStorage.setItem(KEY, "1"); } catch (err) {} }
+/** @type {any} */
+let again = 0;
+function close() {
+  card.value = false; clearTimeout(again);
+  again = setTimeout(() => { again = 0; if (!installed() && (ios || ask.value)) card.value = true; }, /** @type {any} */ (window).TB_INSTALL_AGAIN_MS || AGAIN_MS);
+}
 
 const SHARE = html`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const PLUS = html`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
