@@ -2,6 +2,7 @@
 // The top bar on every screen: brand, the main sections, language, notifications and the
 // learner's menu; on phones the sections move to a tab bar at the bottom. Also the short
 // pop-up that announces a new notification.
+import { CapyMark } from "./capy.js";
 import { html } from "htm/preact";
 import { signal } from "@preact/signals";
 import { useState, useEffect, useRef } from "preact/hooks";
@@ -55,7 +56,7 @@ export function Header() {
   return html`
     <div class="wrap top-in">
       <button class="brand" data-v="home" aria-label=${t("timirtbet_home")} onClick=${() => go("home")}>
-        <span class="mark">ት</span><b>Timirtbet</b><span class="brand-am">ትምህርት ቤት</span></button>
+        <${CapyMark} /><b>Timirtbet</b><span class="brand-am">ትምህርት ቤት</span></button>
       <nav class="main" id="nav" aria-label=${t("main_sections")}>
         ${secs.map((s) => html`<button key=${s.v} data-act="view" data-v=${s.v} aria-current=${cur === s.v ? "page" : undefined} onClick=${() => go(s.v)}>
           <${Icon} d=${s.icon} /><span>${s.label}</span>${s.badge > 0 && html` <span class="badge">${s.badge}</span>`}</button>`)}

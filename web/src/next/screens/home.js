@@ -8,6 +8,7 @@ import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
 import { state, refresh, expectingLearner } from "../state.js";
 import { NewsBox } from "../components/news.js";
+import { CapyScene, CapyMark } from "../components/capy.js";
 import { Avatar, PersonLink } from "../components/people.js";
 import { Clock, leftText } from "../components/clock.js";
 import { StartSteps, SignInLink } from "../components/start.js";
@@ -53,6 +54,7 @@ function Hero() {
       <p class="hero-lede">${t("home_lede")}</p>
       <div class="hero-cta"><${SignInLink} /><button class="h-more" data-act="view" data-v="challenges" onClick=${() => go("challenges")}>${t("browse_challenges")}</button></div>
     </div>
+    <${CapyScene} cls="capy hero-capy" />
     <dl class="hero-facts">${facts.map(([h, d]) => html`<div key=${h}><dt>${t(/** @type {any} */ (h))}</dt><dd>${t(/** @type {any} */ (d))}</dd></div>`)}</dl>
   </section>`;
 }

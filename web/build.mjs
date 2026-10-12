@@ -30,7 +30,7 @@ const js = next + "\n" + src("app.js")
   .replace("/*__MODULES__*/[]", JSON.stringify(JSON.parse(modules)))
   .replace("/*__TRACKIMG__*/{}", JSON.stringify({
     go: "data:image/webp;base64," + fs.readFileSync(path.join(here, "src", "img", "go.webp")).toString("base64"),
-    js: "data:image/png;base64," + fs.readFileSync(path.join(here, "src", "img", "js.png")).toString("base64"),
+    js: "data:image/svg+xml," + encodeURIComponent(fs.readFileSync(path.join(here, "src", "img", "js.svg"), "utf8").trim()),
   }))
   .replace("/*__LIVE__*/", src("live.js"));
 for (const marker of ["__BANK__", "__MODULES__", "__TRACKIMG__", "__LIVE__"]) if (js.includes(marker)) throw new Error(`${marker} not replaced`);

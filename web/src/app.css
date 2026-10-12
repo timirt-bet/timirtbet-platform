@@ -687,7 +687,7 @@ footer a:hover{color:var(--accent)}
 
 /* Home (/): a calm, editorial page. Sections share one grid: a small numbered label, then the content. */
 .home{margin-top:-8px}
-.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:72px;align-items:end;padding:44px 0 64px}
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:48px 64px;align-items:center;padding:40px 0 60px}
 .hero-kick{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0;font:500 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
 .hero-kick .am{font:600 14px/1 "Noto Sans Ethiopic",sans-serif;letter-spacing:0;text-transform:none;color:var(--accent);padding-right:12px;border-right:1px solid var(--line)}
 .hero-h{font-size:clamp(40px,6.2vw,74px);line-height:1.02;letter-spacing:-.04em;font-weight:700;max-width:12ch;margin:22px 0 24px}
@@ -695,8 +695,8 @@ footer a:hover{color:var(--accent)}
 .hero-cta{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:34px}
 .hero-cta .gh-btn{padding:12px 18px;font-size:15px;text-decoration:none}
 #how{scroll-margin-top:90px}
-.hero-facts{margin:0;border-top:2px solid var(--ink)}
-.hero-facts>div{padding:15px 0 16px;border-bottom:1px solid var(--line)}
+.hero-facts{grid-column:1/-1;margin:8px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 32px}
+.hero-facts>div{padding:14px 0 0;border-top:2px solid var(--ink)}
 .hero-facts dt{font-weight:600;font-size:15px}
 .hero-facts dd{margin:3px 0 0;color:var(--ink-2);font-size:14px}
 .h-sec{display:grid;grid-template-columns:170px minmax(0,1fr);gap:40px;padding:56px 0 60px;border-top:1px solid var(--line)}
@@ -757,3 +757,13 @@ footer a:hover{color:var(--accent)}
   .trow-main b{font-size:20px}
 }
 .pg-h+.tracks{margin-top:22px}
+
+/* The capybara */
+.hero-capy{display:block;width:100%;max-width:440px;aspect-ratio:3/2;justify-self:end}
+.signin-capy{display:block;width:220px;aspect-ratio:3/2;margin:-6px 0 6px}
+.news-empty .capy{display:block;width:200px;aspect-ratio:3/2;margin:18px 0 6px}
+.rv-capy{width:52px;height:52px}
+.foot-brand{display:inline-flex;align-items:center;gap:10px}
+.foot-mark{width:22px;height:22px}
+@media (max-width:900px){.hero-capy{justify-self:start;max-width:300px;order:-1}.hero-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}}
+@media (max-width:560px){.hero-facts{grid-template-columns:minmax(0,1fr)}}
