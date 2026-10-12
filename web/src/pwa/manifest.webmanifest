@@ -1,0 +1,17 @@
+{
+  "name": "Timirtbet | ትምህርት ቤት",
+  "short_name": "Timirtbet",
+  "description": "Learn JavaScript and Go the way developers work: your own GitHub repository, automatic tests and code review.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F7F4",
+  "theme_color": "#FFFFFF",
+  "lang": "en",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

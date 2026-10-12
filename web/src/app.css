@@ -767,3 +767,11 @@ footer a:hover{color:var(--accent)}
 .foot-mark{width:22px;height:22px}
 @media (max-width:900px){.hero-capy{justify-self:start;max-width:300px;order:-1}.hero-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}}
 @media (max-width:560px){.hero-facts{grid-template-columns:minmax(0,1fr)}}
+
+/* Install as an app */
+.install{position:fixed;z-index:31;right:16px;bottom:16px;width:min(360px,calc(100% - 32px));display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(20,32,27,.14)}
+.install-mark{width:40px;height:40px}
+.install-t{display:grid;gap:1px;flex:1;min-width:0;font-size:13px;color:var(--ink-2);line-height:1.35}
+.install-t b{font-size:14px;color:var(--ink)}
+.install-x{background:none;border:0;font-size:22px;line-height:1;color:var(--ink-3);padding:2px 4px;align-self:flex-start}
+@media (max-width:760px){.install{left:12px;right:12px;width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px))}}

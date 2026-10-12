@@ -706,4 +706,9 @@ export default {
   teach_p4: "ለትምህርት ቤት መዝገብ የCSV ፋይል",
   teach_example: "ምሳሌ፦ የአንድ ክፍል እድገት",
   home: "መነሻ",
+  // install as an app (components/install.js)
+  install_title: "ትምህርት ቤትን በስልክዎ መነሻ ገጽ ላይ",
+  install_text: "እንደ መተግበሪያ ሙሉ ገጽ ይከፈታል።",
+  install_ios: "Share ይንኩ፣ ከዚያ “Add to Home Screen” ይምረጡ።",
+  install: "ጫን",
 };

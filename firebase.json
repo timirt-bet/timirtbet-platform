@@ -9,6 +9,7 @@
         { "key": "Referrer-Policy", "value": "same-origin" }
       ] },
       { "source": "**/!(*.json)", "headers": [ { "key": "Cache-Control", "value": "no-cache" } ] },
+      { "source": "/manifest.webmanifest", "headers": [ { "key": "Content-Type", "value": "application/manifest+json" } ] },
       { "source": "/news.json", "headers": [ { "key": "Cache-Control", "value": "public, max-age=300" } ] }
     ],
     "rewrites": [

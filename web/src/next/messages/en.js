@@ -707,4 +707,9 @@ export default {
   teach_p4: "A CSV export for school records",
   teach_example: "Example: a class's progress",
   home: "Home",
+  // install as an app (components/install.js)
+  install_title: "Timirtbet on your home screen",
+  install_text: "Opens full screen, like an app.",
+  install_ios: "Tap Share, then “Add to Home Screen”.",
+  install: "Install",
 };

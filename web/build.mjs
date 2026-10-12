@@ -60,6 +60,8 @@ fs.writeFileSync(out, page);
   if (bad.length) throw new Error("content/news.json:\n  " + bad.join("\n  "));
   fs.writeFileSync(path.join(path.dirname(out), "news.json"), JSON.stringify(news));
 }
+// Installing the site as an app (Add to Home Screen): the manifest and its icons.
+for (const f of fs.readdirSync(path.join(here, "src", "pwa"))) fs.copyFileSync(path.join(here, "src", "pwa", f), path.join(path.dirname(out), f));
 for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$|^(demo|artifact)\.html$/.test(f)) fs.rmSync(path.join(path.dirname(out), f));
 // Learners on slow connections download this whole file: keep it under budget.
 const gz = zlib.gzipSync(page, { level: 9 }).length, BUDGET = 100 * 1024;

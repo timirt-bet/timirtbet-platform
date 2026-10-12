@@ -3,6 +3,7 @@
 // learner's menu; on phones the sections move to a tab bar at the bottom. Also the short
 // pop-up that announces a new notification.
 import { CapyMark } from "./capy.js";
+import { InstallCard } from "./install.js";
 import { html } from "htm/preact";
 import { signal } from "@preact/signals";
 import { useState, useEffect, useRef } from "preact/hooks";
@@ -82,6 +83,7 @@ export function Dock() {
       ${secs.map((s) => html`<button key=${s.v} aria-current=${cur === s.v ? "page" : undefined} onClick=${() => go(s.v)}>
         <span class="tb-ic"><${Icon} d=${s.icon} />${s.badge > 0 && html`<span class="badge">${s.badge}</span>`}</span><span>${s.label}</span></button>`)}
     </nav>
+    <${InstallCard} />
     <${Toast} />`;
 }
 
