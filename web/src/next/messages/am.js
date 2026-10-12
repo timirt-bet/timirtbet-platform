@@ -722,4 +722,5 @@ export default {
   install_inapp_1: "ይህ ገጽ በሌላ መተግበሪያ ውስጥ ተከፍቷል። ምናሌውን ይንኩ",
   install_inapp_2: "“Open in browser” (ወይም Safari / Chrome) ይምረጡ፣ ከዚያ እዚያ “መተግበሪያውን ያግኙ” ይንኩ።",
   install_note: "እንደ መተግበሪያ ሙሉ ገጽ ይከፈታል፤ ተጨማሪ ቦታ አይወስድም።",
+  install_card: "የትምህርት ቤትን መተግበሪያ ያግኙ",
 };

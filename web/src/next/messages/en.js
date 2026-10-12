@@ -723,4 +723,5 @@ export default {
   install_inapp_1: "This page is open inside another app. Tap its menu",
   install_inapp_2: "Choose “Open in browser” (or Safari / Chrome), then tap “Get the app” there.",
   install_note: "It opens full screen like an app and uses no extra space.",
+  install_card: "Get the Timirtbet app",
 };

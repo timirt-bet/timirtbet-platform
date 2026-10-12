@@ -769,10 +769,12 @@ footer a:hover{color:var(--accent)}
 @media (max-width:560px){.hero-facts{grid-template-columns:minmax(0,1fr)}}
 
 /* Install as an app */
-.install{position:fixed;z-index:31;right:16px;bottom:16px;width:min(360px,calc(100% - 32px));display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(20,32,27,.14)}
-.install-mark{width:40px;height:40px}
-.install-t{display:grid;gap:1px;flex:1;min-width:0;font-size:13px;color:var(--ink-2);line-height:1.35}
-.install-t b{font-size:14px;color:var(--ink)}
+.install{position:fixed;z-index:31;right:16px;bottom:16px;width:min(380px,calc(100% - 32px));display:flex;align-items:center;gap:12px;padding:10px 8px 10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(20,32,27,.14)}
+.install-mark{width:36px;height:36px}
+.install .btn{flex:none;padding:8px 14px;font-weight:600;border-radius:8px}
+.install-x{align-self:center!important}
+.install-t{display:grid;gap:1px;flex:1;min-width:0;font-size:12.5px;color:var(--ink-2);line-height:1.3}
+.install-t b{font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .install-x{background:none;border:0;font-size:22px;line-height:1;color:var(--ink-3);padding:2px 4px;align-self:flex-start}
 @media (max-width:760px){.install{left:12px;right:12px;width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
 .app-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:8px 0 12px;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
@@ -789,3 +791,20 @@ footer a:hover{color:var(--accent)}
 .sheet-steps .ico{display:inline-block;vertical-align:-6px;width:24px;height:24px;margin-left:2px;color:#0A84FF;fill:currentColor}
 .sheet-steps .ico path,.sheet-steps .ico rect{fill:none}
 .sheet-note{font-size:13px;margin:0}
+
+/* Phones: fewer lines on the home page. Sections are set apart by space; "How it works" is one
+   timeline (a single thin line with a dot per step) instead of a rule above every step. */
+@media (max-width:760px){
+  .h-sec{border-top:0;padding:28px 0 30px}
+  .h-label::after{display:none}
+  .hero-facts{gap:14px}
+  .hero-facts>div{border-top:0;padding:0}
+  .day{gap:0;margin-top:24px;border-left:2px solid var(--line);margin-left:6px}
+  .day li{position:relative;border-top:0;padding:0 0 22px 22px}
+  .day li:last-child{padding-bottom:0}
+  .day li::before{content:"";position:absolute;left:-7px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--sun)}
+  .h-tracks{border-top:0;margin-top:16px}
+  .trow{border-bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:16px 14px}
+  .news-cols .news-item{border-top:0;padding:0}
+  .ticks{border-top:0}.ticks li{border-bottom:0;padding:6px 0 6px 26px}.ticks li::before{top:6px}
+}

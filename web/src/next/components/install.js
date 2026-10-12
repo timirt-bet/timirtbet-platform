@@ -58,8 +58,8 @@ export function InstallCard() {
   return html`
     ${card.value && !sheet.value && html`<aside class="install" id="install" role="dialog" aria-label=${t("install_title")}>
       <${CapyMark} cls="mark install-mark" />
-      <div class="install-t"><b>${t("install_title")}</b><span>${t("install_text")}</span></div>
-      <button class="btn dark small" data-act="install" onClick=${openInstall}>${ask.value ? t("install") : t("install_how")}</button>
+      <div class="install-t"><b>${t("install_card")}</b><span>${t("install_text")}</span></div>
+      <button class="btn primary small" data-act="install" onClick=${openInstall}>${ask.value ? t("install") : t("install_how")}</button>
       <button class="install-x" aria-label=${t("close")} onClick=${close}>×</button></aside>`}
     ${sheet.value && html`<div class="sheet-bg" onClick=${(/** @type {any} */ e) => { if (e.target === e.currentTarget) sheet.value = false; }}>
       <section class="sheet" id="installSheet" role="dialog" aria-modal="true" aria-label=${t("install_title")}>
