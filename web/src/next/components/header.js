@@ -26,6 +26,7 @@ const SECTION = /** @type {Record<string, string>} */ ({ track: "challenges", ex
 /** @param {{ d: string }} props */
 const Icon = ({ d }) => html`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" dangerouslySetInnerHTML=${{ __html: d }}></svg>`;
 const I = {
+  home: '<path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9h4.5v-5h3v5H18v-9"/>',
   challenges: '<path d="m8 9-3 3 3 3"/><path d="m16 9 3 3-3 3"/><path d="m13.5 6-3 12"/>',
   reviews: '<path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12Z"/><path d="m9 12 2 2 4-4"/>',
   circle: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5"/>',
@@ -75,7 +76,7 @@ export function Header() {
 /** Outside the header (whose blur would trap fixed elements): the phone tab bar and the pop-up. */
 export function Dock() {
   const cur = SECTION[view.value] || view.value;
-  const secs = sections();
+  const secs = [{ v: "home", label: t("home"), icon: I.home, badge: 0 }, ...sections()];
   return html`
     <nav class="tabbar" aria-label=${t("main_sections")}>
       ${secs.map((s) => html`<button key=${s.v} aria-current=${cur === s.v ? "page" : undefined} onClick=${() => go(s.v)}>

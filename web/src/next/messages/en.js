@@ -706,4 +706,5 @@ export default {
   teach_p3: "Each learner's test runs and module reviews",
   teach_p4: "A CSV export for school records",
   teach_example: "Example: a class's progress",
+  home: "Home",
 };
