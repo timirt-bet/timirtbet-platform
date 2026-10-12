@@ -81,6 +81,13 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 - `/teach/{class}/{learner}` shows one learner: each challenge's status, number of runs, best score, last run and the first line of the last error; modules with no activity collapse to one row; and their module reviews.
 - Only the class's teacher can read it; to anyone else a class id answers 404.
 
+## News ("Schools in Ethiopia")
+
+- `content/news.json` holds short education news items: a title and a summary in English and Amharic (in our own words), the source's name and link, a topic and an importance from 1 to 5. `web/news.mjs` checks the file at build time and ranks it; the build copies it to the site as `/news.json` (cached 5 minutes).
+- The home page shows the three most important items from the last 60 days; `/news` shows them all, newest first.
+- A scheduled agent follows `content/NEWS_AGENT.md`: it searches trusted sources, leaves out anything political, and proposes up to 5 items in a pull request. Nothing appears until a maintainer merges it.
+- For a school's own copy: replace `content/news.json` with the school's announcements, or point the agent at the school's sources.
+
 ## Grading
 
 - **Learners start it:** after committing, the learner presses **Run the tests** on the challenge page (`POST /api/check/{id}`). The API reads that challenge's solution file from `main` in their repository, grades it and records the result. Nothing is graded on push, so learners can commit as often as they like.

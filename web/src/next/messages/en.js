@@ -661,4 +661,11 @@ export default {
   join_class: "Join class",
   setting_up_your_repository: "Setting up your GitHub repository…",
   setting_up_your_repository_lede: "It takes a few seconds. You can read the challenges while you wait.",
+  // news box (components/news.js)
+  schools_in_ethiopia: "Schools in Ethiopia",
+  more_news: "More news →",
+  news: "News",
+  news_important: "Important",
+  news_lede: "Education news for learners and teachers: exams, the school calendar, scholarships and digital skills programmes. Each item links to its source.",
+  no_news_yet: "No news yet. Check back soon.",
 };

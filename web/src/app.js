@@ -57,6 +57,7 @@ function copyBtn(btn,id){const txt=document.getElementById(id).textContent;const
    /challenges/js  /challenges/js/basic  /challenges/go/advanced     a track, optionally one level
    /challenges/js/basic/vars           a challenge (its id without the js-/go- prefix)
    /reviews  /reviews/<id>  /circle  /profile  /signin  /u/<github-login> (a learner's profile)
+   /news                               Schools in Ethiopia (education news)
    /teach  /teach/<class-id>  /teach/<class-id>/<learner-id>        a teacher's classes                                       */
 const ROUTED=typeof history!=="undefined"&&/^https?:$/.test(location.protocol);
 const TRACK_LEVELS=["basic","advanced"],slugOf=id=>id.replace(/^(js|go)-/,"");
@@ -66,7 +67,7 @@ function pathOf(){
     case "exercise":{const e=EXM[V.ex];return e?`/challenges/${e.lang}/${e.level}/${slugOf(e.id)}`:"/";}
     case "reviews":return "/reviews";
     case "review":return `/reviews/${encodeURIComponent(V.qid||"")}`;
-    case "circle":case "profile":case "signin":return "/"+V.view;
+    case "circle":case "profile":case "signin":case "news":return "/"+V.view;
     case "user":return `/u/${encodeURIComponent(V.login||"")}`;
     case "teach":return "/teach"+(V.cid?`/${encodeURIComponent(V.cid)}`+(V.lid?`/${encodeURIComponent(V.lid)}`:""):"");
     default:return "/";
@@ -84,6 +85,7 @@ function titleOf(){
     case "signin":return `Get started · ${T}`;
     case "user":return `@${V.login} · ${T}`;
     case "teach":return `${V.cid?"Class":"Teach"} · ${T}`;
+    case "news":return `Schools in Ethiopia · ${T}`;
     default:return `${T} | ትምህርት ቤት`;
   }
 }
@@ -95,7 +97,7 @@ function routeFrom(path){
     return {view:"track",track:lang,level};
   }
   if(p[0]==="reviews")return p[1]?{view:"review",qid:p[1]}:{view:"reviews"};
-  if(["circle","profile","signin"].includes(p[0]))return {view:p[0]};
+  if(["circle","profile","signin","news"].includes(p[0]))return {view:p[0]};
   if(p[0]==="u"&&/^[\w-]{1,39}$/.test(p[1]||""))return {view:"user",login:p[1]};
   if(p[0]==="teach"){const ok=x=>/^[\w-]{1,60}$/.test(x||"");return {view:"teach",cid:ok(p[1])?p[1]:null,lid:ok(p[1])&&ok(p[2])?p[2]:null};}
   return {view:"challenges"};

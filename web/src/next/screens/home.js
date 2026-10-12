@@ -7,6 +7,7 @@ import { go, openEx, modNum, old, prefs, savePrefs } from "../legacy.js";
 import { t, tText } from "../i18n.js";
 import { api } from "../api.js";
 import { state, refresh, expectingLearner } from "../state.js";
+import { NewsBox } from "../components/news.js";
 import { Avatar, PersonLink } from "../components/people.js";
 import { Clock, leftText } from "../components/clock.js";
 import { StartSteps, SignInLink } from "../components/start.js";
@@ -29,7 +30,7 @@ export function HomeScreen() {
     <h1 class="sr-only">${t("loading")}</h1>
     <section class="upnext skel" aria-busy="true"><div><i class="sk w30"></i><i class="sk w70 tall"></i><i class="sk w90"></i><i class="sk w40 sk-btn"></i></div></section>
     <div class="tracks">${["js", "go"].map((k) => html`<${TrackCard} key=${k} k=${k} />`)}</div>
-    <div class="home-side"><section class="panel skel" aria-busy="true"><div class="pad"><i class="sk w40"></i><i class="sk w90"></i><i class="sk w70"></i></div></section><${HowModules} /></div>`;
+    <div class="home-side"><section class="panel skel" aria-busy="true"><div class="pad"><i class="sk w40"></i><i class="sk w90"></i><i class="sk w70"></i></div></section><${NewsBox} /><${HowModules} /></div>`;
   return html`
     <h1 class="sr-only">${t("choose_a_track")}</h1>
     ${me && html`<${UpNext} me=${me} />`}
@@ -37,6 +38,7 @@ export function HomeScreen() {
     <div class="home-side">
       ${me ? html`<${ProgressCard} me=${me} />` : html`<${StartCard} />`}
       ${me && html`<${CircleMini} />`}
+      <${NewsBox} />
       <${HowModules} />
     </div>`;
 }

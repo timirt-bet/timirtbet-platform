@@ -660,4 +660,11 @@ export default {
   join_class: "ክፍሉን ተቀላቀል",
   setting_up_your_repository: "የGitHub ማከማቻዎ እየተዘጋጀ ነው…",
   setting_up_your_repository_lede: "ጥቂት ሰከንዶች ይወስዳል። እስከዚያው ፈተናዎቹን ማንበብ ይችላሉ።",
+  // news box (components/news.js)
+  schools_in_ethiopia: "ትምህርት ቤቶች በኢትዮጵያ",
+  more_news: "ተጨማሪ ዜና →",
+  news: "ዜና",
+  news_important: "አስፈላጊ",
+  news_lede: "ለተማሪዎችና ለመምህራን የትምህርት ዜና፦ ፈተናዎች፣ የትምህርት ዘመን ቀን መቁጠሪያ፣ የነፃ ትምህርት ዕድሎችና የዲጂታል ክህሎት ፕሮግራሞች። እያንዳንዱ ዜና ወደ ምንጩ ይወስዳል።",
+  no_news_yet: "እስካሁን ዜና የለም። በቅርቡ ይመልከቱ።",
 };

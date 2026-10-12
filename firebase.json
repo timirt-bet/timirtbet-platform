@@ -7,7 +7,8 @@
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "same-origin" }
-      ] }
+      ] },
+      { "source": "/news.json", "headers": [ { "key": "Cache-Control", "value": "public, max-age=300" } ] }
     ],
     "rewrites": [
       { "source": "/api/**", "run": { "serviceId": "timirtbet-api", "region": "us-central1" } },

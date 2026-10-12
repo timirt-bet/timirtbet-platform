@@ -50,6 +50,14 @@ if (appUrl && !/\.(web\.app|firebaseapp\.com)$/.test(appUrl.hostname)) {
 const out = path.join(here, "dist", "index.html");
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, page);
+// The news box: checked, then served as its own small file (it changes without touching the page).
+{
+  const { newsProblems } = await import("./news.mjs");
+  const news = JSON.parse(fs.readFileSync(path.join(root, "content", "news.json"), "utf8"));
+  const bad = newsProblems(news);
+  if (bad.length) throw new Error("content/news.json:\n  " + bad.join("\n  "));
+  fs.writeFileSync(path.join(path.dirname(out), "news.json"), JSON.stringify(news));
+}
 for (const f of fs.readdirSync(path.dirname(out))) if (/^codemirror-.*\.js$|^(demo|artifact)\.html$/.test(f)) fs.rmSync(path.join(path.dirname(out), f));
 // Learners on slow connections download this whole file: keep it under budget.
 const gz = zlib.gzipSync(page, { level: 9 }).length, BUDGET = 100 * 1024;
