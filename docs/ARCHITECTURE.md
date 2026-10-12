@@ -84,7 +84,7 @@ Sign-in uses GitHub OAuth with **no scopes**: Timirtbet sees only a public GitHu
 ## News ("Schools in Ethiopia")
 
 - `content/news.json` holds short education news items: a title and a summary in English and Amharic (in our own words), the source's name and link, a topic and an importance from 1 to 5. `web/news.mjs` checks the file at build time and ranks it; the build copies it to the site as `/news.json` (cached 5 minutes).
-- The home page shows the three most important items from the last 60 days; `/news` shows them all, newest first.
+- The home page shows, side by side, the three most important items from the last 60 days; `/news` shows them all, newest first.
 - A scheduled agent follows `content/NEWS_AGENT.md`: it searches trusted sources, leaves out anything political, and proposes up to 5 items in a pull request. Nothing appears until a maintainer merges it.
 - For a school's own copy: replace `content/news.json` with the school's announcements, or point the agent at the school's sources.
 
@@ -160,7 +160,8 @@ The web app is one page, but every screen has its own address and browser-tab ti
 
 | Address | Screen |
 |---|---|
-| `/` | The two tracks |
+| `/` | Home: what Timirtbet is (signed in: what is next), how it works as a developer's day, the tracks, news, for teachers |
+| `/challenges` | The two tracks |
 | `/challenges/js`, `/challenges/go` | A track, all modules |
 | `/challenges/js/basic`, `/challenges/js/advanced` | A track, one level |
 | `/challenges/js/basic/vars` | A challenge (its id without the `js-`/`go-` prefix) |

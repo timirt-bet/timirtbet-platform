@@ -15,7 +15,7 @@ import { leftText } from "./clock.js";
 import { ago, unitTitle, stars } from "../reviewing.js";
 
 /** The screen on show (the old router's V.view), set by app.js after each render. */
-export const view = signal("challenges");
+export const view = signal("home");
 /** The notification to pop up briefly, or null. */
 export const toastItem = signal(/** @type {any} */ (null));
 
@@ -54,7 +54,7 @@ export function Header() {
   const secs = sections();
   return html`
     <div class="wrap top-in">
-      <button class="brand" data-v="challenges" aria-label=${t("timirtbet_home")} onClick=${() => go("challenges")}>
+      <button class="brand" data-v="home" aria-label=${t("timirtbet_home")} onClick=${() => go("home")}>
         <span class="mark">ት</span><b>Timirtbet</b><span class="brand-am">ትምህርት ቤት</span></button>
       <nav class="main" id="nav" aria-label=${t("main_sections")}>
         ${secs.map((s) => html`<button key=${s.v} data-act="view" data-v=${s.v} aria-current=${cur === s.v ? "page" : undefined} onClick=${() => go(s.v)}>

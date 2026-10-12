@@ -32,14 +32,15 @@ const Item = ({ n, full }) => html`<li class="news-item" data-news=${n.id}>
   ${full && html`<p class="news-s">${pick(n.summary)}</p>`}
   <span class="news-m">${n.source.name} · ${when(n.date)}${n.importance >= 4 ? html` · <b class="news-key">${t("news_important")}</b>` : ""}</span></li>`;
 
-/** The home page box: the three most important recent items. */
+/** The home page's news: the three most important recent items, side by side like a newspaper. */
 export function NewsBox() {
   useEffect(load, []);
   const list = items.value ? rankNews(items.value).slice(0, 3) : [];
   if (!list.length) return null;
-  return html`<section class="panel news-box" id="newsBox"><h2>${t("schools_in_ethiopia")}</h2>
-    <ul class="news-list">${list.map((n) => html`<${Item} key=${n.id} n=${n} />`)}</ul>
-    <div class="news-more"><button class="linkish" data-act="news" onClick=${() => go("news")}>${t("more_news")}</button></div></section>`;
+  return html`<section class="h-sec" id="newsBox"><div class="h-label"><span class="h-no">03</span>${t("news")}</div>
+    <div class="h-body"><div class="h-head"><h2 class="h-h">${t("schools_in_ethiopia")}</h2>
+      <button class="h-more" data-act="news" onClick=${() => go("news")}>${t("more_news")}</button></div>
+    <ul class="news-cols">${list.map((n) => html`<${Item} key=${n.id} n=${n} full />`)}</ul></div></section>`;
 }
 
 /** /news: every recent item, newest first, with its summary. */

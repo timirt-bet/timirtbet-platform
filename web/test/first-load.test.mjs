@@ -15,7 +15,7 @@ test("while the first answer is slow, a returning learner sees placeholders, not
   await p.route("**/api/me", async (route) => { await held; await route.continue(); });
   await p.goto(site.base + "/");
   await p.waitForSelector(".upnext.skel");
-  assert.equal(await p.locator(".start-card").count(), 0, "no guest welcome");
+  assert.equal(await p.locator(".hero").count(), 0, "no guest welcome");
   assert.equal(await p.locator('#who [data-v="signin"]').count(), 0, "no Sign in button");
   assert.match(await p.text("#who"), /@fl-back/);
   release();
@@ -29,7 +29,8 @@ test("a new visitor sees the guest page straight away", async () => {
   const p = await site.learner(null);
   await p.open("/");
   assert.equal(await p.locator(".upnext.skel").count(), 0);
-  assert.equal(await p.locator(".start-card").count(), 1);
+  assert.equal(await p.locator(".hero").count(), 1);
+  assert.match(await p.text("h1"), /Learn to code/);
   await p.close();
 });
 

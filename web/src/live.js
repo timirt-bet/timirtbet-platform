@@ -74,10 +74,10 @@
   // first answer, behind "Loading…", until something has been drawn.
   const baseRender=render;let drawnOnce=false;
   render=function(){
-    if(!L.loaded&&!drawnOnce&&TBNext.state.hint.value&&!["challenges","track","exercise"].includes(V.view)){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
+    if(!L.loaded&&!drawnOnce&&TBNext.state.hint.value&&!["home","challenges","track","exercise"].includes(V.view)){app.innerHTML=`<p class="muted" style="padding:40px 0">Loading…</p>`;return;}
     drawnOnce=true;baseRender();
   };
   // The account menu and page call this after signing out.
-  TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}go("challenges");};
+  TBNext.afterSignOut=(deleted)=>{V.confirm=null;L.me=null;const was=owner;useAccount(null);if(deleted){try{localStorage.removeItem(ACCT(was));}catch(e){}}go("home");};
   loadAll();
 }

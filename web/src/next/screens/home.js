@@ -1,6 +1,6 @@
 // @ts-check
-// "Challenges": the two language tracks with what to do next (home), and each track's modules
-// and challenges (/challenges/js, /challenges/go, optionally /basic or /advanced).
+// The home page (/), the two language tracks (/challenges), and each track's modules and
+// challenges (/challenges/js, /challenges/go, optionally /basic or /advanced).
 import { html } from "htm/preact";
 import { useState, useReducer } from "preact/hooks";
 import { go, openEx, modNum, old, prefs, savePrefs } from "../legacy.js";
@@ -24,21 +24,84 @@ async function submitModule(id) { await api("POST", `/api/modules/${id}/submit`)
 
 /* ======================= home ======================= */
 
+/** "/": what Timirtbet is (or, signed in, what is next), a developer's day, the tracks, news, and for teachers. */
 export function HomeScreen() {
   const me = state.me.value;
-  if (!me && expectingLearner()) return html`
-    <h1 class="sr-only">${t("loading")}</h1>
-    <section class="upnext skel" aria-busy="true"><div><i class="sk w30"></i><i class="sk w70 tall"></i><i class="sk w90"></i><i class="sk w40 sk-btn"></i></div></section>
-    <div class="tracks">${["js", "go"].map((k) => html`<${TrackCard} key=${k} k=${k} />`)}</div>
-    <div class="home-side"><section class="panel skel" aria-busy="true"><div class="pad"><i class="sk w40"></i><i class="sk w90"></i><i class="sk w70"></i></div></section><${NewsBox} /><${HowModules} /></div>`;
+  const top = me ? html`<${UpNext} me=${me} />`
+    : expectingLearner() ? html`<section class="upnext skel" aria-busy="true"><div><i class="sk w30"></i><i class="sk w70 tall"></i><i class="sk w90"></i><i class="sk w40 sk-btn"></i></div></section>`
+    : html`<${Hero} />`;
+  return html`<div class="home">
+    ${me || expectingLearner() ? html`<h1 class="sr-only">Timirtbet</h1>` : ""}
+    ${top}
+    <${DevDay} />
+    <section class="h-sec"><div class="h-label"><span class="h-no">02</span>${t("tracks")}</div>
+      <div class="h-body"><div class="h-head"><h2 class="h-h">${t("tracks_title", { n: old.BANK.length })}</h2>
+        <button class="h-more" data-act="view" data-v="challenges" onClick=${() => go("challenges")}>${t("all_challenges")}</button></div>
+        <div class="h-tracks">${["js", "go"].map((k) => html`<${TrackRow} key=${k} k=${k} />`)}</div></div></section>
+    <${NewsBox} />
+    <${ForTeachers} />
+  </div>`;
+}
+
+/** For visitors: what Timirtbet is, and the way in. */
+function Hero() {
+  const facts = [["fact_free_t", "fact_free"], ["fact_lang_t", "fact_lang"], ["fact_tools_t", "fact_tools"], ["fact_who_t", "fact_who"]];
+  return html`<section class="hero">
+    <div class="hero-main">
+      <p class="hero-kick"><span class="am">ትምህርት ቤት</span>${t("home_kicker")}</p>
+      <h1 class="hero-h">${t("home_title")}</h1>
+      <p class="hero-lede">${t("home_lede")}</p>
+      <div class="hero-cta"><${SignInLink} /><button class="h-more" data-act="view" data-v="challenges" onClick=${() => go("challenges")}>${t("browse_challenges")}</button></div>
+    </div>
+    <dl class="hero-facts">${facts.map(([h, d]) => html`<div key=${h}><dt>${t(/** @type {any} */ (h))}</dt><dd>${t(/** @type {any} */ (d))}</dd></div>`)}</dl>
+  </section>`;
+}
+
+/** How it works, told as a developer's working day: every step is something software teams do daily. */
+function DevDay() {
+  const day = [["09:00", 1], ["09:30", 2], ["10:00", 3], ["13:00", 4], ["15:00", 5], ["16:30", 6]];
+  return html`<section class="h-sec" id="how"><div class="h-label"><span class="h-no">01</span>${t("how_it_works")}</div>
+    <div class="h-body"><h2 class="h-h">${t("day_title")}</h2><p class="h-lede">${t("day_lede")}</p>
+      <ol class="day">${day.map(([time, n]) => html`<li key=${n}><span class="day-t mono">${time}</span>
+        <b>${t(/** @type {any} */ ("day_" + n + "_t"))}</b><span>${t(/** @type {any} */ ("day_" + n))}</span></li>`)}</ol></div></section>`;
+}
+
+/** A track as one line on the home page. @param {{ k: string }} props */
+function TrackRow({ k }) {
+  const all = exercisesOf(k), done = all.filter((e) => solved(e.id)).length;
+  const open = () => { prefs().track = k; savePrefs(); go("track", { level: null }); };
+  return html`<button class=${"trow track-" + k} data-act="track" data-v=${k} onClick=${open}>
+    <img class=${"track-logo track-logo-" + k} src=${old.TRACK_IMG[k]} alt="" />
+    <span class="trow-main"><b>${old.LANGN[k]}</b><span>${tText(old.TRACKS[k].blurb)}</span></span>
+    <span class="trow-n mono">${state.me.value ? `${done}/${all.length}` : t("n_challenges", { n: all.length })}</span>
+    <span class="trow-go" aria-hidden="true">→</span></button>`;
+}
+
+/** For teachers and schools: classes, with a small example of the progress grid. */
+function ForTeachers() {
+  const rows = [["Abebe", "ppppptoo"], ["Hana", "pppppppt"], ["Dawit", "ppptoooo"], ["Sara", "pppppooo"], ["Yonas", "ptoooooo"]];
+  return html`<section class="h-sec"><div class="h-label"><span class="h-no">04</span>${t("for_teachers")}</div>
+    <div class="h-body teach-band"><div>
+      <h2 class="h-h">${t("teach_title")}</h2><p class="h-lede">${t("home_teach_lede")}</p>
+      <ul class="ticks"><li>${t("teach_p1")}</li><li>${t("teach_p2")}</li><li>${t("teach_p3")}</li><li>${t("teach_p4")}</li></ul>
+      <button class="btn dark" data-act="view" data-v="teach" onClick=${() => go("teach")}>${t("teach_a_class")} →</button></div>
+      <figure class="mini-grid" aria-hidden="true"><figcaption class="mono">${t("teach_example")}</figcaption>
+        ${rows.map(([who, cells]) => html`<div key=${who}><span>${who}</span>${[...cells].map((c, i) => html`<i key=${i} class=${c}></i>`)}</div>`)}</figure>
+    </div></section>`;
+}
+
+/* ======================= challenges ======================= */
+
+/** /challenges: the two tracks in full. */
+export function ChallengesScreen() {
+  const me = state.me.value;
   return html`
-    <h1 class="sr-only">${t("choose_a_track")}</h1>
-    ${me && html`<${UpNext} me=${me} />`}
+    <p class="eyebrow">${t("challenges")}</p>
+    <h1 class="pg-h">${t("choose_a_track")}</h1>
     <div class="tracks">${["js", "go"].map((k) => html`<${TrackCard} key=${k} k=${k} />`)}</div>
     <div class="home-side">
       ${me ? html`<${ProgressCard} me=${me} />` : html`<${StartCard} />`}
       ${me && html`<${CircleMini} />`}
-      <${NewsBox} />
       <${HowModules} />
     </div>`;
 }
@@ -79,7 +142,7 @@ function UpNext({ me }) {
     ...ready.map(({ m }) => item("s" + m.id, "↑", short(m), sub(m) + " · " + t("ready_to_submit"),
       html`<button class="btn small" data-act="submit-module" data-id=${m.id} disabled=${busy === m.id} onClick=${() => submit(m.id)}>${t("submit_module")}</button>`)),
   ].filter(Boolean);
-  const howItWorks = () => { const d = /** @type {HTMLDetailsElement | null} */ (document.querySelector("details.how")); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "center" }); } };
+  const howItWorks = () => document.getElementById("how")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return html`<section class="upnext">
     <div class="un-main">
