@@ -8,6 +8,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "same-origin" }
       ] },
+      { "source": "**/!(*.json)", "headers": [ { "key": "Cache-Control", "value": "no-cache" } ] },
       { "source": "/news.json", "headers": [ { "key": "Cache-Control", "value": "public, max-age=300" } ] }
     ],
     "rewrites": [
