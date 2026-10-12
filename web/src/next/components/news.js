@@ -8,6 +8,7 @@ import { signal } from "@preact/signals";
 import { go } from "../legacy.js";
 import { t, lang } from "../i18n.js";
 import { rankNews } from "../../../news.mjs";
+import { CapyScene } from "./capy.js";
 
 /** @typedef {{ id: string, date: string, title: Record<string, string>, summary: Record<string, string>, source: { name: string, url: string }, importance: number, topic: string }} NewsItem */
 
@@ -52,5 +53,5 @@ export function NewsScreen() {
     <p class="lede">${t("news_lede")}</p>
     ${list === null ? html`<p class="muted">${t("loading")}</p>`
       : list.length ? html`<ul class="news-list full" id="newsList">${list.map((n) => html`<${Item} key=${n.id} n=${n} full />`)}</ul>`
-      : html`<p class="muted">${t("no_news_yet")}</p>`}`;
+      : html`<div class="news-empty"><${CapyScene} /><p class="muted">${t("no_news_yet")}</p></div>`}`;
 }

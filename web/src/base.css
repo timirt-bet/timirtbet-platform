@@ -40,7 +40,7 @@ h1,h2,h3{font-family:var(--display);line-height:1.15;letter-spacing:-.02em;text-
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .top-in{display:flex;align-items:center;gap:18px;padding-block:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:"Noto Sans Ethiopic",sans-serif;font-weight:700;font-size:20px}
+.mark{width:38px;height:38px;flex:none}.mark svg,.capy svg{display:block;width:100%;height:100%}
 .brand b{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.01em}
 .brand-am{font-family:"Noto Sans Ethiopic",sans-serif;font-size:14px;font-weight:600;color:var(--accent);padding-left:10px;border-left:1px solid var(--line)}
 @media (max-width:480px){.brand-am{display:none}}

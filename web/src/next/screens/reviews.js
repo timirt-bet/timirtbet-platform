@@ -2,6 +2,7 @@
 // "Reviews" in the menu: modules waiting for this learner's review (with the 72-hour clock),
 // the ratings their reviews got, their reviewer level, and for Mentors, second opinions.
 // /reviews/<id> is the page for writing one review.
+import { CapyMark } from "../components/capy.js";
 import { html } from "htm/preact";
 import { signal } from "@preact/signals";
 import { useState, useEffect } from "preact/hooks";
@@ -54,7 +55,7 @@ export function ReviewsScreen() {
         <div class="rv-sec-h"><h2 class="h2">${t("waiting_for_you")}</h2>${queue.length > 0 && html`<span class="count-chip">${queue.length}</span>`}</div>
         ${queue.length
           ? html`<div class="rq-list">${queue.map((s) => html`<${QueueCard} key=${s.id} s=${s} />`)}</div>`
-          : html`<div class="rv-empty"><span class="rv-empty-ic" aria-hidden="true">✓</span><div>
+          : html`<div class="rv-empty"><${CapyMark} cls="mark rv-capy" /><div>
               <b>${t("all_caught_up")}</b><p>${t("nothing_waiting_for_you_solve_more")}</p>
               <button class="btn" onClick=${() => go("challenges")}>${t("go_to_challenges")}</button></div></div>`}
         <${PastReviews} given=${state.given.value} />
