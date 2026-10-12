@@ -45,7 +45,7 @@ export function HomeScreen() {
 
 /** For visitors: what Timirtbet is, and the way in. */
 function Hero() {
-  const facts = [["fact_free_t", "fact_free"], ["fact_lang_t", "fact_lang"], ["fact_tools_t", "fact_tools"], ["fact_who_t", "fact_who"]];
+  const facts = [["fact_open_t", "fact_open"], ["fact_lang_t", "fact_lang"], ["fact_tools_t", "fact_tools"], ["fact_who_t", "fact_who"]];
   return html`<section class="hero">
     <div class="hero-main">
       <p class="hero-kick"><span class="am">ትምህርት ቤት</span>${t("home_kicker")}</p>

@@ -1,6 +1,6 @@
 # Timirtbet | ትምህርት ቤት
 
-Timirtbet is a free, open-source platform for teaching programming. Learners solve JavaScript and Go challenges in their own GitHub repository, and every finished module is reviewed by a classmate in their **review circle**. The author rates that review, and good reviewers earn reputation. Learners sign in with GitHub; nothing else about them is collected.
+Timirtbet is an open-source platform for teaching programming. Learners solve JavaScript and Go challenges in their own GitHub repository, and every finished module is reviewed by a classmate in their **review circle**. The author rates that review, and good reviewers earn reputation. Learners sign in with GitHub; nothing else about them is collected.
 
 It was built for Ethiopian schools and is released under the [Apache License 2.0](LICENSE), so any school, university, training center or ministry can run it, change it and share it.
 
