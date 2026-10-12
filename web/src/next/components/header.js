@@ -59,7 +59,7 @@ export function Header() {
   return html`
     <div class="wrap top-in">
       <button class="brand" data-v="home" aria-label=${t("timirtbet_home")} onClick=${() => go("home")}>
-        <${CapyMark} /><span class="brand-t"><b class="brand-am" lang="am">ትምህርት ቤት</b><span class="brand-en">Timirtbet</span></span></button>
+        <${CapyMark} /><b class="brand-am" lang="am">ትምህርት ቤት</b><i class="brand-dia" aria-hidden="true"></i><span class="brand-en">Timirtbet</span></button>
       <nav class="main" id="nav" aria-label=${t("main_sections")}>
         ${secs.map((s) => html`<button key=${s.v} data-act="view" data-v=${s.v} aria-current=${cur === s.v ? "page" : undefined} onClick=${() => go(s.v)}>
           <${Icon} d=${s.icon} /><span>${s.label}</span>${s.badge > 0 && html` <span class="badge">${s.badge}</span>`}</button>`)}

@@ -808,3 +808,6 @@ footer a:hover{color:var(--accent)}
   .news-cols .news-item{border-top:0;padding:0}
   .ticks{border-top:0}.ticks li{border-bottom:0;padding:6px 0 6px 26px}.ticks li::before{top:6px}
 }
+/* Mid-width screens: the header stays on one line (nav icons go, then padding tightens). */
+@media (min-width:761px) and (max-width:1000px){nav.main button svg{display:none}}
+@media (min-width:761px) and (max-width:880px){nav.main button{padding:8px 8px}.top-in{gap:12px}}

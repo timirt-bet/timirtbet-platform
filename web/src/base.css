@@ -41,10 +41,12 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .top-in{display:flex;align-items:center;gap:18px;padding-block:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0}
 .mark{width:38px;height:38px;flex:none}.mark svg,.capy svg{display:block;width:100%;height:100%}
-/* The name in Amharic first, in a classic Ethiopic hand (Abyssinica SIL); "Timirtbet" small beneath it. */
-.brand-t{display:grid;justify-items:start;line-height:1}
-.brand-am{font-family:"Abyssinica SIL","Noto Serif Ethiopic","Noto Sans Ethiopic",serif;font-size:27px;font-weight:400;color:var(--ink);letter-spacing:.01em;line-height:1.05;-webkit-text-stroke:.45px currentColor}
-.brand-en{margin-top:3px;font:700 10px/1 var(--display);letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+/* The name on one line: ትምህርት ቤት first, in a classic Ethiopic hand (Abyssinica SIL), a small
+   gold tibeb diamond, then TIMIRTBET in spaced capitals. Narrower screens show the Amharic name only. */
+.brand-am{font-family:"Abyssinica SIL","Noto Serif Ethiopic","Noto Sans Ethiopic",serif;font-size:26px;font-weight:400;line-height:1;color:var(--ink);-webkit-text-stroke:.25px currentColor;transform:translateY(1px)}
+.brand-dia{width:6px;height:6px;margin:0 3px;background:var(--sun);transform:rotate(45deg);flex:none}
+.brand-en{font:700 11px/1 var(--display);letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+@media (max-width:1100px){.brand-dia,.brand-en{display:none}}
 nav.main{display:flex;gap:4px;flex:1;min-width:0}
 nav.main button{background:none;border:0;padding:8px 12px;border-radius:8px;color:var(--ink-2);font-weight:500}
 nav.main button[aria-current="page"]{background:var(--surface-2);color:var(--ink)}
