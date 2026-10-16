@@ -1,67 +1,41 @@
 [
   {
-    "id": "university-registration-october-2019-ec",
-    "date": "2026-10-10",
-    "added": "2026-10-12",
+    "id": "special-boarding-entrance-exam-2019-ec",
+    "date": "2026-10-14",
+    "added": "2026-10-16",
+    "topic": "exams",
+    "importance": 4,
+    "title": {
+      "en": "Entrance exam for federal special boarding schools is on 17 October",
+      "am": "የፌዴራል ልዩ አዳሪ ትምህርት ቤቶች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
+    },
+    "summary": {
+      "en": "Students who registered for places at the Ministry's special boarding secondary schools sit the exam on Saturday 17 October from 9:00 a.m., at their nearest online Grade 12 exam centre. Only registered applicants take part; watch the Ministry's channel for any change.",
+      "am": "በሚኒስቴሩ ልዩ አዳሪ ሁለተኛ ደረጃ ትምህርት ቤቶች ለመግባት የተመዘገቡ ተማሪዎች ቅዳሜ ጥቅምት 7 ቀን 2019 ዓ.ም. ከጠዋቱ 3፡00 ጀምሮ በአቅራቢያቸው ባለው የ12ኛ ክፍል የኦንላይን ፈተና ማዕከል ይፈተናሉ። የሚፈተኑት የተመዘገቡ ብቻ ናቸው፤ ለውጥ ካለ የሚኒስቴሩን ቻናል ይከታተሉ።"
+    },
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/federal-special-boarding-entrance-exam-2019-ec"
+    }
+  },
+  {
+    "id": "university-registration-late-october-2019-ec",
+    "date": "2026-10-14",
+    "added": "2026-10-16",
     "topic": "higher-education",
     "importance": 4,
     "title": {
-      "en": "Universities set first-year registration dates for October",
-      "am": "ዩኒቨርሲቲዎች የአንደኛ ዓመት ተማሪዎች ምዝገባ ቀናትን በጥቅምት ወር ወሰኑ"
+      "en": "More universities set first-year registration for late October",
+      "am": "ተጨማሪ ዩኒቨርሲቲዎች የአንደኛ ዓመት ተማሪዎች ምዝገባን በጥቅምት መጨረሻ አደረጉ"
     },
     "summary": {
-      "en": "Students placed by the Ministry should check their university's dates: for example Kotebe on 15-16 October, Mekdela Amba on 19-20 October and Wollo on 24-25 October. Kebri Dehar extended remedial registration to 23 October.",
-      "am": "በሚኒስቴሩ የተመደቡ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ማየት አለባቸው፦ ለምሳሌ ቆቤ ጥቅምት 5-6፣ መቅደላ አምባ ጥቅምት 9-10፣ ወሎ ጥቅምት 14-15። ቀብሪ ደሃር የአቅም ማሻሻያ (ሬሜዲያል) ምዝገባን እስከ ጥቅምት 13 አራዝሟል።"
+      "en": "Placed students should check their university's dates: Mekdela Amba on 19-20 October, Wollo on 24-25 October, Ambo on 26-27 October and Arsi on 29-30 October. Kebri Dehar takes remedial registration until 23 October.",
+      "am": "የተመደቡ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ይመልከቱ፦ መቅደላ አምባ ጥቅምት 9-10፣ ወሎ ጥቅምት 14-15፣ አምቦ ጥቅምት 16-17 እና አርሲ ጥቅምት 19-20። ቀብሪ ደሃር የሬሜዲያል ምዝገባን እስከ ጥቅምት 13 ይቀበላል።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news" }
-  },
-  {
-    "id": "university-placement-2018-ec",
-    "date": "2026-09-16",
-    "added": "2026-10-12",
-    "topic": "higher-education",
-    "importance": 4,
-    "title": {
-      "en": "University placement results released for 2018 E.C. Grade 12 students",
-      "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ተማሪዎች የዩኒቨርሲቲ ምደባ ውጤት ይፋ ሆነ"
-    },
-    "summary": {
-      "en": "Students who passed check their university on the Ministry's portal, student.ethernet.edu.et. Of 550,210 students who sat the exam, 70,544 scored 50 percent or more; remedial placement is announced separately.",
-      "am": "ያለፉ ተማሪዎች ዩኒቨርሲቲያቸውን በሚኒስቴሩ ድረ-ገጽ student.ethernet.edu.et ላይ ማየት ይችላሉ። ፈተና ከወሰዱ 550,210 ተማሪዎች 70,544ቱ 50 በመቶና ከዚያ በላይ አምጥተዋል፤ የሬሜዲያል ምደባ ለብቻው ይገለጻል።"
-    },
-    "source": { "name": "Kulu Media", "url": "https://kulu-media.com/ethiopia-university-placement-results/" }
-  },
-  {
-    "id": "school-year-2019-ec-opens",
-    "date": "2026-09-15",
-    "added": "2026-10-12",
-    "topic": "school-calendar",
-    "importance": 3,
-    "title": {
-      "en": "The 2019 E.C. school year opens for more than 30 million students",
-      "am": "የ2019 ዓ.ም. የትምህርት ዘመን ከ30 ሚሊዮን በላይ ተማሪዎች ተከፈተ"
-    },
-    "summary": {
-      "en": "The Ministry of Education says more than 30 million students are expected in class this year, and schools that had not yet opened would start in the following days. School feeding, which reached about 8.9 million students last year, will expand.",
-      "am": "ትምህርት ሚኒስቴር በዚህ ዓመት ከ30 ሚሊዮን በላይ ተማሪዎች ይጠበቃሉ ብሏል፤ ገና ያልከፈቱ ትምህርት ቤቶች በቀጣዮቹ ቀናት ይጀምራሉ። ባለፈው ዓመት ወደ 8.9 ሚሊዮን ተማሪዎችን የደረሰው የትምህርት ቤት ምገባ ይስፋፋል።"
-    },
-    "source": { "name": "Fana", "url": "https://www.fanamc.com/english/ethiopia-opens-2019-academic-year-as-more-than-30-million-students-prepare-for-school/" }
-  },
-  {
-    "id": "ai-in-core-curriculum",
-    "date": "2026-09-04",
-    "added": "2026-10-12",
-    "topic": "curriculum",
-    "importance": 3,
-    "title": {
-      "en": "Ethiopia prepares to bring artificial intelligence into the core curriculum",
-      "am": "ኢትዮጵያ ሰው ሰራሽ አስተውሎትን (AI) በዋናው ሥርዓተ ትምህርት ውስጥ ለማካተት እየተዘጋጀች ነው"
-    },
-    "summary": {
-      "en": "Schools are adding AI step by step under the Digital Ethiopia 2030 programme, building on the computer labs and internet that secondary schools received under Digital Ethiopia 2025. No grades or dates have been announced yet.",
-      "am": "ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2030 ፕሮግራም AIን በደረጃ እያካተቱ ነው፤ ይህም ሁለተኛ ደረጃ ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2025 ባገኟቸው የኮምፒውተር ቤተ ሙከራዎችና ኢንተርኔት ላይ የተመሠረተ ነው። የክፍል ደረጃዎችና ቀናት ገና አልተገለጹም።"
-    },
-    "source": { "name": "TV BRICS", "url": "https://tvbrics.com/en/news/ethiopia-prepares-to-integrate-artificial-intelligence-into-core-curriculum/" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news"
+    }
   },
   {
     "id": "arsi-students-ai-chatbots-study",
@@ -77,6 +51,104 @@
       "en": "In a survey of 414 undergraduates at Arsi University, about 70 percent had used generative AI for medical self-care. The study covers one university, so it is not a national figure.",
       "am": "በአርሲ ዩኒቨርሲቲ 414 የመጀመሪያ ዲግሪ ተማሪዎች ላይ በተደረገ ጥናት፣ 70 በመቶ ያህሉ ለራስ ሕክምና ጀነሬቲቭ AI ተጠቅመዋል። ጥናቱ አንድ ዩኒቨርሲቲን ብቻ ስለሚሸፍን የሀገር አቀፍ አሃዝ አይደለም።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news/ethiopian-students-ai-chatbot-self-care-study" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/ethiopian-students-ai-chatbot-self-care-study"
+    }
+  },
+  {
+    "id": "gondar-maker-teachers-unesco-prize",
+    "date": "2026-10-08",
+    "added": "2026-10-16",
+    "topic": "teachers",
+    "importance": 2,
+    "title": {
+      "en": "Gondar College of Teachers' Education wins the 2026 UNESCO-Hamdan Prize",
+      "am": "የጎንደር መምህራን ትምህርት ኮሌጅ የ2026 የዩኔስኮ-ሐምዳን ሽልማትን አሸነፈ"
+    },
+    "summary": {
+      "en": "The college's Maker-Teachers initiative, where teacher trainees and local artisans build low-cost learning kits for pre-primary classes, won the US$100,000 teacher development prize. The kits have reached 98 cluster schools and more than 15,000 young learners.",
+      "am": "የመምህራን ሰልጣኞችና የአካባቢ ባለሙያዎች ለቅድመ መደበኛ ክፍሎች በአነስተኛ ወጪ የመማሪያ ቁሳቁሶችን የሚሠሩበት የኮሌጁ «Maker-Teachers» ተነሳሽነት የ100,000 ዶላር የመምህራን ልማት ሽልማት አሸንፏል። ቁሳቁሶቹ 98 የክላስተር ትምህርት ቤቶችንና ከ15,000 በላይ ሕፃናትን ደርሰዋል።"
+    },
+    "source": {
+      "name": "UNESCO",
+      "url": "https://www.unesco.org/en/articles/innovative-teacher-development-initiatives-ethiopia-indonesia-and-turkiye-win-2026-unesco-hamdan"
+    }
+  },
+  {
+    "id": "higher-education-digital-learning-expansion",
+    "date": "2026-10-03",
+    "added": "2026-10-16",
+    "topic": "digital-skills",
+    "importance": 1,
+    "title": {
+      "en": "Ethiopia plans more online, blended and short-course learning in higher education",
+      "am": "ኢትዮጵያ በከፍተኛ ትምህርት የኦንላይን፣ የተቀላቀለና የአጭር ኮርስ ትምህርትን ለማስፋት አቅዳለች"
+    },
+    "summary": {
+      "en": "The Ministry of Education told the STRIDE Ethiopia 2.0 summit that universities will widen online, blended and micro-credential options and build digital literacy for students and teachers. No numbers or dates were given.",
+      "am": "ትምህርት ሚኒስቴር በSTRIDE Ethiopia 2.0 ጉባኤ ላይ ዩኒቨርሲቲዎች የኦንላይን፣ የተቀላቀለና የአጭር ጊዜ ሰርተፊኬት (micro-credential) አማራጮችን እንደሚያሰፉና የተማሪዎችንና የመምህራንን ዲጂታል እውቀት እንደሚያሳድጉ ገልጿል። አሃዞችና ቀናት አልተገለጹም።"
+    },
+    "source": {
+      "name": "University World News",
+      "url": "https://www.universityworldnews.com/post.php?story=20261003105150922"
+    }
+  },
+  {
+    "id": "university-placement-2018-ec",
+    "date": "2026-09-16",
+    "added": "2026-10-12",
+    "topic": "higher-education",
+    "importance": 4,
+    "title": {
+      "en": "University placement results released for 2018 E.C. Grade 12 students",
+      "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ተማሪዎች የዩኒቨርሲቲ ምደባ ውጤት ይፋ ሆነ"
+    },
+    "summary": {
+      "en": "Students who passed check their university on the Ministry's portal, student.ethernet.edu.et. Of 550,210 students who sat the exam, 70,544 scored 50 percent or more; remedial placement is announced separately.",
+      "am": "ያለፉ ተማሪዎች ዩኒቨርሲቲያቸውን በሚኒስቴሩ ድረ-ገጽ student.ethernet.edu.et ላይ ማየት ይችላሉ። ፈተና ከወሰዱ 550,210 ተማሪዎች 70,544ቱ 50 በመቶና ከዚያ በላይ አምጥተዋል፤ የሬሜዲያል ምደባ ለብቻው ይገለጻል።"
+    },
+    "source": {
+      "name": "Kulu Media",
+      "url": "https://kulu-media.com/ethiopia-university-placement-results/"
+    }
+  },
+  {
+    "id": "school-year-2019-ec-opens",
+    "date": "2026-09-15",
+    "added": "2026-10-12",
+    "topic": "school-calendar",
+    "importance": 3,
+    "title": {
+      "en": "The 2019 E.C. school year opens for more than 30 million students",
+      "am": "የ2019 ዓ.ም. የትምህርት ዘመን ከ30 ሚሊዮን በላይ ተማሪዎች ተከፈተ"
+    },
+    "summary": {
+      "en": "The Ministry of Education says more than 30 million students are expected in class this year, and schools that had not yet opened would start in the following days. School feeding, which reached about 8.9 million students last year, will expand.",
+      "am": "ትምህርት ሚኒስቴር በዚህ ዓመት ከ30 ሚሊዮን በላይ ተማሪዎች ይጠበቃሉ ብሏል፤ ገና ያልከፈቱ ትምህርት ቤቶች በቀጣዮቹ ቀናት ይጀምራሉ። ባለፈው ዓመት ወደ 8.9 ሚሊዮን ተማሪዎችን የደረሰው የትምህርት ቤት ምገባ ይስፋፋል።"
+    },
+    "source": {
+      "name": "Fana",
+      "url": "https://www.fanamc.com/english/ethiopia-opens-2019-academic-year-as-more-than-30-million-students-prepare-for-school/"
+    }
+  },
+  {
+    "id": "ai-in-core-curriculum",
+    "date": "2026-09-04",
+    "added": "2026-10-12",
+    "topic": "curriculum",
+    "importance": 3,
+    "title": {
+      "en": "Ethiopia prepares to bring artificial intelligence into the core curriculum",
+      "am": "ኢትዮጵያ ሰው ሰራሽ አስተውሎትን (AI) በዋናው ሥርዓተ ትምህርት ውስጥ ለማካተት እየተዘጋጀች ነው"
+    },
+    "summary": {
+      "en": "Schools are adding AI step by step under the Digital Ethiopia 2030 programme, building on the computer labs and internet that secondary schools received under Digital Ethiopia 2025. No grades or dates have been announced yet.",
+      "am": "ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2030 ፕሮግራም AIን በደረጃ እያካተቱ ነው፤ ይህም ሁለተኛ ደረጃ ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2025 ባገኟቸው የኮምፒውተር ቤተ ሙከራዎችና ኢንተርኔት ላይ የተመሠረተ ነው። የክፍል ደረጃዎችና ቀናት ገና አልተገለጹም።"
+    },
+    "source": {
+      "name": "TV BRICS",
+      "url": "https://tvbrics.com/en/news/ethiopia-prepares-to-integrate-artificial-intelligence-into-core-curriculum/"
+    }
   }
 ]
