@@ -1,5 +1,53 @@
 [
   {
+    "id": "federal-special-boarding-entrance-exam-2019-ec",
+    "date": "2026-10-14",
+    "added": "2026-10-15",
+    "topic": "exams",
+    "importance": 3,
+    "title": {
+      "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
+      "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
+    },
+    "summary": {
+      "en": "Students who registered for the open places sit the exam on Saturday 17 October 2026 at 9:00 a.m. (3:00 local time) at their nearest Grade 12 online exam centre. Those who pass must accept the school they are placed in.",
+      "am": "ለክፍት ቦታዎቹ የተመዘገቡ ተማሪዎች ቅዳሜ ጥቅምት 7 ቀን 2019 ዓ.ም. ከጠዋቱ 3:00 ሰዓት በአቅራቢያቸው ባለ የ12ኛ ክፍል የኦንላይን ፈተና ማዕከል ይፈተናሉ። ያለፉ ተማሪዎች የተመደቡበትን ትምህርት ቤት መቀበል አለባቸው።"
+    },
+    "source": { "name": "Temari", "url": "https://temari.et/news/federal-special-boarding-entrance-exam-2019-ec" }
+  },
+  {
+    "id": "teacher-college-cutoff-points-2019-ec",
+    "date": "2026-10-01",
+    "added": "2026-10-15",
+    "topic": "teachers",
+    "importance": 3,
+    "title": {
+      "en": "Ministry sets entry scores for teacher education colleges for 2019 E.C.",
+      "am": "ሚኒስቴሩ ለ2019 ዓ.ም. የመምህራን ትምህርት ኮሌጆች የመግቢያ ውጤት ወሰነ"
+    },
+    "summary": {
+      "en": "Based on the 2018 E.C. Grade 12 exam, the diploma cut-off is 215 for male and 205 for female candidates, and the certificate cut-off 210 and 195. Some groups have lower marks, down to 150. Ask your regional or city education bureau how to apply.",
+      "am": "በ2018 ዓ.ም. የ12ኛ ክፍል ፈተና መሠረት የዲፕሎማ መቁረጫ ነጥብ ለወንዶች 215 ለሴቶች 205፣ የሰርተፍኬት ደግሞ 210 እና 195 ነው። ለአንዳንድ ቡድኖች እስከ 150 ዝቅ ያለ ነጥብ ተቀምጧል። የማመልከቻውን ሂደት ከክልልዎ ወይም ከከተማዎ ትምህርት ቢሮ ይጠይቁ።"
+    },
+    "source": { "name": "Temari", "url": "https://temari.et/news/teacher-colleges-cutoff-points-2019-ec" }
+  },
+  {
+    "id": "unesco-huawei-open-schools-project-ends",
+    "date": "2026-10-01",
+    "added": "2026-10-15",
+    "topic": "digital-skills",
+    "importance": 2,
+    "title": {
+      "en": "Six-year digital learning pilot in 24 secondary schools comes to a close",
+      "am": "በ24 ሁለተኛ ደረጃ ትምህርት ቤቶች ለስድስት ዓመት የቆየው የዲጂታል ትምህርት ሙከራ ተጠናቀቀ"
+    },
+    "summary": {
+      "en": "The Ministry and UNESCO's Open Schools project reached about 12,000 Grade 9 and 10 students, trained over 350 teachers and produced 150 digital lessons in science and English. The lessons will now be piloted more widely.",
+      "am": "የትምህርት ሚኒስቴርና የዩኔስኮ ፕሮጀክት ወደ 12,000 የሚጠጉ የ9ኛና 10ኛ ክፍል ተማሪዎችን ደርሷል፤ ከ350 በላይ መምህራንን አሰልጥኖ በሳይንስና በእንግሊዝኛ 150 ዲጂታል ትምህርቶችን አዘጋጅቷል። ትምህርቶቹ በቀጣይ በስፋት ይሞከራሉ።"
+    },
+    "source": { "name": "UNESCO", "url": "https://www.unesco.org/en/articles/ethiopia-concludes-unesco-huawei-project-advance-technology-enabled-secondary-education" }
+  },
+  {
     "id": "university-registration-october-2019-ec",
     "date": "2026-10-10",
     "added": "2026-10-12",
