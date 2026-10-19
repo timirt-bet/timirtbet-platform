@@ -1,10 +1,26 @@
 [
   {
+    "id": "gondar-teachers-college-unesco-hamdan-prize",
+    "date": "2026-10-08",
+    "added": "2026-10-19",
+    "topic": "teachers",
+    "importance": 2,
+    "title": {
+      "en": "Gondar teachers' college wins UNESCO-Hamdan prize for locally made learning kits",
+      "am": "የጎንደር መምህራን ትምህርት ኮሌጅ በአካባቢው በተሠሩ የመማሪያ ቁሳቁሶች የዩኔስኮ-ሐምዳን ሽልማት አሸነፈ"
+    },
+    "summary": {
+      "en": "Its Maker-Teachers project has trainee teachers and local artisans build early-learning kits for Amharic literacy and numeracy from local materials. It has reached 98 cluster schools and more than 15,000 pre-primary children; each winner gets US$100,000.",
+      "am": "የኮሌጁ 'Maker-Teachers' ፕሮጀክት ሰልጣኝ መምህራንና የአካባቢ ባለሙያዎች በአካባቢው ቁሳቁስ ለአማርኛ ማንበብና ለሂሳብ የሚያገለግሉ የቅድመ መደበኛ መማሪያ ኪቶችን እንዲሠሩ ያደርጋል። ፕሮጀክቱ 98 የክላስተር ትምህርት ቤቶችንና ከ15,000 በላይ የቅድመ መደበኛ ተማሪዎችን ደርሷል፤ እያንዳንዱ አሸናፊ 100,000 የአሜሪካ ዶላር ያገኛል።"
+    },
+    "source": { "name": "UNESCO", "url": "https://www.unesco.org/en/articles/innovative-teacher-development-initiatives-ethiopia-indonesia-and-turkiye-win-2026-unesco-hamdan" }
+  },
+  {
     "id": "federal-special-boarding-entrance-exam-2019-ec",
     "date": "2026-10-14",
     "added": "2026-10-15",
     "topic": "exams",
-    "importance": 3,
+    "importance": 1,
     "title": {
       "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
       "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
@@ -84,7 +100,7 @@
     "date": "2026-09-16",
     "added": "2026-10-12",
     "topic": "higher-education",
-    "importance": 4,
+    "importance": 3,
     "title": {
       "en": "University placement results released for 2018 E.C. Grade 12 students",
       "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ተማሪዎች የዩኒቨርሲቲ ምደባ ውጤት ይፋ ሆነ"
