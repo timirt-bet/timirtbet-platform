@@ -1,10 +1,26 @@
 [
   {
+    "id": "addis-ababa-tvet-registration-2019-ec",
+    "date": "2026-10-19",
+    "added": "2026-10-20",
+    "topic": "programs",
+    "importance": 3,
+    "title": {
+      "en": "Addis Ababa government TVET colleges register Grade 12 exam takers until 7 November",
+      "am": "የአዲስ አበባ የመንግሥት ቴክኒክና ሙያ ኮሌጆች የ12ኛ ክፍል ተፈታኞችን እስከ ጥቅምት 28 ይመዘግባሉ"
+    },
+    "summary": {
+      "en": "People who sat the 2018 E.C. Grade 12 exam, and earlier Grade 12 finishers who have not entered training, can register in person at 14 government TVET colleges in Addis Ababa from 16 October to 7 November 2026. Fields include technology, manufacturing, construction, service and handicraft.",
+      "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ብሔራዊ ፈተና የወሰዱና ቀደም ብለው 12ኛ ክፍል አጠናቀው ወደ ስልጠና ያልገቡ ሰዎች ከጥቅምት 6 እስከ 28 ቀን 2019 ዓ.ም. በአዲስ አበባ በሚገኙ 14 የመንግሥት ቴክኒክና ሙያ ኮሌጆች በአካል መመዝገብ ይችላሉ። የስልጠና ዘርፎቹ ቴክኖሎጂ፣ ማኑፋክቸሪንግ፣ ኮንስትራክሽን፣ አገልግሎትና የእጅ ሥራ ናቸው።"
+    },
+    "source": { "name": "Temari", "url": "https://temari.et/news/addis-ababa-tvet-registration-2019-ec" }
+  },
+  {
     "id": "federal-special-boarding-entrance-exam-2019-ec",
     "date": "2026-10-14",
     "added": "2026-10-15",
     "topic": "exams",
-    "importance": 3,
+    "importance": 2,
     "title": {
       "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
       "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
@@ -58,8 +74,8 @@
       "am": "ዩኒቨርሲቲዎች የአንደኛ ዓመት ተማሪዎች ምዝገባ ቀናትን ለጥቅምት ወር መጨረሻ አስቀመጡ"
     },
     "summary": {
-      "en": "Placed first-year students and remedial passers should check their university's dates: for example Mekdela Amba on 19-20 October, Samara on 22-23 October, Wollo on 24-25 October, Ambo on 26-27 October and Arsi on 29-30 October. Kebri Dehar moved remedial registration to 22-23 October.",
-      "am": "የተመደቡ የአንደኛ ዓመት ተማሪዎችና ሬሜዲያል ያለፉ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ማየት አለባቸው፦ ለምሳሌ መቅደላ አምባ ጥቅምት 9-10፣ ሰመራ ጥቅምት 12-13፣ ወሎ ጥቅምት 14-15፣ አምቦ ጥቅምት 16-17፣ አርሲ ጥቅምት 19-20። ቀብሪ ደሃር የሬሜዲያል ምዝገባን ወደ ጥቅምት 12-13 አዛውሯል።"
+      "en": "Placed first-year students and remedial passers should check their university's dates: for example Samara on 22-23 October, Wollo on 24-25 October, Ambo and Debre Markos on 26-27 October and Arsi on 29-30 October. Kebri Dehar moved remedial registration to 22-23 October.",
+      "am": "የተመደቡ የአንደኛ ዓመት ተማሪዎችና ሬሜዲያል ያለፉ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ማየት አለባቸው፦ ለምሳሌ ሰመራ ጥቅምት 12-13፣ ወሎ ጥቅምት 14-15፣ አምቦና ደብረ ማርቆስ ጥቅምት 16-17፣ አርሲ ጥቅምት 19-20። ቀብሪ ደሃር የሬሜዲያል ምዝገባን ወደ ጥቅምት 12-13 አዛውሯል።"
     },
     "source": { "name": "Temari", "url": "https://temari.et/news" }
   },
