@@ -1,10 +1,26 @@
 [
   {
+    "id": "ai-digital-skills-private-investment",
+    "date": "2026-10-19",
+    "added": "2026-10-21",
+    "topic": "digital-skills",
+    "importance": 2,
+    "title": {
+      "en": "Ethiopia invites private investment in AI and digital skills training, with AI tutor pilots in secondary schools",
+      "am": "ኢትዮጵያ ለAIና ዲጂታል ክህሎት ሥልጠና የግል ኢንቨስትመንት ትጋብዛለች፤ በሁለተኛ ደረጃ ትምህርት ቤቶች የAI አስጠኚ ሙከራ ይካሄዳል"
+    },
+    "summary": {
+      "en": "At a World Bank meeting on skills, Ethiopia said it wants private funding for AI, digital and job-focused training. Pilots will bring AI tutors and coaches into secondary schools, but no schools, dates or amounts have been announced.",
+      "am": "በዓለም ባንክ የክህሎት ስብሰባ ላይ ኢትዮጵያ ለAI፣ ለዲጂታልና ከሥራ ጋር ለተያያዘ ሥልጠና የግል ፋይናንስ እንደምትፈልግ ገልጻለች። በሁለተኛ ደረጃ ትምህርት ቤቶች የAI አስጠኚና አማካሪ መሣሪያዎች በሙከራ ይገባሉ፤ ሆኖም ትምህርት ቤቶች፣ ቀናትና የገንዘብ መጠን ገና አልተገለጹም።"
+    },
+    "source": { "name": "ENA", "url": "https://www.ena.et/web/eng/w/eng_9775220" }
+  },
+  {
     "id": "federal-special-boarding-entrance-exam-2019-ec",
     "date": "2026-10-14",
     "added": "2026-10-15",
     "topic": "exams",
-    "importance": 3,
+    "importance": 1,
     "title": {
       "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
       "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
