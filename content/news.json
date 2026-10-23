@@ -1,10 +1,105 @@
 [
   {
+    "id": "debre-markos-registration-2019-ec",
+    "date": "2026-10-19",
+    "added": "2026-10-23",
+    "topic": "higher-education",
+    "importance": 3,
+    "title": {
+      "en": "Debre Markos University registers new first-years on 26 and 27 October",
+      "am": "ደብረ ማርቆስ ዩኒቨርሲቲ አዲስ የአንደኛ ዓመት ተማሪዎችን ጥቅምት 16 እና 17 ይመዘግባል"
+    },
+    "summary": {
+      "en": "First-years placed at Debre Markos and students who passed the 2018 E.C. remedial course register on 26-27 October 2026; remedial passers go to the Burie campus. Bring your Grade 8 and 12 certificates, Grade 9-12 transcripts and four photos. Newly placed remedial students get a date later.",
+      "am": "በደብረ ማርቆስ የተመደቡ የአንደኛ ዓመት ተማሪዎችና የ2018 ዓ.ም. ሬሜዲያል ያለፉ ተማሪዎች ጥቅምት 16 እና 17 ቀን 2019 ዓ.ም. ይመዘገባሉ፤ ሬሜዲያል ያለፉት በቡሬ ካምፓስ ይመዘገባሉ። የ8ኛና 12ኛ ክፍል ሰርተፍኬት፣ ከ9-12 ትራንስክሪፕትና አራት ፎቶ ይያዙ። አዲስ የተመደቡ የሬሜዲያል ተማሪዎች ቀን በኋላ ይገለጻል።"
+    },
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/debre-markos-registration-2019"
+    }
+  },
+  {
+    "id": "woldia-remedial-registration-2019-ec",
+    "date": "2026-10-22",
+    "added": "2026-10-23",
+    "topic": "higher-education",
+    "importance": 3,
+    "title": {
+      "en": "Woldia University registers newly placed remedial students on 2 and 3 November",
+      "am": "ወልድያ ዩኒቨርሲቲ አዲስ የተመደቡ የሬሜዲያል ተማሪዎችን ጥቅምት 23 እና 24 ይመዘግባል"
+    },
+    "summary": {
+      "en": "Remedial students placed at Woldia for 2019 E.C. register on 2-3 November 2026. Bring originals and copies of your Grade 8 and Grade 12 certificates and Grade 9-12 transcripts, two photos, your national ID, bedding and sports clothes.",
+      "am": "ለ2019 ዓ.ም. በወልድያ የተመደቡ የሬሜዲያል ተማሪዎች ጥቅምት 23 እና 24 ቀን 2019 ዓ.ም. ይመዘገባሉ። የ8ኛና 12ኛ ክፍል ሰርተፍኬትና ከ9-12 ትራንስክሪፕት ዋናውንና ኮፒውን፣ ሁለት ፎቶ፣ ብሔራዊ መታወቂያ፣ የአልጋ ልብስና የስፖርት ልብስ ይያዙ።"
+    },
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/woldia-university-remedial-registration-2019-ec"
+    }
+  },
+  {
+    "id": "haramaya-remedial-moved-oda-bultum-2019-ec",
+    "date": "2026-10-21",
+    "added": "2026-10-23",
+    "topic": "higher-education",
+    "importance": 3,
+    "title": {
+      "en": "Haramaya's 2019 E.C. remedial students are moved to Oda Bultum University",
+      "am": "የሐረማያ የ2019 ዓ.ም. የሬሜዲያል ተማሪዎች ወደ ኦዳ ቡልቱም ዩኒቨርሲቲ ተዛወሩ"
+    },
+    "summary": {
+      "en": "The Ministry reassigned students placed in Haramaya's remedial programme because many regular first-years were placed there. They will report to Oda Bultum's main campus in Chiro; no date is set yet, so wait for the university's call before travelling.",
+      "am": "ብዙ መደበኛ የአንደኛ ዓመት ተማሪዎች በሐረማያ በመመደባቸው ሚኒስቴሩ የሬሜዲያል ተማሪዎቹን አዛውሯል። ተማሪዎቹ ጭሮ በሚገኘው የኦዳ ቡልቱም ዋና ካምፓስ ይገባሉ፤ ቀኑ ገና ስላልተወሰነ ከመጓዝዎ በፊት የዩኒቨርሲቲውን ጥሪ ይጠብቁ።"
+    },
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/haramaya-remedial-students-oda-bultum-2019-ec"
+    }
+  },
+  {
+    "id": "cybersecurity-month-2026",
+    "date": "2026-10-09",
+    "added": "2026-10-23",
+    "topic": "digital-skills",
+    "importance": 2,
+    "title": {
+      "en": "National Cybersecurity Month runs to 9 November with a focus on keeping children safe online",
+      "am": "ብሔራዊ የሳይበር ደህንነት ወር እስከ ጥቅምት 30 ይቆያል፤ ትኩረቱ የሕፃናት የኦንላይን ደህንነት ነው"
+    },
+    "summary": {
+      "en": "INSA's seventh Cybersecurity Month, from 11 October to 9 November 2026, aims to teach families and young people about online risks, with youth competitions and forums on AI and security. Entry details for the competitions have not been published yet.",
+      "am": "የኢንሳ ሰባተኛው የሳይበር ደህንነት ወር ከጥቅምት 1 እስከ 30 ቀን 2019 ዓ.ም. ቤተሰቦችንና ወጣቶችን ስለ ኢንተርኔት አደጋዎች ያስተምራል፤ የወጣቶች ውድድሮችና ስለ AI እና ደህንነት ውይይቶችም ይኖራሉ። የውድድሮቹ የተሳትፎ ዝርዝር ገና አልወጣም።"
+    },
+    "source": {
+      "name": "ENA",
+      "url": "https://www.ena.et/web/eng/w/eng_9716829"
+    }
+  },
+  {
+    "id": "ai-tutor-pilots-private-funding",
+    "date": "2026-10-19",
+    "added": "2026-10-23",
+    "topic": "digital-skills",
+    "importance": 1,
+    "title": {
+      "en": "Ethiopia invites private investment in AI and digital skills, with AI tutor pilots planned for secondary schools",
+      "am": "ኢትዮጵያ ለAI እና ዲጂታል ክህሎት የግል ኢንቨስትመንት ጋበዘች፤ በሁለተኛ ደረጃ ትምህርት ቤቶች የAI አስጠኚ ሙከራ ታቅዷል"
+    },
+    "summary": {
+      "en": "At a World Bank human capital meeting, the government asked private investors to help fund AI and digital skills training. Plans include AI Coach and AI Tutor pilots in secondary schools and a skills-for-jobs platform for TVET; no schools, amounts or dates were given.",
+      "am": "በዓለም ባንክ የሰው ሀብት ስብሰባ ላይ መንግሥት የግል ባለሀብቶች የAI እና ዲጂታል ክህሎት ሥልጠናን በገንዘብ እንዲደግፉ ጠይቋል። ዕቅዱ በሁለተኛ ደረጃ ትምህርት ቤቶች የAI Coach እና AI Tutor ሙከራዎችንና ለቴክኒክና ሙያ ተቋማት የሥራ ክህሎት መድረክን ያካትታል፤ ትምህርት ቤቶች፣ መጠንና ቀን አልተገለጹም።"
+    },
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/ethiopia-private-capital-ai-digital-skills-2019"
+    }
+  },
+  {
     "id": "federal-special-boarding-entrance-exam-2019-ec",
     "date": "2026-10-14",
     "added": "2026-10-15",
     "topic": "exams",
-    "importance": 3,
+    "importance": 1,
     "title": {
       "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
       "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
@@ -13,7 +108,10 @@
       "en": "Students who registered for the open places sit the exam on Saturday 17 October 2026 at 9:00 a.m. (3:00 local time) at their nearest Grade 12 online exam centre. Those who pass must accept the school they are placed in.",
       "am": "ለክፍት ቦታዎቹ የተመዘገቡ ተማሪዎች ቅዳሜ ጥቅምት 7 ቀን 2019 ዓ.ም. ከጠዋቱ 3:00 ሰዓት በአቅራቢያቸው ባለ የ12ኛ ክፍል የኦንላይን ፈተና ማዕከል ይፈተናሉ። ያለፉ ተማሪዎች የተመደቡበትን ትምህርት ቤት መቀበል አለባቸው።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news/federal-special-boarding-entrance-exam-2019-ec" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/federal-special-boarding-entrance-exam-2019-ec"
+    }
   },
   {
     "id": "teacher-college-cutoff-points-2019-ec",
@@ -29,7 +127,10 @@
       "en": "Based on the 2018 E.C. Grade 12 exam, the diploma cut-off is 215 for male and 205 for female candidates, and the certificate cut-off 210 and 195. Some groups have lower marks, down to 150. Ask your regional or city education bureau how to apply.",
       "am": "በ2018 ዓ.ም. የ12ኛ ክፍል ፈተና መሠረት የዲፕሎማ መቁረጫ ነጥብ ለወንዶች 215 ለሴቶች 205፣ የሰርተፍኬት ደግሞ 210 እና 195 ነው። ለአንዳንድ ቡድኖች እስከ 150 ዝቅ ያለ ነጥብ ተቀምጧል። የማመልከቻውን ሂደት ከክልልዎ ወይም ከከተማዎ ትምህርት ቢሮ ይጠይቁ።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news/teacher-colleges-cutoff-points-2019-ec" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/teacher-colleges-cutoff-points-2019-ec"
+    }
   },
   {
     "id": "unesco-huawei-open-schools-project-ends",
@@ -45,7 +146,10 @@
       "en": "The Ministry and UNESCO's Open Schools project reached about 12,000 Grade 9 and 10 students, trained over 350 teachers and produced 150 digital lessons in science and English. The lessons will now be piloted more widely.",
       "am": "የትምህርት ሚኒስቴርና የዩኔስኮ ፕሮጀክት ወደ 12,000 የሚጠጉ የ9ኛና 10ኛ ክፍል ተማሪዎችን ደርሷል፤ ከ350 በላይ መምህራንን አሰልጥኖ በሳይንስና በእንግሊዝኛ 150 ዲጂታል ትምህርቶችን አዘጋጅቷል። ትምህርቶቹ በቀጣይ በስፋት ይሞከራሉ።"
     },
-    "source": { "name": "UNESCO", "url": "https://www.unesco.org/en/articles/ethiopia-concludes-unesco-huawei-project-advance-technology-enabled-secondary-education" }
+    "source": {
+      "name": "UNESCO",
+      "url": "https://www.unesco.org/en/articles/ethiopia-concludes-unesco-huawei-project-advance-technology-enabled-secondary-education"
+    }
   },
   {
     "id": "university-registration-october-2019-ec",
@@ -61,7 +165,10 @@
       "en": "Placed first-year students and remedial passers should check their university's dates: for example Mekdela Amba on 19-20 October, Samara on 22-23 October, Wollo on 24-25 October, Ambo on 26-27 October and Arsi on 29-30 October. Kebri Dehar moved remedial registration to 22-23 October.",
       "am": "የተመደቡ የአንደኛ ዓመት ተማሪዎችና ሬሜዲያል ያለፉ ተማሪዎች የዩኒቨርሲቲያቸውን የምዝገባ ቀን ማየት አለባቸው፦ ለምሳሌ መቅደላ አምባ ጥቅምት 9-10፣ ሰመራ ጥቅምት 12-13፣ ወሎ ጥቅምት 14-15፣ አምቦ ጥቅምት 16-17፣ አርሲ ጥቅምት 19-20። ቀብሪ ደሃር የሬሜዲያል ምዝገባን ወደ ጥቅምት 12-13 አዛውሯል።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news"
+    }
   },
   {
     "id": "block-grant-autonomous-universities",
@@ -77,7 +184,10 @@
       "en": "Under Regulation No. 594/2018, each autonomous university gets one yearly block grant based on factors such as student numbers and research output, and the support is meant to shrink over time. The reports do not mention any change to student fees.",
       "am": "በደንብ ቁጥር 594/2018 መሠረት እያንዳንዱ ራስ ገዝ ዩኒቨርሲቲ እንደ ተማሪ ብዛትና የምርምር ውጤት ባሉ መስፈርቶች የሚወሰን ዓመታዊ የተጠቃለለ በጀት (ብሎክ ግራንት) ያገኛል፤ ድጋፉም ከጊዜ ወደ ጊዜ እንዲቀንስ ታስቧል። ዘገባዎቹ በተማሪዎች ክፍያ ላይ ስለሚደረግ ለውጥ አይጠቅሱም።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news/block-grant-autonomous-universities-2019" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/block-grant-autonomous-universities-2019"
+    }
   },
   {
     "id": "university-placement-2018-ec",
@@ -93,7 +203,10 @@
       "en": "Students who passed check their university on the Ministry's portal, student.ethernet.edu.et. Of 550,210 students who sat the exam, 70,544 scored 50 percent or more; remedial placement is announced separately.",
       "am": "ያለፉ ተማሪዎች ዩኒቨርሲቲያቸውን በሚኒስቴሩ ድረ-ገጽ student.ethernet.edu.et ላይ ማየት ይችላሉ። ፈተና ከወሰዱ 550,210 ተማሪዎች 70,544ቱ 50 በመቶና ከዚያ በላይ አምጥተዋል፤ የሬሜዲያል ምደባ ለብቻው ይገለጻል።"
     },
-    "source": { "name": "Kulu Media", "url": "https://kulu-media.com/ethiopia-university-placement-results/" }
+    "source": {
+      "name": "Kulu Media",
+      "url": "https://kulu-media.com/ethiopia-university-placement-results/"
+    }
   },
   {
     "id": "school-year-2019-ec-opens",
@@ -109,7 +222,10 @@
       "en": "The Ministry of Education says more than 30 million students are expected in class this year, and schools that had not yet opened would start in the following days. School feeding, which reached about 8.9 million students last year, will expand.",
       "am": "ትምህርት ሚኒስቴር በዚህ ዓመት ከ30 ሚሊዮን በላይ ተማሪዎች ይጠበቃሉ ብሏል፤ ገና ያልከፈቱ ትምህርት ቤቶች በቀጣዮቹ ቀናት ይጀምራሉ። ባለፈው ዓመት ወደ 8.9 ሚሊዮን ተማሪዎችን የደረሰው የትምህርት ቤት ምገባ ይስፋፋል።"
     },
-    "source": { "name": "Fana", "url": "https://www.fanamc.com/english/ethiopia-opens-2019-academic-year-as-more-than-30-million-students-prepare-for-school/" }
+    "source": {
+      "name": "Fana",
+      "url": "https://www.fanamc.com/english/ethiopia-opens-2019-academic-year-as-more-than-30-million-students-prepare-for-school/"
+    }
   },
   {
     "id": "ai-in-core-curriculum",
@@ -125,7 +241,10 @@
       "en": "Schools are adding AI step by step under the Digital Ethiopia 2030 programme, building on the computer labs and internet that secondary schools received under Digital Ethiopia 2025. No grades or dates have been announced yet.",
       "am": "ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2030 ፕሮግራም AIን በደረጃ እያካተቱ ነው፤ ይህም ሁለተኛ ደረጃ ትምህርት ቤቶች በዲጂታል ኢትዮጵያ 2025 ባገኟቸው የኮምፒውተር ቤተ ሙከራዎችና ኢንተርኔት ላይ የተመሠረተ ነው። የክፍል ደረጃዎችና ቀናት ገና አልተገለጹም።"
     },
-    "source": { "name": "TV BRICS", "url": "https://tvbrics.com/en/news/ethiopia-prepares-to-integrate-artificial-intelligence-into-core-curriculum/" }
+    "source": {
+      "name": "TV BRICS",
+      "url": "https://tvbrics.com/en/news/ethiopia-prepares-to-integrate-artificial-intelligence-into-core-curriculum/"
+    }
   },
   {
     "id": "arsi-students-ai-chatbots-study",
@@ -141,6 +260,9 @@
       "en": "In a survey of 414 undergraduates at Arsi University, about 70 percent had used generative AI for medical self-care. The study covers one university, so it is not a national figure.",
       "am": "በአርሲ ዩኒቨርሲቲ 414 የመጀመሪያ ዲግሪ ተማሪዎች ላይ በተደረገ ጥናት፣ 70 በመቶ ያህሉ ለራስ ሕክምና ጀነሬቲቭ AI ተጠቅመዋል። ጥናቱ አንድ ዩኒቨርሲቲን ብቻ ስለሚሸፍን የሀገር አቀፍ አሃዝ አይደለም።"
     },
-    "source": { "name": "Temari", "url": "https://temari.et/news/ethiopian-students-ai-chatbot-self-care-study" }
+    "source": {
+      "name": "Temari",
+      "url": "https://temari.et/news/ethiopian-students-ai-chatbot-self-care-study"
+    }
   }
 ]
