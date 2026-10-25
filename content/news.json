@@ -1,10 +1,26 @@
 [
   {
+    "id": "ai-tutor-pilots-secondary-schools",
+    "date": "2026-10-19",
+    "added": "2026-10-25",
+    "topic": "digital-skills",
+    "importance": 1,
+    "title": {
+      "en": "Ethiopia is piloting AI tutors in secondary schools and an AI skills platform for TVET colleges",
+      "am": "ኢትዮጵያ በሁለተኛ ደረጃ ትምህርት ቤቶች የAI አስጠኚዎችን፣ ለቴክኒክና ሙያ ኮሌጆች ደግሞ የAI የክህሎት መድረክን እየሞከረች ነው"
+    },
+    "summary": {
+      "en": "At a World Bank meeting on funding skills, the National Bank governor said AI Coach and AI Tutor pilots are running in some secondary schools, and a skills-for-jobs platform for TVET colleges is being built with the World Bank. No schools, numbers or dates were given.",
+      "am": "ክህሎትን በገንዘብ መደገፍ ላይ በተካሄደ የዓለም ባንክ ስብሰባ የብሔራዊ ባንክ ገዥው በአንዳንድ ሁለተኛ ደረጃ ትምህርት ቤቶች የAI አሰልጣኝና የAI አስጠኚ ሙከራዎች እየተካሄዱ መሆኑን፣ ለቴክኒክና ሙያ ኮሌጆችም ከዓለም ባንክ ጋር የሥራ ክህሎት መድረክ እየተዘጋጀ መሆኑን ገልጸዋል። ትምህርት ቤቶቹ፣ ቁጥሮችና ቀናት አልተገለጹም።"
+    },
+    "source": { "name": "ENA", "url": "https://www.ena.et/web/eng/w/eng_9775220" }
+  },
+  {
     "id": "federal-special-boarding-entrance-exam-2019-ec",
     "date": "2026-10-14",
     "added": "2026-10-15",
     "topic": "exams",
-    "importance": 3,
+    "importance": 1,
     "title": {
       "en": "Entrance exam for open places at federal special boarding schools is on 17 October",
       "am": "ለፌዴራል ልዩ አዳሪ ትምህርት ቤቶች ክፍት ቦታዎች የመግቢያ ፈተና ጥቅምት 7 ይሰጣል"
@@ -84,7 +100,7 @@
     "date": "2026-09-16",
     "added": "2026-10-12",
     "topic": "higher-education",
-    "importance": 4,
+    "importance": 3,
     "title": {
       "en": "University placement results released for 2018 E.C. Grade 12 students",
       "am": "የ2018 ዓ.ም. የ12ኛ ክፍል ተማሪዎች የዩኒቨርሲቲ ምደባ ውጤት ይፋ ሆነ"
